@@ -1,0 +1,29 @@
+<!doctype html>
+<!-- Página de error de Spring Boot (/error). Independiente del layout, para que se muestre aunque falle el modelo. -->
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/svg+xml" href="/img/favicon.svg" th:href="@{/img/favicon.svg}">
+  <title>No se pudo completar</title>
+  <link rel="stylesheet" th:href="@{/css/base/base.css}">
+  <link rel="stylesheet" th:href="@{/css/base/ajustes.css}">
+  <link rel="stylesheet" th:href="@{/css/componentes/pantalla.css}">
+  <link rel="stylesheet" th:href="@{/css/tokens/tokens.css}">
+  <link rel="stylesheet" th:href="@{/css/tema/tema.css}">
+</head>
+<body>
+<div class="gx-pantalla gx-pantalla--angosta">
+  <section class="gx-panel">
+    <h2 class="gx-panel__titulo" th:text="${status} == 404 ? 'Página no encontrada' : 'No se pudo completar'">No se pudo completar</h2>
+    <div class="gx-panel__cuerpo">
+      <p class="gx-aviso gx-aviso--error" th:text="${status} == 404 ? 'La dirección no existe.' : 'Ocurrió un error inesperado. Intente nuevamente.'">Ocurrió un error inesperado.</p>
+      <p class="gx-panel__nota" th:if="${status != null}" th:text="'Código: ' + ${status}">Código: 500</p>
+      <div class="gx-acciones-pie">
+        <a class="gx-btn" th:href="@{/}">Volver al inicio</a>
+      </div>
+    </div>
+  </section>
+</div>
+</body>
+</html>

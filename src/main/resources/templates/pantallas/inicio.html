@@ -1,0 +1,12 @@
+<!doctype html>
+<!-- Pantalla de inicio: vacía, lista para el contenido del nuevo sistema. -->
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/layout :: layout(~{::title}, ~{::#contenido}, ~{::estilos})}">
+<head>
+  <title>Inicio</title>
+  <th:block th:fragment="estilos"></th:block>
+</head>
+<body>
+<div id="contenido" class="gx-pantalla"></div>
+</body>
+</html>

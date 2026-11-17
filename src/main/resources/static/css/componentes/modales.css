@@ -1,0 +1,52 @@
+/* Modales (ventanas emergentes) y sus botones. Se abren con data-abrir-modal="id" y se cierran con
+   data-cerrar-modal o Escape (componentes.js): van al <body>, llevan la X arriba a la derecha y se mueven arrastrando. */
+
+.app-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  border: 1px solid var(--ui-btn-border); background: var(--ui-btn-bg); color: var(--ui-btn-text);
+  border-radius: 8px; padding: 7px 12px; font-size: 0.78rem; font-weight: 600; cursor: pointer;
+}
+.app-btn:hover:not(:disabled) { background: var(--ui-btn-hover-bg); }
+.app-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.app-btn--primary { background: var(--brand-primary); border-color: var(--brand-primary); color: #fff; }
+.app-btn--primary:hover:not(:disabled) { filter: brightness(1.1); background: var(--brand-primary); }
+.app-btn--danger { color: #dc2626; border-color: rgba(220, 38, 38, 0.4); }
+
+.app-modal-overlay { position: fixed; inset: 0; z-index: 60; background: rgba(0,0,0,0.45); display: flex; align-items: center; justify-content: center; padding: 16px; }
+.app-modal { background: var(--ui-card-bg); border: 1px solid var(--ui-card-border); border-radius: 12px; padding: 18px 20px; max-width: 712px; width: 100%; }
+.app-modal--editor { max-width: 1172px; max-height: 92vh; overflow-y: auto; position: relative; }
+.app-modal h3 { margin: 0 0 10px; font-size: 0.95rem; color: var(--ui-text); }
+.app-modal-acciones { display: flex; gap: 8px; justify-content: flex-end; margin-top: 6px; }
+
+/* Por encima del menú lateral. */
+.app-modal-overlay[data-modal] { z-index: 1000; }
+
+/* Desplazables dentro de la ventana y con la X arriba a la derecha (componentes.js). */
+.app-modal-overlay[data-modal] { overflow-y: auto; align-items: flex-start; }
+.app-modal-overlay[data-modal] .app-modal { position: relative; max-height: calc(100vh - 32px); overflow-y: auto; margin: auto 0; }
+.app-modal__cerrar {
+  position: absolute; top: 6px; right: 8px; z-index: 3;
+  width: 30px; height: 30px; border: 0; border-radius: 6px; background: transparent;
+  font-size: 22px; line-height: 1; color: var(--ui-text, #333); cursor: pointer;
+}
+.app-modal__cerrar:hover { background: rgba(0, 0, 0, 0.08); }
+.app-modal-overlay[data-modal] .app-modal { padding-top: 40px; }
+.app-modal__asa { cursor: move; user-select: none; }
+/* Todo el popup se arrastra desde sus zonas libres; los controles y las grillas conservan su cursor. */
+.app-modal--movible { cursor: move; }
+.app-modal--movible :is(tbody, tfoot, .gx-paginacion, label, input, select, textarea) { cursor: auto; }
+.app-modal--movible :is(button, a) { cursor: pointer; }
+body.arrastrando-modal { user-select: none; cursor: move; }
+
+/* La x de los popups va en su propia franja, arriba del panel, sobre fondo blanco. */
+/* La X de los popups: un botón redondo y sin borde, gris suave, centrado en la franja superior; al pasar el mouse se
+   tiñe de rojo (cerrar). */
+.app-modal-overlay .app-modal .app-modal__cerrar {
+  top: 7px; right: 10px; width: 30px; height: 30px; padding: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 0; border-radius: 50%; background: transparent; box-shadow: none;
+  color: #6b7280; cursor: pointer; transition: background-color .15s, color .15s;
+}
+.app-modal-overlay .app-modal .app-modal__cerrar svg { stroke-width: 2.25; }
+.app-modal-overlay .app-modal .app-modal__cerrar:hover { background: #fdecea; color: #b42318; }
+.app-modal-overlay .app-modal .app-modal__cerrar:focus-visible { outline: 2px solid var(--wwp-base, #001A81); outline-offset: 2px; }

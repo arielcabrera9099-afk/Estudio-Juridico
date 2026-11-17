@@ -1,0 +1,42 @@
+<!doctype html>
+<!-- Fragmentos de componentes reutilizables. Uso: <th:block th:replace="~{componentes/componentes :: badge('Activo', 'green')}"/> -->
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- Ícono del sprite: ~{componentes/componentes :: icono('search', 18)} -->
+<svg th:fragment="icono(nombre, tam)" class="lucide" th:classappend="'lucide-' + ${nombre}"
+     th:attr="width=${tam},height=${tam}" aria-hidden="true"><use th:attr="href='#i-' + ${nombre}"/></svg>
+
+<!-- Etiqueta de estado: tono blue | green | yellow | red | gray -->
+<span th:fragment="badge(texto, tono)" class="suite-badge" th:classappend="'suite-badge--' + ${tono}"
+      th:text="${texto}">Estado</span>
+
+<!-- Tarjeta de indicador (KPI): tono blue | green | yellow | red | gray; icono = id del sprite sin "i-" -->
+<article th:fragment="kpi(etiqueta, valor, desc, tono, icono)" class="suite-kpi" th:classappend="'suite-kpi--' + ${tono}">
+  <div class="suite-kpi__icon"><svg class="lucide" width="17" height="17"><use th:attr="href='#i-' + ${icono}"/></svg></div>
+  <div class="suite-kpi__body">
+    <span class="suite-kpi__label" th:text="${etiqueta}">Etiqueta</span>
+    <!-- Valores de más de 10 caracteres van con la variante larga. -->
+    <strong class="suite-kpi__value" th:classappend="${#strings.length(valor) > 10} ? 'suite-kpi__value--long'" th:text="${valor}">0</strong>
+    <small class="suite-kpi__desc" th:if="${desc != null}" th:text="${desc}">Descripción</small>
+  </div>
+</article>
+
+<!-- Tarjeta de indicador con clic (role=button): navega a data-href (shell.js) -->
+<article th:fragment="kpiLink(etiqueta, valor, desc, tono, icono, href, titulo)" class="suite-kpi" th:classappend="'suite-kpi--' + ${tono}"
+         role="button" tabindex="0" style="cursor: pointer" th:attr="data-href=${href},title=${titulo}">
+  <div class="suite-kpi__icon"><svg class="lucide" width="17" height="17"><use th:attr="href='#i-' + ${icono}"/></svg></div>
+  <div class="suite-kpi__body">
+    <span class="suite-kpi__label" th:text="${etiqueta}">Etiqueta</span>
+    <strong class="suite-kpi__value" th:classappend="${#strings.length(valor) > 10} ? 'suite-kpi__value--long'" th:text="${valor}">0</strong>
+    <small class="suite-kpi__desc" th:if="${desc != null}" th:text="${desc}">Descripción</small>
+  </div>
+</article>
+
+<!-- Indicador de carga compacto -->
+<div th:fragment="loader(texto)" class="app-loader app-loader--compacto" role="status">
+  <div class="app-loader__texto"><span th:text="${texto}">Cargando</span><span class="app-loader__puntos"><i>.</i><i>.</i><i>.</i></span></div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,20 @@
+/* Ajustes globales: lo que la base necesita para el render del servidor. */
+
+/* El atributo hidden tiene que ganarle a cualquier display de las hojas de estilo. */
+[hidden] { display: none !important; }
+
+/* Íconos del sprite (templates/componentes/iconos.html): trazo con el color del texto. */
+svg.lucide {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex-shrink: 0;
+}
+
+/* Un formulario que solo envuelve un botón (por ejemplo, Cerrar sesión por POST) no altera el layout. */
+.admin-logout-form { margin: 0; display: contents; }
+
+/* Acciones que todavía no se pueden usar (componentes.js avisa el motivo al tocarlas). */
+[data-solo-lectura] { opacity: .55; cursor: not-allowed; }

@@ -1,0 +1,77 @@
+<!doctype html>
+<!--
+  Pantalla de acceso: plantilla visual SIN autenticación. Tarjeta centrada con el logo (app.logo), "Acceso al
+  Sistema", Usuario y Contraseña (con el botón para verla) e "Iniciar sesión". El formulario no envía a ningún lado:
+  al conectar una autenticación real, poner th:action="@{/login}" method="post" y quitar el script de demostración.
+-->
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/svg+xml" href="/img/favicon.svg" th:href="@{/img/favicon.svg}">
+  <title>Acceso</title>
+  <link rel="stylesheet" th:href="@{/css/base/base.css}">
+  <link rel="stylesheet" th:href="@{/css/base/ajustes.css}">
+  <link rel="stylesheet" th:href="@{/css/tokens/tokens.css}">
+  <link rel="stylesheet" th:href="@{/css/tema/tema.css}">
+  <link rel="stylesheet" th:href="@{/css/componentes/login.css}">
+</head>
+<body>
+<div class="login-page">
+  <div class="gx-login">
+    <img th:if="${!#strings.isEmpty(app.logo)}" th:src="@{${app.logo}}" class="gx-login__logo" th:alt="${app.nombre}" alt="Logo">
+    <h1 class="gx-login__titulo">Acceso al Sistema</h1>
+
+    <form id="form-login" novalidate>
+      <div class="gx-login__celda">
+        <input class="gx-login__input" type="text" name="username" maxlength="30" autocomplete="username" autofocus
+               placeholder="Usuario" aria-label="Usuario">
+      </div>
+      <div class="gx-login__celda">
+        <div class="gx-login__clave">
+          <input class="gx-login__input" type="password" name="password" maxlength="128" autocomplete="current-password"
+                 id="login-clave" placeholder="Contraseña" aria-label="Contraseña">
+          <button type="button" class="gx-login__ver" id="login-ver" aria-label="Mostrar la contraseña" title="Mostrar la contraseña">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>
+              <path data-tachado d="M3 3l18 18" hidden/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div class="gx-login__celda gx-login__celda--boton">
+        <button type="submit" class="gx-login__boton" id="btn-ingresar">Iniciar sesión</button>
+      </div>
+    </form>
+
+    <!-- Mensaje de error (por ejemplo, con ?error en la dirección). -->
+    <div th:if="${param.error}" role="alert" class="gx-login__mensaje">Usuario o contraseña incorrectos.</div>
+
+    <p class="gx-login__pie" th:text="${app.nombre}">Plantilla</p>
+  </div>
+</div>
+<script>
+  (function () {
+    var ver = document.getElementById('login-ver');
+    var clave = document.getElementById('login-clave');
+    ver.addEventListener('click', function () {
+      var mostrar = clave.type === 'password';
+      clave.type = mostrar ? 'text' : 'password';
+      ver.querySelector('[data-tachado]').hidden = !mostrar;
+      var t = mostrar ? 'Ocultar la contraseña' : 'Mostrar la contraseña';
+      ver.setAttribute('aria-label', t);
+      ver.title = t;
+      clave.focus();
+    });
+    // Demostración: sin autenticación, el botón muestra el estado de envío y vuelve al inicio.
+    document.getElementById('form-login').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var b = document.getElementById('btn-ingresar');
+      b.disabled = true; b.textContent = 'Ingresando…';
+      setTimeout(function () { window.location.href = document.baseURI.replace(/login\/?(\?.*)?$/, ''); }, 600);
+    });
+  })();
+</script>
+</body>
+</html>

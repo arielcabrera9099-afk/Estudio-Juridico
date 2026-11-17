@@ -1,0 +1,121 @@
+/* Mensajes flotantes (window.notificar / avisar), diálogo de confirmación (window.confirmar) y aviso de campo
+   requerido. Los arma componentes.js. */
+
+/* Mensaje flotante: arriba a la derecha, apilados, 300px, semitransparentes hasta pasar el mouse. */
+.gx-notificaciones { position: fixed; top: 25px; right: 25px; z-index: 10002; display: flex; flex-direction: column; gap: 10px; width: 300px; max-width: calc(100vw - 32px); }
+.gx-notificacion {
+  position: relative; padding: 15px; border: 1px solid transparent; border-radius: 4px; opacity: .92;
+  box-shadow: 0 2px 10px rgba(50, 50, 50, .5); font-family: var(--wwp-font, 'Poppins', sans-serif); font-size: 13px; line-height: 1.4; word-wrap: break-word;
+  animation: gx-notificacion-entra .25s ease-out;
+}
+.gx-notificacion:hover { opacity: 1; box-shadow: 0 0 12px #000; }
+.gx-notificacion__titulo { display: block; margin-bottom: .4em; padding-right: 18px; font-weight: 700; }
+.gx-notificacion__texto { display: block; }
+/* La X de los avisos: la misma forma redonda que la de los popups; sobre el fondo de color, blanca con un círculo
+   blanco suave al pasar el mouse (uno rojo no se vería sobre el aviso de error). */
+.gx-notificacion__cerrar {
+  position: absolute; top: 6px; right: 6px; display: grid; place-items: center; width: 26px; height: 26px; padding: 0;
+  border: 0; border-radius: 50%; background: transparent; color: #fff; cursor: pointer; opacity: .8;
+  transition: background-color .15s, opacity .15s;
+}
+.gx-notificacion__cerrar svg { stroke-width: 2.5; }
+.gx-notificacion__cerrar:hover { opacity: 1; background: rgba(255, 255, 255, .22); }
+.gx-notificacion__cerrar:focus-visible { outline: 2px solid #fff; outline-offset: 1px; opacity: 1; }
+.gx-notificacion--error { background: #b3261e; border-color: #8c1d18; color: #fff; }
+.gx-notificacion--exito { background: #2e7d32; border-color: #1b5e20; color: #fff; }
+/* Advertencia amarilla con texto blanco: la sombra y el peso del texto lo hacen legible sobre el amarillo. */
+.gx-notificacion--aviso { background: #d9a400; border-color: #a87f00; color: #fff; font-weight: 600; text-shadow: 0 1px 2px rgba(0, 0, 0, .55); }
+.gx-notificacion--info  { background: #1f4e9c; border-color: #163a75; color: #fff; }
+@keyframes gx-notificacion-entra { from { opacity: 0; transform: translateY(-8px); } to { opacity: .92; transform: none; } }
+
+/* Diálogo de confirmación (window.confirmar), el mismo en todas las pantallas, con esta estructura:
+   el título al centro, una raya, el mensaje al centro, otra raya y Cancelar / la acción a la derecha. Las
+   rayas, el ícono y el botón van del color del tipo (pregunta azul, aviso ámbar, error/anulación rojo). Arriba al
+   centro, movible con el mouse desde el título o el mensaje; el fondo se oscurece un poco, sin desenfocar. */
+.gx-dialogo-fondo {
+  align-items: flex-start; justify-content: center; padding: clamp(56px, 9vh, 96px) 16px 16px;
+  background: rgba(10, 20, 60, .42); animation: gx-dialogo-fondo .16s ease-out;
+}
+.gx-dialogo {
+  --gx-dialogo-color: var(--wwp-base, #001A81); --gx-dialogo-suave: rgba(0, 26, 129, .09);
+  --gx-dialogo-raya: #b8c3ea; --gx-dialogo-halo: rgba(123, 143, 219, .6); --gx-dialogo-brillo: rgba(0, 26, 129, .4);
+  position: relative; width: 100%; max-width: 560px; overflow: hidden; background: #fff; border-radius: 10px;
+  /* El borde con la raya del tipo y, por fuera, un halo sombreado del mismo color. */
+  border: 1px solid var(--gx-dialogo-color);
+  box-shadow: 0 0 0 5px var(--gx-dialogo-halo), 0 0 36px 6px var(--gx-dialogo-brillo), 0 24px 56px -10px rgba(10, 20, 60, .45);
+  font-family: var(--wwp-font, 'Poppins', sans-serif); color: var(--wwp-gray08, #575b5d);
+  animation: gx-dialogo-entra .22s cubic-bezier(.2, .8, .2, 1);
+}
+.gx-dialogo--aviso { --gx-dialogo-color: #b7791f; --gx-dialogo-suave: rgba(217, 164, 0, .14); --gx-dialogo-raya: #e5c58a; --gx-dialogo-halo: rgba(212, 165, 86, .6); --gx-dialogo-brillo: rgba(183, 121, 31, .4); }
+.gx-dialogo--error { --gx-dialogo-color: #b3261e; --gx-dialogo-suave: rgba(179, 38, 30, .1); --gx-dialogo-raya: #e6aca8; --gx-dialogo-halo: rgba(212, 100, 93, .55); --gx-dialogo-brillo: rgba(179, 38, 30, .38); }
+.gx-dialogo--exito { --gx-dialogo-color: #2e7d32; --gx-dialogo-suave: rgba(46, 125, 50, .1); --gx-dialogo-raya: #b2d6b4; --gx-dialogo-halo: rgba(95, 168, 99, .55); --gx-dialogo-brillo: rgba(46, 125, 50, .38); }
+.gx-dialogo__cuerpo { cursor: move; user-select: none; touch-action: none; }
+.gx-dialogo--moviendo { box-shadow: 0 0 0 5px var(--gx-dialogo-halo), 0 0 36px 6px var(--gx-dialogo-brillo), 0 32px 64px -12px rgba(10, 20, 60, .45), 0 2px 6px rgba(10, 20, 60, .1); }
+.gx-dialogo__cabecera {
+  position: relative; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 16px 52px 14px;
+  border-bottom: 1px solid var(--gx-dialogo-raya);
+}
+.gx-dialogo__icono {
+  flex: none; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%;
+  background: var(--gx-dialogo-suave); color: var(--gx-dialogo-color);
+}
+.gx-dialogo__titulo {
+  margin: 0; font-family: var(--wwp-font-bold, 'Poppins', sans-serif); font-size: 18px; font-weight: 600; line-height: 1.3;
+  color: var(--wwp-text, #1f2937);
+}
+/* La X del diálogo, como la de los popups (.app-modal__cerrar): redonda, gris, roja al pasar el mouse. */
+.gx-dialogo__cerrar {
+  /* Centrada con margin (no con transform): el :active general de los botones cambia transform y la X se corría de
+     abajo del mouse al apretarla, con lo que el clic no la cerraba. */
+  position: absolute; top: 50%; right: 12px; margin-top: -15px; transform: none; display: grid; place-items: center;
+  width: 30px; height: 30px; padding: 0; border: 0; border-radius: 50%; background: transparent;
+  color: #6b7280; cursor: pointer; transition: background-color .15s, color .15s;
+}
+.gx-dialogo__cerrar svg { stroke-width: 2.25; }
+.gx-dialogo__cerrar:hover { background: #fdecea; color: #b42318; }
+.gx-dialogo__cerrar:active { transform: none; }
+.gx-dialogo__cerrar:focus-visible { outline: 2px solid var(--gx-dialogo-color); outline-offset: 1px; }
+.gx-dialogo__mensaje {
+  margin: 0; padding: 24px 28px; text-align: center; font-size: 15px; line-height: 1.55; color: var(--wwp-gray08, #4b5563);
+  white-space: pre-line; overflow-wrap: anywhere;
+}
+.gx-dialogo__pie {
+  display: flex; justify-content: flex-end; gap: 10px; padding: 14px 20px; background: #fff;
+  border-top: 1px solid var(--gx-dialogo-raya);
+}
+.gx-dialogo .gx-btn {
+  display: inline-flex; align-items: center; justify-content: center; min-width: 112px; padding: 9px 18px;
+  border: 1px solid var(--gx-dialogo-color); border-radius: 8px; background: var(--gx-dialogo-color); color: #fff;
+  font-family: var(--wwp-font, 'Poppins', sans-serif); font-size: 14px; font-weight: 600; line-height: 1.2;
+  cursor: pointer; white-space: nowrap; transition: background .15s, border-color .15s, box-shadow .15s;
+}
+.gx-dialogo--pregunta .gx-btn:not(.gx-btn--secundario):hover { background: var(--wwp-action-hover, #001077); }
+.gx-dialogo .gx-btn:not(.gx-btn--secundario):hover { filter: brightness(.92); }
+.gx-dialogo .gx-btn:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--gx-dialogo-suave), 0 0 0 1px var(--gx-dialogo-color); }
+.gx-dialogo .gx-btn--secundario { background: #fff; color: var(--wwp-text, #1f2937); border-color: #d0d5dd; }
+.gx-dialogo .gx-btn--secundario:hover { background: #f2f4f7; border-color: #b9c0cb; }
+.gx-dialogo .gx-btn--secundario:focus-visible { box-shadow: 0 0 0 3px rgba(10, 20, 60, .1), 0 0 0 1px #98a2b3; }
+/* Clic fuera de una confirmación: el diálogo se sacude en lugar de cerrarse. */
+.gx-dialogo--llamar { animation: gx-dialogo-llamar .3s ease-in-out; }
+@keyframes gx-dialogo-fondo { from { opacity: 0; } to { opacity: 1; } }
+@keyframes gx-dialogo-entra { from { opacity: 0; transform: translateY(-16px) scale(.98); } to { opacity: 1; transform: none; } }
+@keyframes gx-dialogo-llamar { 0%, 100% { transform: none; } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+@media (max-width: 520px) {
+  .gx-dialogo__mensaje { padding: 20px 16px; }
+  .gx-dialogo__pie { padding: 12px 16px; }
+  .gx-dialogo__pie .gx-btn { flex: 1; min-width: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gx-dialogo, .gx-dialogo-fondo, .gx-dialogo--llamar { animation: none; }
+}
+/* Campo obligatorio sin cargar al confirmar. */
+.gx-campo--falta { border-color: #b3261e !important; box-shadow: 0 0 0 2px rgba(179, 38, 30, .18) !important; }
+/* "%1 es requerido.": texto rojo debajo del campo, ocupando su lugar. Flotando en el espacio entre filas se encimaba con
+   lo que sigue cuando ese espacio no alcanza (la etiqueta de la fila de abajo). */
+.gx-campo { position: relative; }
+.gx-campo__requerido {
+  display: block; margin-top: -2px; font-size: 12px; line-height: 1.2;
+  color: #c62828; pointer-events: none;
+}
+.gx-campo:has(> .gx-campo__requerido) :is(input:not([type="hidden"]), select, textarea) { border-color: #c62828 !important; }
+

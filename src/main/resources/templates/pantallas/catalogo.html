@@ -1,0 +1,258 @@
+<!doctype html>
+<!--
+  Catálogo de componentes: referencia visual de los componentes de la plantilla, con datos de ejemplo genéricos.
+  Sirve para verificar el estilo y para copiar el HTML de cada componente. Se puede quitar sin afectar al resto
+  (MenuAplicacion, PantallasController y este archivo).
+-->
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/layout :: layout(~{::title}, ~{::#contenido}, ~{::estilos})}">
+<head>
+  <title>Componentes</title>
+  <th:block th:fragment="estilos"></th:block>
+</head>
+<body>
+<div id="contenido" class="gx-pantalla">
+
+  <header class="gx-encabezado">
+    <h1><svg class="lucide" width="20" height="20"><use href="#i-layers"/></svg>Componentes</h1>
+    <p>Referencia visual de los componentes de la plantilla</p>
+  </header>
+
+  <!-- ============================================================ Formulario -->
+  <section class="gx-panel">
+    <h2 class="gx-panel__titulo">Formulario</h2>
+    <div class="gx-panel__cuerpo">
+      <form class="gx-campos" id="form-ejemplo" onsubmit="event.preventDefault(); window.notificar('Datos guardados correctamente.', { tipo: 'exito' });">
+        <div class="gx-campo"><label for="c-nombre" class="requerido">Nombre</label>
+          <input id="c-nombre" name="nombre" maxlength="60" autocomplete="off" placeholder="Ejemplo 1"></div>
+        <div class="gx-campo"><label for="c-tipo" class="requerido">Tipo</label>
+          <select id="c-tipo" name="tipo">
+            <option value="0">SELECCIONAR</option>
+            <option value="1">1 — Opción A</option>
+            <option value="2">2 — Opción B</option>
+            <option value="3">3 — Opción C</option>
+          </select></div>
+        <div class="gx-campo"><label for="c-importe">Importe</label>
+          <input id="c-importe" name="importe" data-input-importe data-decimales="2" placeholder="0,00"></div>
+        <div class="gx-campo"><label for="c-fecha">Fecha</label>
+          <input id="c-fecha" name="fecha" type="date"></div>
+        <div class="gx-campo"><label for="c-codigo">Código</label>
+          <div class="gx-campo__lupa">
+            <input id="c-codigo" name="codigo" inputmode="numeric" maxlength="6">
+            <button type="button" aria-label="Buscar" title="Buscar"><svg class="lucide" width="16" height="16"><use href="#i-search"/></svg></button>
+          </div></div>
+        <div class="gx-campo"><label for="c-inactivo">Deshabilitado</label>
+          <input id="c-inactivo" value="Solo lectura" disabled></div>
+        <div class="gx-campo gx-campo--ancho"><label for="c-obs">Observación</label>
+          <textarea id="c-obs" name="observacion" rows="3"></textarea></div>
+        <div class="gx-campo"><label class="gx-check"><input type="checkbox" name="activo" checked> Activo</label></div>
+      </form>
+      <div class="gx-acciones-pie">
+        <button type="submit" form="form-ejemplo" class="gx-btn gx-btn--icono"><svg class="lucide" width="16" height="16"><use href="#i-save"/></svg>Confirmar</button>
+        <button type="button" class="gx-btn gx-btn--secundario">Cancelar</button>
+        <button type="button" class="gx-btn gx-btn--peligro">Eliminar</button>
+        <button type="button" class="gx-btn" disabled>Deshabilitado</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ Grupos y pasos -->
+  <section class="gx-panel">
+    <h2 class="gx-panel__titulo">Grupos y pasos</h2>
+    <div class="gx-panel__cuerpo">
+      <ol class="gx-pasos">
+        <li class="is-hecho"><span class="gx-pasos__marca">✓</span><span class="gx-pasos__titulo">DATOS</span></li>
+        <li class="is-actual"><span class="gx-pasos__marca">2</span><span class="gx-pasos__titulo">DETALLE</span></li>
+        <li><span class="gx-pasos__marca">3</span><span class="gx-pasos__titulo">CONFIRMACIÓN</span></li>
+      </ol>
+      <div class="gx-grupos">
+        <fieldset class="gx-grupo">
+          <legend>Grupo A</legend>
+          <div class="gx-campos">
+            <div class="gx-campo"><label for="g-a1">Campo 1</label><input id="g-a1"></div>
+            <div class="gx-campo"><label for="g-a2">Campo 2</label><input id="g-a2"></div>
+          </div>
+        </fieldset>
+        <fieldset class="gx-grupo">
+          <legend>Grupo B</legend>
+          <div class="gx-campos">
+            <div class="gx-campo"><label for="g-b1">Campo 3</label><input id="g-b1"></div>
+            <div class="gx-campo"><label for="g-b2">Campo 4</label><input id="g-b2"></div>
+          </div>
+        </fieldset>
+      </div>
+      <div class="gx-explicacion">
+        <svg class="lucide" width="18" height="18"><use href="#i-info"/></svg>
+        <p>Recuadro informativo: explica qué hace la acción de la ficha antes de confirmarla.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ Avisos y etiquetas -->
+  <section class="gx-panel">
+    <h2 class="gx-panel__titulo">Avisos y etiquetas</h2>
+    <div class="gx-panel__cuerpo">
+      <p class="gx-aviso gx-aviso--info"><svg class="lucide" width="16" height="16"><use href="#i-info"/></svg>Aviso informativo que queda en la pantalla.</p>
+      <p class="gx-aviso gx-aviso--alerta"><svg class="lucide" width="16" height="16"><use href="#i-alert-triangle"/></svg>Aviso de advertencia.</p>
+      <div class="gx-botonera">
+        <span class="gx-etiqueta gx-etiqueta--exito">ACTIVO</span>
+        <span class="gx-etiqueta gx-etiqueta--peligro">INACTIVO</span>
+        <span class="gx-etiqueta gx-etiqueta--aviso">PENDIENTE</span>
+        <span class="gx-etiqueta gx-etiqueta--info">EN CURSO</span>
+        <th:block th:replace="~{componentes/componentes :: badge('Azul', 'blue')}"/>
+        <th:block th:replace="~{componentes/componentes :: badge('Verde', 'green')}"/>
+        <th:block th:replace="~{componentes/componentes :: badge('Amarillo', 'yellow')}"/>
+        <th:block th:replace="~{componentes/componentes :: badge('Rojo', 'red')}"/>
+        <th:block th:replace="~{componentes/componentes :: badge('Gris', 'gray')}"/>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ Indicadores -->
+  <section class="gx-panel">
+    <h2 class="gx-panel__titulo">Indicadores</h2>
+    <div class="gx-panel__cuerpo">
+      <div class="gx-campos gx-campos--4">
+        <th:block th:replace="~{componentes/componentes :: kpi('Registros', '128', 'Total del período', 'blue', 'list-checks')}"/>
+        <th:block th:replace="~{componentes/componentes :: kpi('Completados', '96', null, 'green', 'check-circle2')}"/>
+        <th:block th:replace="~{componentes/componentes :: kpi('Pendientes', '27', null, 'yellow', 'clock')}"/>
+        <th:block th:replace="~{componentes/componentes :: kpi('Con error', '5', null, 'red', 'alert-triangle')}"/>
+      </div>
+      <div class="gx-kpis">
+        <a class="gx-kpi gx-kpi--aviso is-activo" href="#"><span class="gx-kpi__icono"><svg class="lucide" width="16" height="16"><use href="#i-clock"/></svg></span>
+          <span class="gx-kpi__cuerpo"><span class="gx-kpi__fila"><span class="gx-kpi__nombre">Pendientes</span><span class="gx-kpi__cantidad">12</span></span><span class="gx-kpi__importe">1.250.000</span></span></a>
+        <a class="gx-kpi gx-kpi--info" href="#"><span class="gx-kpi__icono"><svg class="lucide" width="16" height="16"><use href="#i-send"/></svg></span>
+          <span class="gx-kpi__cuerpo"><span class="gx-kpi__fila"><span class="gx-kpi__nombre">Enviados</span><span class="gx-kpi__cantidad">8</span></span><span class="gx-kpi__importe">830.000</span></span></a>
+        <a class="gx-kpi gx-kpi--exito" href="#"><span class="gx-kpi__icono"><svg class="lucide" width="16" height="16"><use href="#i-check"/></svg></span>
+          <span class="gx-kpi__cuerpo"><span class="gx-kpi__fila"><span class="gx-kpi__nombre">Aprobados</span><span class="gx-kpi__cantidad">31</span></span><span class="gx-kpi__importe">4.100.000</span></span></a>
+        <a class="gx-kpi gx-kpi--peligro" href="#"><span class="gx-kpi__icono"><svg class="lucide" width="16" height="16"><use href="#i-x-circle"/></svg></span>
+          <span class="gx-kpi__cuerpo"><span class="gx-kpi__fila"><span class="gx-kpi__nombre">Rechazados</span><span class="gx-kpi__cantidad">3</span></span><span class="gx-kpi__importe">95.000</span></span></a>
+      </div>
+      <th:block th:replace="~{componentes/componentes :: loader('Cargando')}"/>
+    </div>
+  </section>
+
+  <!-- ============================================================ Grilla con filtros, acciones y paginación -->
+  <section class="gx-panel">
+    <h2 class="gx-panel__titulo">Lista</h2>
+    <div class="gx-panel__cuerpo">
+      <div class="gx-barra-resumen">
+        <button type="button" class="gx-btn gx-btn--icono" data-abrir-modal="modal-ejemplo"><svg class="lucide" width="16" height="16"><use href="#i-plus"/></svg>Agregar</button>
+      </div>
+      <form class="gx-campos gx-campos--filtros" onsubmit="event.preventDefault()">
+        <div class="gx-campo"><label for="f-buscar">Buscar</label>
+          <input id="f-buscar" autocomplete="off" data-filtrar-filas="grilla-ejemplo"></div>
+        <div class="gx-campo"><label for="f-estado">Estado</label>
+          <select id="f-estado"><option value="">TODOS</option><option>ACTIVO</option><option>INACTIVO</option></select></div>
+      </form>
+    </div>
+  </section>
+
+  <section class="gx-panel gx-panel--grilla">
+    <div class="gx-panel__cuerpo">
+      <div class="gx-grilla-wrap">
+        <table class="gx-grilla" id="grilla-ejemplo" data-paginar="5">
+          <thead><tr><th class="gx-col-check"></th><th class="gx-col-acciones"></th><th class="gx-num">Código</th><th>Descripción</th><th>Estado</th><th class="gx-num">Importe</th></tr></thead>
+          <tbody>
+            <tr th:each="i : ${#numbers.sequence(1, 12)}">
+              <td class="gx-col-check"><input type="checkbox" aria-label="Marcar"></td>
+              <td class="gx-col-acciones">
+                <div class="gx-accion-grupo">
+                  <button type="button" class="gx-accion-grupo__boton" aria-haspopup="true" aria-label="Acciones">
+                    <svg class="lucide" width="16" height="16"><use href="#i-menu"/></svg></button>
+                  <ul class="gx-accion-grupo__menu" hidden>
+                    <li><a href="#"><svg class="lucide" width="15" height="15"><use href="#i-search"/></svg>Visualizar</a></li>
+                    <li><a href="#"><svg class="lucide" width="15" height="15"><use href="#i-pencil"/></svg>Modificar</a></li>
+                    <li><button type="button" data-confirmar-eliminar><svg class="lucide" width="15" height="15"><use href="#i-trash2"/></svg>Eliminar</button></li>
+                  </ul>
+                </div>
+              </td>
+              <td class="gx-num" th:text="${i}">1</td>
+              <td th:text="'Ejemplo ' + ${i}">Ejemplo 1</td>
+              <td><span class="gx-etiqueta" th:classappend="${i % 4 == 0} ? 'gx-etiqueta--peligro' : 'gx-etiqueta--exito'"
+                        th:text="${i % 4 == 0} ? 'INACTIVO' : 'ACTIVO'">ACTIVO</span></td>
+              <td class="gx-num" th:text="${#numbers.formatDecimal(i * 1250, 1, 'POINT', 0, 'COMMA')}">1.250</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ Diálogos y mensajes -->
+  <section class="gx-panel">
+    <h2 class="gx-panel__titulo">Diálogos y mensajes</h2>
+    <div class="gx-panel__cuerpo">
+      <div class="gx-botonera">
+        <button type="button" class="gx-btn" data-demo="confirmar">Confirmación</button>
+        <button type="button" class="gx-btn gx-btn--secundario" data-demo="exito">Mensaje de éxito</button>
+        <button type="button" class="gx-btn gx-btn--secundario" data-demo="aviso">Mensaje de aviso</button>
+        <button type="button" class="gx-btn gx-btn--secundario" data-demo="error">Mensaje de error</button>
+        <button type="button" class="gx-btn gx-btn--secundario" data-demo="info">Mensaje informativo</button>
+        <button type="button" class="gx-btn gx-btn--secundario" data-demo="progreso">Progreso por pasos</button>
+        <button type="button" class="gx-btn gx-btn--secundario" data-solo-lectura="Esta acción todavía no está disponible.">No disponible</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ Panel plegable -->
+  <section class="gx-panel" data-plegable>
+    <h2 class="gx-panel__titulo">Panel plegable</h2>
+    <div class="gx-panel__cuerpo">
+      <p class="gx-panel__nota">Un .gx-panel con data-plegable empieza plegado y se abre con un clic en el título.</p>
+    </div>
+  </section>
+
+  <!-- ============================================================ Modal -->
+  <div class="app-modal-overlay" id="modal-ejemplo" data-modal hidden>
+    <div class="app-modal">
+      <section class="gx-panel">
+        <h2 class="gx-panel__titulo">Agregar registro</h2>
+        <div class="gx-panel__cuerpo">
+          <div class="gx-campos">
+            <div class="gx-campo"><label for="m-codigo">Código</label><input id="m-codigo" inputmode="numeric"></div>
+            <div class="gx-campo"><label for="m-desc">Descripción</label><input id="m-desc"></div>
+          </div>
+          <div class="gx-acciones-pie">
+            <button type="button" class="gx-btn" data-cerrar-modal>Confirmar</button>
+            <button type="button" class="gx-btn gx-btn--secundario" data-cerrar-modal>Cancelar</button>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      document.addEventListener('click', function (e) {
+        var b = e.target.closest('[data-demo], [data-confirmar-eliminar]');
+        if (!b) return;
+        if (b.hasAttribute('data-confirmar-eliminar')) {
+          window.confirmar('¿Está seguro que desea eliminar el registro?', { tipo: 'error', textoConfirmar: 'Eliminar' });
+          return;
+        }
+        var demo = b.getAttribute('data-demo');
+        if (demo === 'confirmar') {
+          window.confirmar('¿Está seguro que desea confirmar los datos?').then(function (si) {
+            if (si) window.notificar('Datos confirmados.', { tipo: 'exito' });
+          });
+        } else if (demo === 'progreso') {
+          var p = window.progresoPorPasos(null, { titulo: 'PROCESANDO', subtitulo: 'Proceso de ejemplo',
+            pasos: ['Validar datos', 'Guardar', 'Generar comprobante'] });
+          var paso = 0;
+          (function siguiente() {
+            if (paso === 3) { p.completar('PROCESO COMPLETADO'); setTimeout(p.ocultar, 1200); return; }
+            p.empezar(paso);
+            setTimeout(function () { p.terminar(paso); paso++; siguiente(); }, 900);
+          })();
+        } else {
+          var textos = { exito: 'Operación realizada correctamente.', aviso: 'Revise los datos antes de continuar.',
+            error: 'No se pudo completar la operación.', info: 'Mensaje informativo de ejemplo.' };
+          window.notificar(textos[demo], { tipo: demo });
+        }
+      });
+    })();
+  </script>
+</div>
+</body>
+</html>

@@ -1,0 +1,25 @@
+/* Cabecera superior: datos de la sesión en líneas y el encabezado de la pantalla (shell.js lo pasa a la barra). */
+/* La cabecera crece para que entren varias líneas de datos dentro de la parte blanca. */
+.admin-shell .admin-header { height: auto; min-height: 100px; padding-top: 8px; padding-bottom: 8px; }
+/* El encabezado de la pantalla (título con ícono y descripción) en la barra superior (shell.js), sin la etiqueta del
+   módulo. */
+.admin-shell .admin-header__module-pill { display: none; }
+.admin-header__pagina--encabezado { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.admin-header__pagina-titulo {
+  display: flex; align-items: center; gap: 8px;
+  font-family: var(--wwp-font-bold); font-size: 20px; font-weight: 600; line-height: 1.2; color: var(--wwp-base, #001d7e);
+}
+.admin-header__pagina-titulo svg { flex: none; margin: 0 !important; vertical-align: 0 !important; }
+.admin-header__pagina-sub {
+  font-family: var(--wwp-font); font-size: 12.5px; font-weight: 400; line-height: 1.35; letter-spacing: 0;
+  color: var(--wwp-gray08, #575b5d);
+}
+/* Si a la tarjeta le quedan botones (por ejemplo "Actualizar"), quedan alineados a la derecha. */
+#contenido > header.is-sin-titulo { justify-content: flex-end; }
+.admin-header__datos {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
+  padding: 4px 10px; text-align: left; font-size: 12.5px; line-height: 1.3; white-space: nowrap;
+  color: var(--wwp-text, #1f2937);
+}
+.admin-header__datos b { color: var(--wwp-base, #001d7e); font-family: var(--wwp-font-bold); font-weight: 600; }
+.admin-header__user-btn[aria-expanded="true"] .admin-header__datos { background: rgba(var(--wwp-base-rgb), .06); border-radius: 8px; }

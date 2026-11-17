@@ -1,0 +1,174 @@
+/* Botón del sistema de diseño. Colores por token: nada hardcodeado, así el
+   branding por marca sigue mandando. */
+
+.sb-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: var(--btn-height);
+  padding: 0 18px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  line-height: 1.2;
+  /* El texto no se parte en dos líneas: eso cambiaría el alto del botón. */
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color .15s ease, border-color .15s ease, color .15s ease,
+              filter .15s ease, transform .05s ease;
+}
+
+/* min-width por categoría: es lo que evita el salto cuando el texto cambia entre
+   estados. Los de acción cubren textos largos ("Confirmar operación") y "Procesando…" con el
+   mismo ancho. */
+.sb-btn--md      { min-width: var(--btn-min-width); }
+.sb-btn--compact { min-width: var(--btn-min-width-compact); min-height: 36px; padding: 0 12px; }
+.sb-btn--icon    { min-width: 36px; min-height: 36px; padding: 0 8px; gap: 0; }
+
+.sb-btn--block { width: 100%; }
+
+/* En pantallas chicas el botón de acción ocupa el ancho completo en lugar de
+   forzar un min-width que desborde. */
+@media (max-width: 640px) {
+  .sb-btn--md {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+.sb-btn__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sb-btn__icon,
+.sb-btn__spinner {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+}
+
+/* El spinner ocupa exactamente lo mismo que el icono al que reemplaza. */
+.sb-btn__spinner {
+  width: 15px;
+  height: 15px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: sb-btn-spin .6s linear infinite;
+}
+
+@keyframes sb-btn-spin { to { transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .sb-btn__spinner { animation-duration: 1.8s; }
+  .sb-btn { transition: none; }
+}
+
+/* ---------------------------------------------------------------- variantes */
+/* Cada variante define su propio hover/active. Sin esto el hover global de
+   index.css les cambiaría el fondo y el texto blanco quedaría invisible. */
+
+.sb-btn--primary {
+  background: var(--brand-primary);
+  border-color: var(--brand-primary);
+  color: var(--brand-primary-contrast);
+}
+.sb-btn--primary:hover:not(:disabled),
+.sb-btn--primary:focus-visible {
+  background: var(--brand-primary-hover);
+  border-color: var(--brand-primary-hover);
+  color: var(--brand-primary-contrast);
+}
+.sb-btn--primary:active:not(:disabled) {
+  background: var(--brand-primary-active);
+  border-color: var(--brand-primary-active);
+}
+
+.sb-btn--secondary {
+  background: var(--ui-btn-bg);
+  border-color: var(--ui-btn-border);
+  /* Fondo claro ⇒ texto oscuro. */
+  color: var(--ui-btn-text);
+}
+.sb-btn--secondary:hover:not(:disabled),
+.sb-btn--secondary:focus-visible {
+  background: var(--ui-btn-hover-bg);
+  border-color: var(--ui-input-border);
+  color: var(--ui-btn-text);
+}
+
+.sb-btn--success {
+  background: #047857;
+  border-color: #047857;
+  color: #fff;
+}
+.sb-btn--success:hover:not(:disabled),
+.sb-btn--success:focus-visible { background: #065f46; border-color: #065f46; color: #fff; }
+
+.sb-btn--danger {
+  background: #b91c1c;
+  border-color: #b91c1c;
+  color: #fff;
+}
+.sb-btn--danger:hover:not(:disabled),
+.sb-btn--danger:focus-visible { background: #991b1b; border-color: #991b1b; color: #fff; }
+
+.sb-btn--ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--ui-text);
+}
+.sb-btn--ghost:hover:not(:disabled),
+.sb-btn--ghost:focus-visible {
+  background: var(--ui-btn-hover-bg);
+  color: var(--ui-text);
+}
+
+.sb-btn--link {
+  background: transparent;
+  border-color: transparent;
+  color: var(--brand-primary-active);
+  min-width: 0;
+  padding: 0 4px;
+  text-decoration: underline;
+}
+.sb-btn--link:hover:not(:disabled) { color: var(--brand-primary-hover); }
+
+/* ------------------------------------------------------------------ estados */
+
+.sb-btn:disabled {
+  opacity: .6;
+  cursor: not-allowed;
+  /* Sin transform en disabled: no debe parecer clickeable. */
+  transform: none;
+}
+
+.sb-btn.is-loading {
+  cursor: progress;
+}
+
+/* Feedback posterior a la acción. Pisa a la variante a propósito, por eso la
+   especificidad extra con la clase repetida. */
+.sb-btn.is-success.is-success {
+  background: #047857;
+  border-color: #047857;
+  color: #fff;
+}
+
+.sb-btn.is-error.is-error {
+  background: #b91c1c;
+  border-color: #b91c1c;
+  color: #fff;
+}
+
+/* El anillo de foco lo pone la capa global (index.css). Acá sólo se garantiza que
+   ninguna variante lo anule. */
+.sb-btn:focus-visible {
+  outline: 2px solid var(--ui-focus-outline);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px var(--ui-focus-halo);
+}

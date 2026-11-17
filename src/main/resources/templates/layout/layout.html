@@ -1,0 +1,151 @@
+<!doctype html>
+<!--
+  Layout principal: menú lateral (colapsable, con buscador y módulos en acordeón), cabecera superior y área de
+  contenido. El comportamiento está en static/js/layout/shell.js.
+
+  Uso en una pantalla:
+    <html th:replace="~{layout/layout :: layout(~{::title}, ~{::#contenido}, ~{::estilos})}">
+    <head><title>Mi pantalla</title><th:block th:fragment="estilos"></th:block></head>
+    <body><div id="contenido" class="gx-pantalla">…</div></body>
+
+  El modelo lo completa ModeloComun (app, modulos, pagina, paginaTitulo, moduloTitulo, moduloAccent) y, si existe,
+  la sesión (usuario, usuarioNombre, usuarioDetalle).
+-->
+<html lang="es" xmlns:th="http://www.thymeleaf.org" th:fragment="layout(titulo, contenido, estilos)">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/svg+xml" href="/img/favicon.svg" th:href="@{/img/favicon.svg}">
+  <!-- CSRF de la sesión (si se agrega Spring Security): lo manda componentes.js (enviarJson) en un encabezado. -->
+  <meta name="_csrf" th:if="${_csrf != null}" th:content="${_csrf.token}">
+  <meta name="_csrf_header" th:if="${_csrf != null}" th:content="${_csrf.headerName}">
+  <title th:replace="${titulo}">Plantilla</title>
+  <!-- Base y layout (estructura) -->
+  <link rel="stylesheet" th:href="@{/css/base/base.css}">
+  <link rel="stylesheet" th:href="@{/css/layout/layout.css}">
+  <!-- Componentes -->
+  <link rel="stylesheet" th:href="@{/css/componentes/boton.css}">
+  <link rel="stylesheet" th:href="@{/css/componentes/acciones-fila.css}">
+  <link rel="stylesheet" th:href="@{/css/componentes/suite.css}">
+  <link rel="stylesheet" th:href="@{/css/componentes/cargador.css}">
+  <link rel="stylesheet" th:href="@{/css/componentes/modales.css}">
+  <link rel="stylesheet" th:href="@{/css/base/ajustes.css}">
+  <link rel="stylesheet" th:href="@{/css/componentes/dialogos.css}">
+  <link rel="stylesheet" th:href="@{/css/layout/cabecera.css}">
+  <link rel="stylesheet" th:href="@{/css/componentes/pantalla.css}">
+  <!-- CSS propio de cada pantalla: va ANTES de los tokens y el tema, así el tema sigue mandando a igual especificidad. -->
+  <th:block th:replace="${estilos}"></th:block>
+  <!-- Variables de diseño y tema: al final para imponer el look. -->
+  <link rel="stylesheet" th:href="@{/css/tokens/tokens.css}">
+  <link rel="stylesheet" th:href="@{/css/tema/tema.css}">
+  <!-- Tema antes de pintar, para que no parpadee. -->
+  <script th:src="@{/js/layout/tema.js}"></script>
+</head>
+<body>
+<th:block th:replace="~{componentes/iconos :: svg}"></th:block>
+<div class="admin-shell admin-shell--light" id="admin-shell">
+  <div class="admin-backdrop" hidden data-shell="backdrop" role="presentation"></div>
+
+  <aside class="admin-sidebar admin-sidebar--expanded" data-shell="sidebar">
+    <!-- Marca de la aplicación (app.* en application.yml): logo o inicial, nombre y subtítulo. -->
+    <div class="admin-sidebar__brand">
+      <img th:if="${!#strings.isEmpty(app.logo)}" th:src="@{${app.logo}}" th:alt="${app.nombre}"
+           class="admin-sidebar__brand-logo" alt="Logo">
+      <span th:if="${#strings.isEmpty(app.logo)}" class="admin-sidebar__brand-fallback" aria-hidden="true"
+            th:text="${app.inicial}">P</span>
+      <div class="admin-sidebar__brand-text" data-shell="solo-expandido">
+        <strong style="font-weight: 800" th:text="${app.nombre}">Plantilla</strong>
+        <span style="font-weight: 500" th:if="${!#strings.isEmpty(app.subtitulo)}" th:text="${app.subtitulo}">Subtítulo</span>
+      </div>
+      <button type="button" class="admin-sidebar__collapse-btn" data-shell="colapsar"
+              aria-label="Colapsar menú" title="Colapsar menú">
+        <svg class="lucide" width="17" height="17" data-shell="icono-colapsar"><use href="#i-panel-left-close"/></svg>
+      </button>
+    </div>
+
+    <div class="admin-sidebar__toolbar" data-shell="solo-expandido">
+      <label class="admin-sidebar__search" data-shell="buscador">
+        <svg class="lucide admin-sidebar__search-icon" width="16" height="16" aria-hidden="true"><use href="#i-search"/></svg>
+        <input placeholder="Buscar pantalla…" aria-label="Buscar en el menú" type="search" autocomplete="off"
+               data-shell="buscar">
+        <button type="button" class="admin-sidebar__search-clear" aria-label="Limpiar búsqueda" hidden
+                data-shell="limpiar">
+          <svg class="lucide" width="14" height="14"><use href="#i-x"/></svg>
+        </button>
+      </label>
+    </div>
+    <div class="admin-sidebar__toolbar admin-sidebar__toolbar--collapsed" data-shell="solo-colapsado" hidden>
+      <button type="button" class="admin-sidebar__search-collapsed" aria-label="Buscar pantalla"
+              title="Buscar pantalla" data-shell="abrir-buscador">
+        <svg class="lucide" width="18" height="18"><use href="#i-search"/></svg>
+      </button>
+    </div>
+
+    <div class="admin-sidebar__scroll">
+      <div class="admin-search-empty" data-shell="sin-resultados" hidden>
+        <p>No hay pantallas para <strong>«<span data-shell="termino"></span>»</strong></p>
+        <button type="button" data-shell="limpiar-busqueda">Limpiar búsqueda</button>
+      </div>
+
+      <div class="admin-quick" data-shell="filtrable">
+        <button type="button" class="admin-quick__btn" th:classappend="${pagina == 'inicio'} ? 'is-active'"
+                th:attr="data-href=@{/}" data-titulo="Inicio" title="Inicio">
+          <svg class="lucide" width="16" height="16"><use href="#i-layout-dashboard"/></svg>
+          <span data-shell="solo-expandido">Inicio</span>
+        </button>
+      </div>
+
+      <!-- Módulos del menú (MenuAplicacion): plegados al entrar; shell.js recuerda, por módulo, si el usuario lo abre. -->
+      <th:block th:each="m : ${modulos}">
+        <div th:replace="~{layout/modulo-menu :: modulo(${m.clave()}, ${m.titulo()}, ${m.icono()}, ${m.secciones()}, ${m.tiene(pagina)})}"></div>
+      </th:block>
+    </div>
+  </aside>
+
+  <div class="admin-main">
+    <header class="admin-header">
+      <button type="button" class="admin-icon-btn" aria-label="Abrir menú" data-shell="abrir-movil" hidden>
+        <svg class="lucide" width="18" height="18"><use href="#i-menu"/></svg>
+      </button>
+      <div class="admin-header__title">
+        <span class="admin-header__module-pill" th:style="'background:' + ${moduloAccent}" th:text="${moduloTitulo}">Módulo</span>
+        <span class="admin-header__pagina" th:text="${paginaTitulo}">Pantalla</span>
+      </div>
+      <div class="admin-header__actions">
+        <!-- Usuario de la sesión: solo si la aplicación lo publica en el modelo (usuario, usuarioNombre,
+             usuarioDetalle). La flecha abre el menú con "Cerrar sesión". -->
+        <div class="admin-header__user" data-shell="usuario" th:if="${usuario != null}">
+          <button type="button" class="admin-header__user-btn" data-shell="abrir-usuario"
+                  aria-haspopup="true" aria-expanded="false" title="Opciones de la sesión">
+            <span class="admin-header__datos">
+              <span><b>Usuario:</b> <span th:text="${usuario}">USUARIO</span></span>
+              <span th:if="${usuarioDetalle != null}" th:text="${usuarioDetalle}">Detalle</span>
+            </span>
+            <svg class="lucide admin-header__user-chevron" width="14" height="14" aria-hidden="true"><use href="#i-chevron-down"/></svg>
+          </button>
+          <div class="admin-header__menu" data-shell="menu-usuario" hidden>
+            <div class="admin-header__menu-info">
+              <strong th:text="${usuarioNombre ?: usuario}">Nombre del usuario</strong>
+              <span th:text="'Usuario ' + ${usuario}">Usuario USUARIO</span>
+            </div>
+            <form th:action="@{/salir}" method="post">
+              <button type="submit" class="admin-header__menu-item">
+                <svg class="lucide" width="15" height="15" aria-hidden="true"><use href="#i-log-out"/></svg>
+                Cerrar sesión
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </header>
+    <main class="admin-content">
+      <th:block th:replace="${contenido}"></th:block>
+    </main>
+  </div>
+</div>
+<script th:src="@{/js/layout/shell.js}"></script>
+<script th:src="@{/js/componentes/componentes.js}"></script>
+<script th:src="@{/js/componentes/combo.js}"></script>
+<script th:src="@{/js/componentes/grilla.js}"></script>
+</body>
+</html>

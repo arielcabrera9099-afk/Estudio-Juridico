@@ -1,0 +1,19 @@
+# Variables de entorno locales: nunca al repositorio
+.env
+.env.*
+
+# Build
+target/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.settings/
+.classpath
+.project
+.factorypath
+
+# SO
+.DS_Store
+Thumbs.db

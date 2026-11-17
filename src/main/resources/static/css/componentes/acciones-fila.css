@@ -1,0 +1,28 @@
+/* Acciones de fila: botones de ícono compactos al final de cada registro. */
+
+.row-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.row-actions__btn--danger:hover:not(:disabled),
+.row-actions__btn--danger:focus-visible {
+  background: var(--ui-error-bg);
+  border-color: var(--ui-error-border);
+  color: var(--ui-error-text);
+}
+
+.row-actions__btn--warning:hover:not(:disabled),
+.row-actions__btn--warning:focus-visible {
+  background: #fffbeb;
+  border-color: #fde68a;
+  color: #b45309;
+}
+
+body[data-theme='dark'] .row-actions__btn--warning:hover:not(:disabled),
+body[data-theme='dark'] .row-actions__btn--warning:focus-visible {
+  background: rgba(180, 83, 9, 0.18);
+  border-color: #b45309;
+  color: #fde68a;
+}

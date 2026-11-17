@@ -1,0 +1,108 @@
+/* ============================================================================
+   Variables de diseño (tokens): paleta, tipografía, escala, formas y sombras.
+   Cambiar la marca = cambiar estos valores.
+   ============================================================================ */
+
+/* ---- Fuente Poppins, local en /static/fonts (TTF, SIL OFL) ---- */
+@font-face {
+  font-family: 'Poppins';
+  src: url('../../fonts/Poppins-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Poppins';
+  src: url('../../fonts/Poppins-SemiBold.ttf') format('truetype');
+  font-weight: 600 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'PoppinsBold';
+  src: url('../../fonts/Poppins-SemiBold.ttf') format('truetype');
+  font-weight: 600 700;
+  font-display: swap;
+}
+
+:root {
+  /* ---- Colores de marca (BaseColor azul marino) ---- */
+  --wwp-base:            #001A81;
+  --wwp-base-rgb:        0, 26, 129;
+  --wwp-action-focus:    #000168;
+  --wwp-action-hover:    #001077;
+  --wwp-action-hover-bd: #00066D;
+  --wwp-base-shadow:     rgba(0, 26, 129, 0.7);
+  --wwp-base-forecolor:  #FFFFFF;
+  --wwp-base-30:         rgba(0, 26, 129, 0.3);
+
+  /* ---- Texto / requeridos ---- */
+  --wwp-text:            #2b2f33;
+  --wwp-required:        #EA0101;
+
+  /* ---- Fondos ---- */
+  --wwp-bg:              #EEEEEE;   /* fondo de la app */
+  --wwp-app-bg:          #899eb3;   /* fondo detrás de las pantallas (tema.css) */
+  --wwp-data-bg:         #FFFFFF;   /* tarjetas / contenido */
+  --wwp-data-bg-soft:    #FAFAFA;
+
+  /* ---- Escala de grises ---- */
+  --wwp-gray01: #fbfbfb;
+  --wwp-gray02: #f7f7f7;
+  --wwp-gray03: #f5f4f4;
+  --wwp-gray04: #eeeeee;
+  --wwp-gray05: #d9d9d9;
+  --wwp-gray06: #c8c8c8;
+  --wwp-gray07: #8c8d8e;
+  --wwp-gray08: #575b5d;
+
+  /* ---- Grilla ---- */
+  --wwp-grid-title:      #00066D;
+  --wwp-grid-forecolor:  #000000;
+  --wwp-grid-row-sel:    #c8c8c8;
+
+  /* ---- Login ---- */
+  --wwp-login-bg:        #6098c9;
+
+  /* ---- Semánticos ---- */
+  --wwp-danger:   #f56a67;
+  --wwp-warning:  #f39c12;
+  --wwp-success:  #00a65a;
+  --wwp-info:     #3c8dbc;
+  --wwp-info-lt:  #00c0ef;
+  --wwp-pdf:      #ea4c3a;
+  --wwp-excel:    #08743b;
+
+  /* ---- Tipografía ---- */
+  --wwp-font:        'Poppins', sans-serif;
+  --wwp-font-bold:   'PoppinsBold', 'Poppins', sans-serif;
+  --wwp-fs-xs:  11px;
+  --wwp-fs-s:   14px;   /* default */
+  --wwp-fs-m:   18px;
+  --wwp-fs-l:   22px;
+  --wwp-fs-xl:  28px;
+  --wwp-fs-xxl: 34px;
+  --wwp-fs-title: 30px;
+
+  /* ---- Formas ---- */
+  --wwp-radius-s:    2px;
+  --wwp-radius-m:    4px;
+  --wwp-radius-l:    6px;
+  --wwp-radius-card: 12px;
+  --wwp-border-xs:   1px;
+  --wwp-border-s:    2px;
+  /* Sombras suaves y modernas (limpio/profesional) */
+  --wwp-shadow-card:  0 1px 3px rgba(16, 24, 40, 0.08), 0 1px 2px rgba(16, 24, 40, 0.04);
+  --wwp-shadow-hover: 0 6px 16px rgba(16, 24, 40, 0.10), 0 2px 6px rgba(16, 24, 40, 0.06);
+  --wwp-shadow-btn:   0 4px 12px rgba(0, 26, 129, 0.22);
+  --wwp-line:         #e6e8eb;  /* borde sutil de tarjetas */
+
+  /* ---- Alto de la cabecera ---- */
+  --wwp-header-h: 101px;
+}
+
+/* ---- Base tipográfica global ---- */
+body {
+  font-family: var(--wwp-font);
+  font-size: var(--wwp-fs-s);
+  color: var(--wwp-text);
+  background-color: var(--wwp-bg);
+}

@@ -1,0 +1,368 @@
+/* ============================================================================
+   Tema de la plantilla: capa de marca sobre la base y el layout.
+   Azul marino + Poppins, grillas con cabecera azul, botones
+   habilitado=azul / deshabilitado=gris.
+   Escala tipográfica: xs 11 · s 14 · m 18 · l 22 · xl 28 · xxl 34 · título 30.
+   Va DESPUÉS de base/, layout/ y componentes/ para imponer el look.
+   ============================================================================ */
+
+/* ---------- Tipografía (tamaños por ocasión) ---------- */
+body { font-size: var(--wwp-fs-s); }                 /* texto base 14 */
+h1, h2, h3, h4, h5, h6, strong, b { font-family: var(--wwp-font-bold); }
+h1 { font-size: var(--wwp-fs-l); color: var(--wwp-base); }   /* título de página 22 */
+h2 { font-size: var(--wwp-fs-m); }                            /* subtítulo/panel 18 */
+h3 { font-size: var(--wwp-fs-s); }
+small, .muted { font-size: var(--wwp-fs-xs); color: var(--wwp-gray07); }  /* 11 */
+label, th, td, input, select, textarea, button { font-size: var(--wwp-fs-s); }   /* 14 */
+a { color: var(--wwp-base); text-decoration: none; }
+a:hover { color: var(--wwp-action-hover); }
+::selection { background: var(--wwp-base-30); color: #fff; }
+
+/* ---------- Fondo de la aplicación ----------
+   Va en html (una sola capa, la primera que pinta el navegador) y las capas de la aplicación quedan transparentes:
+   los paneles (tarjetas blancas) quedan superpuestos encima. Para usar una imagen de fondo, agregar
+   url('../../img/<imagen>') center top / cover fixed no-repeat antes del color. */
+html {
+  min-height: 100%;
+  background: var(--wwp-app-bg);
+}
+body, .admin-content, .admin-main, .admin-shell, .admin-shell--light, .admin-shell--dark { background: transparent; }
+
+/* Al pasar de una pantalla a otra, el navegador funde la página vieja con la nueva en lugar de pintarla de cero
+   (Chrome/Edge 126+; los demás navegan como siempre). */
+@view-transition { navigation: auto; }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: .15s; }
+/* La barra lateral queda opaca por encima del fondo */
+.admin-sidebar { background: var(--wwp-data-bg); }
+
+/* ---------- Encabezado de página ----------
+   Sobre el fondo, el título y su descripción van en una franja blanca esmerilada, del ancho del contenido, para que
+   se lean sobre cualquier fondo. */
+.gx-encabezado {
+  padding: 12px 18px; border: 1px solid rgba(255, 255, 255, .7); border-radius: var(--wwp-radius-card, 12px);
+  background: rgba(255, 255, 255, .82); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 4px 16px rgba(0, 26, 129, .08);
+}
+.admin-content .gx-encabezado p { color: var(--wwp-gray08, #575b5d); }
+
+/* ---------- Paneles / tarjetas genéricas ---------- */
+.card, .panel, .content-card {
+  background: var(--wwp-data-bg);
+  border: 1px solid var(--wwp-line);
+  border-radius: var(--wwp-radius-card);
+  box-shadow: var(--wwp-shadow-card);
+  overflow: hidden;
+}
+
+/* ---------- Tarjetas de acceso (op-card) ---------- */
+.op-card {
+  background: var(--wwp-data-bg); border: 1px solid var(--wwp-line);
+  border-radius: 10px; box-shadow: var(--wwp-shadow-card); padding: 16px;
+  transition: box-shadow .15s ease, border-color .15s ease, transform .15s ease;
+}
+.op-card:hover { border-color: var(--wwp-base); box-shadow: var(--wwp-shadow-hover); transform: translateY(-2px); }
+.op-card__icon, .admin-module__icon {
+  background: rgba(var(--wwp-base-rgb), 0.08) !important; color: var(--wwp-base) !important; border-radius: 8px;
+}
+.op-card__icon .lucide, .admin-module__icon .lucide { color: var(--wwp-base); }
+.op-card__title { font-family: var(--wwp-font-bold); color: var(--wwp-text); }
+.op-card__desc { color: var(--wwp-gray07); font-size: var(--wwp-fs-xs); }
+
+/* ---------- Cabecera superior / barra lateral ---------- */
+.admin-header { min-height: 64px; background: var(--wwp-data-bg); border-bottom: 1px solid var(--wwp-line); box-shadow: none; }
+.admin-header__title { font-family: var(--wwp-font-bold); color: var(--wwp-base); }
+.admin-header__module-pill { background: var(--wwp-base) !important; color: #fff !important; }
+
+/* ============================================================================
+   BARRA LATERAL — blanca, con la franja de marca en azul marino arriba y cada
+   grupo de pantallas encabezado por una barra azul, como el título de un panel.
+   ============================================================================ */
+.admin-sidebar { background: var(--wwp-data-bg); border-right: 1px solid var(--wwp-line); }
+
+/* Marca: la franja azul va de borde a borde (anula el padding de la barra con márgenes
+   negativos, uno por cada ancho de padding: expandida .75rem, colapsada .5rem). */
+.admin-sidebar__brand {
+  background: var(--wwp-base); color: #fff; border-bottom: 0;
+  margin-top: -.85rem; padding: .9rem .85rem; margin-bottom: .85rem;
+  box-shadow: 0 2px 10px rgba(var(--wwp-base-rgb), .22);
+}
+.admin-sidebar--expanded .admin-sidebar__brand { margin-left: -.75rem; margin-right: -.75rem; }
+.admin-sidebar--collapsed .admin-sidebar__brand { margin-left: -.5rem; margin-right: -.5rem; }
+.admin-sidebar__brand strong, .admin-sidebar__brand span { color: #fff; }
+.admin-sidebar__brand-fallback { background: #fff !important; color: var(--wwp-base) !important; border-radius: var(--wwp-radius-l); }
+/* Logo de la aplicación: en un recuadro blanco para que se vea sobre la franja azul, cualquiera sea su forma. */
+.admin-sidebar__brand-logo {
+  width: 40px; height: 40px; max-width: 40px; max-height: 40px; padding: 3px; object-fit: contain;
+  background: #fff; border-radius: var(--wwp-radius-l); box-shadow: 0 1px 3px rgba(0, 0, 0, .18);
+}
+.admin-sidebar__brand-text { min-width: 0; }
+.admin-sidebar__brand-text strong, .admin-sidebar__brand-text span {
+  display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.25;
+}
+.admin-sidebar__brand-text span { font-size: .72rem; opacity: .9; }
+.admin-sidebar__collapse-btn { color: rgba(255, 255, 255, .75); border-radius: var(--wwp-radius-l); }
+.admin-sidebar__collapse-btn:hover { background: rgba(255, 255, 255, .16); color: #fff; }
+
+/* Buscador */
+.admin-sidebar__search, .admin-sidebar__search-collapsed {
+  border-radius: var(--wwp-radius-l); background: #fff; border-color: var(--wwp-gray05); min-height: 38px;
+}
+.admin-sidebar__search:focus-within, .admin-sidebar__search.is-active {
+  border-color: var(--wwp-base); box-shadow: 0 0 0 3px rgba(var(--wwp-base-rgb), .12);
+}
+.admin-sidebar__search:focus-within .admin-sidebar__search-icon { color: var(--wwp-base); }
+.admin-sidebar__search input { font-size: var(--wwp-fs-s); color: var(--wwp-text); }
+.admin-sidebar__search-collapsed:hover { color: var(--wwp-base); border-color: var(--wwp-base); background: var(--wwp-gray02); }
+
+/* Acceso rápido (Inicio): sobrio, y azul lleno cuando es la pantalla actual */
+.admin-quick__btn {
+  border: 1px solid var(--wwp-gray05) !important; background: #fff !important;
+  color: var(--wwp-gray08) !important; border-radius: var(--wwp-radius-l);
+  font-family: var(--wwp-font-bold); font-size: var(--wwp-fs-s); font-weight: 400;
+}
+.admin-quick__btn:hover {
+  background: var(--wwp-gray02) !important; color: var(--wwp-base) !important;
+  border-color: var(--wwp-base-30) !important; transform: none; box-shadow: none;
+}
+.admin-quick__btn.is-active {
+  background: var(--wwp-base) !important; color: #fff !important; border-color: var(--wwp-base) !important;
+}
+.admin-quick__btn.is-active .lucide { color: #fff; }
+
+/* Módulo del menú: tarjeta blanca cuando está abierto */
+.admin-module.is-open {
+  border-color: var(--wwp-line); background: var(--wwp-data-bg);
+  border-radius: var(--wwp-radius-card); box-shadow: var(--wwp-shadow-card);
+}
+.admin-module__head:hover, .admin-module.has-active:not(.is-open) .admin-module__head { background: var(--wwp-gray02); }
+.admin-module.is-open .admin-module__head { border-bottom-color: var(--wwp-line); }
+.admin-module__meta strong { font-family: var(--wwp-font-bold); color: var(--wwp-base); font-size: var(--wwp-fs-s); }
+.admin-module__chevron { color: var(--wwp-gray07); }
+
+/* Rótulo de sección: barra azul marino de lado a lado, igual que el título de un panel.
+   Los márgenes negativos anulan el padding lateral del cuerpo del módulo (.45rem); el
+   overflow:hidden de .admin-module recorta la barra contra las esquinas redondeadas. */
+.admin-subsection__label {
+  background: var(--wwp-base); color: #fff;
+  font-family: var(--wwp-font-bold); font-size: var(--wwp-fs-xs); letter-spacing: .08em;
+  padding: .4rem .75rem; margin: .55rem -.45rem .4rem;
+}
+.admin-module__body > div:first-child .admin-subsection__label { margin-top: -.35rem; }
+/* El rótulo pliega su sección: botón de lado a lado con la flecha a la derecha (abajo abierta, a la derecha plegada). */
+button.admin-subsection__label {
+  display: flex; align-items: center; justify-content: space-between; gap: .5rem;
+  width: calc(100% + .9rem); min-height: 0; border: 0; border-radius: 0; text-align: left; text-transform: uppercase;
+  font-weight: inherit; cursor: pointer; transition: background .15s ease;
+}
+button.admin-subsection__label:active { transform: none; }
+button.admin-subsection__label:hover { background: rgba(var(--wwp-base-rgb), .88); }
+button.admin-subsection__label:focus-visible { outline: 2px solid #fff; outline-offset: -3px; }
+.admin-subsection__chevron { flex: none; color: #fff; opacity: .85; transition: transform .2s ease; }
+.is-plegada > .admin-subsection__label .admin-subsection__chevron { transform: rotate(-90deg); }
+.is-plegada > .admin-subsection__label { margin-bottom: .1rem; }
+@media (prefers-reduced-motion: reduce) { .admin-subsection__chevron { transition: none; } }
+
+/* Filas del menú */
+.admin-nav-item {
+  border-radius: var(--wwp-radius-m); color: var(--wwp-gray08); font-size: var(--wwp-fs-s);
+  padding: .45rem .7rem; gap: .6rem;
+}
+.admin-nav-item:hover { background: var(--wwp-gray02); color: var(--wwp-base); }
+.admin-nav-item.is-active {
+  background: rgba(var(--wwp-base-rgb), .08) !important; color: var(--wwp-base) !important;
+  font-family: var(--wwp-font-bold); font-weight: 400;
+  box-shadow: inset 3px 0 0 var(--wwp-base);
+}
+.admin-nav-item.is-active .admin-nav-item__dot { background: var(--wwp-base); }
+
+/* Barra de scroll discreta */
+.admin-sidebar__scroll { scrollbar-color: var(--wwp-gray05) transparent; }
+.admin-sidebar__scroll::-webkit-scrollbar { width: 6px; }
+.admin-sidebar__scroll::-webkit-scrollbar-thumb { background: var(--wwp-gray05); border-radius: 999px; }
+.admin-sidebar__scroll::-webkit-scrollbar-track { background: transparent; }
+
+/* Avatar del usuario */
+.admin-sidebar__avatar { background: var(--wwp-base); color: #fff; font-family: var(--wwp-font-bold); box-shadow: none; }
+
+/* ---------- Badges ---------- */
+.badge-green, .badge--green { background: #e4f6ec; color: var(--wwp-success); }
+.badge-red, .badge--red { background: #fde8e8; color: var(--wwp-danger); }
+.badge-blue, .badge--blue { background: rgba(var(--wwp-base-rgb), 0.08); color: var(--wwp-base); }
+
+/* ============================================================================
+   BOTONES — habilitado: azul + texto blanco · deshabilitado: gris
+   ============================================================================ */
+button, .btn, .Button, a.btn, .app-btn {
+  font-family: var(--wwp-font); font-size: var(--wwp-fs-s);
+  border-radius: var(--wwp-radius-l);
+  transition: background-color .15s, box-shadow .15s, color .15s, border-color .15s;
+}
+/* Primarios (habilitados) */
+.btn-primary, .Button, button.primario, .app-btn--primary,
+button[type="submit"]:not(.admin-theme-btn):not(.admin-icon-btn):not(.op-card):not(.admin-header__menu-item):not([class*="ghost"]) {
+  background: var(--wwp-base); border: 1px solid var(--wwp-base); color: #fff;
+}
+.btn-primary:hover, .Button:hover, button.primario:hover, .app-btn--primary:hover,
+button[type="submit"]:not(.admin-theme-btn):not(.admin-icon-btn):not(.op-card):not(.admin-header__menu-item):not([class*="ghost"]):hover {
+  background: var(--wwp-action-hover); border-color: var(--wwp-action-hover-bd); color: #fff; box-shadow: var(--wwp-shadow-btn);
+}
+/* Secundario / ghost (contorno azul) */
+.btn-secondary, .btn-outline, .app-btn:not(.app-btn--primary) {
+  background: #fff; border: 1px solid var(--wwp-base); color: var(--wwp-base);
+}
+.btn-secondary:hover, .btn-outline:hover, .app-btn:not(.app-btn--primary):hover {
+  background: var(--wwp-base); color: #fff;
+}
+/* DESHABILITADO: gris, sin hover (cubre :disabled, [disabled] y aria-disabled) */
+button:disabled, .btn:disabled, .Button:disabled, .app-btn:disabled,
+button[disabled], .is-disabled, [aria-disabled="true"] {
+  background: var(--wwp-gray05) !important;
+  border-color: var(--wwp-gray05) !important;
+  color: var(--wwp-gray07) !important;
+  box-shadow: none !important;
+  cursor: not-allowed !important;
+  opacity: 1 !important;
+}
+
+/* ---------- Formularios ---------- */
+input:not([type="checkbox"]):not([type="radio"]), select, textarea {
+  font-family: var(--wwp-font); font-size: var(--wwp-fs-s);
+  border: 1px solid var(--wwp-gray05); border-radius: var(--wwp-radius-m);
+}
+input:focus, select:focus, textarea:focus { outline: none; border-color: var(--wwp-action-focus); box-shadow: 0 0 0 3px rgba(var(--wwp-base-rgb), 0.12); }
+input:disabled, select:disabled, textarea:disabled { background: var(--wwp-gray02); color: var(--wwp-gray08); }
+label.requerido::after, .campo-requerido label::after { content: " *"; color: var(--wwp-required); }
+
+/* ============================================================================
+   GRILLAS genéricas (tablas con clase *-table / grid): borde propio, cabecera
+   fija (sticky) con fondo opaco y raya azul que viaja con la cabecera
+   (box-shadow, no border: con border-collapse el borde se quedaba atrás).
+   Las grillas de pantalla (.gx-grilla) están en componentes/pantalla.css.
+   ============================================================================ */
+[class*="-table-wrap"] {
+  border: 1px solid var(--wwp-gray05);
+  border-radius: var(--wwp-radius-l);
+  background: var(--wwp-data-bg);
+}
+table.grid, table.Grid, .wwp-grid table,
+table[class*="-table"], table[class*="Table"] {
+  width: 100%; border-collapse: separate; border-spacing: 0; background: var(--wwp-data-bg);
+}
+table.grid thead th, table.Grid thead th, .wwp-grid thead th,
+table[class*="-table"] thead th, table[class*="Table"] thead th {
+  position: sticky; top: 0; z-index: 2;
+  background: var(--wwp-data-bg);
+  color: var(--wwp-grid-title); font-family: var(--wwp-font-bold); text-align: left;
+  border: 0; box-shadow: inset 0 -2px 0 var(--wwp-base);
+  padding: 11px 14px; font-size: var(--wwp-fs-s); white-space: nowrap;
+}
+table.grid tbody td, table.Grid tbody td, .wwp-grid tbody td,
+table[class*="-table"] tbody td, table[class*="Table"] tbody td {
+  color: var(--wwp-grid-forecolor); border: 0; border-bottom: 1px solid var(--wwp-line);
+  padding: 10px 14px; background: transparent; font-weight: normal;
+}
+table tbody tr:last-child td, table tbody tr:last-child th { border-bottom: 0; }
+table.grid tbody tr:hover td, .wwp-grid tbody tr:hover td,
+table[class*="-table"] tbody tr:hover td, table[class*="Table"] tbody tr:hover td { background: var(--wwp-gray02); }
+table[class*="-table"] tbody tr.is-active td, .wwp-grid tbody tr.selected td { background: rgba(var(--wwp-base-rgb), 0.08); }
+.pagination-bar, .PaginationBar { border-top: 1px solid var(--wwp-gray05); background: var(--wwp-gray02); box-shadow: 0 1px 3px rgba(0,0,0,.2); padding: 8px 12px; }
+
+/* ---------- Mensajes / alertas ---------- */
+.alert-danger,  .msg-danger  { background: #fde8e8; color: #a12622; border-left: 3px solid var(--wwp-danger); border-radius: var(--wwp-radius-m); padding: 10px 12px; }
+.alert-warning, .msg-warning { background: #fef7e6; color: #8a5a00; border-left: 3px solid var(--wwp-warning); border-radius: var(--wwp-radius-m); padding: 10px 12px; }
+.alert-success, .msg-success { background: #e4f6ec; color: #1b6b43; border-left: 3px solid var(--wwp-success); border-radius: var(--wwp-radius-m); padding: 10px 12px; }
+.alert-info,    .msg-info    { background: #e7f1fb; color: #255a85; border-left: 3px solid var(--wwp-info); border-radius: var(--wwp-radius-m); padding: 10px 12px; }
+
+/* ============================================================================
+   COMBO BUSCABLE (componentes/combo.js) — selects tipeables con coincidencias
+   ============================================================================ */
+.wwp-combo { position: relative; display: inline-flex; align-items: center; width: 100%; min-width: 160px; }
+.wwp-combo__select { position: absolute !important; opacity: 0 !important; pointer-events: none !important; width: 1px !important; height: 1px !important; left: 0; bottom: 0; }
+.wwp-combo__input { width: 100%; padding-right: 28px !important; background: #fff; cursor: text; }
+.wwp-combo__flecha { position: absolute; right: 10px; top: 50%; width: 8px; height: 8px; margin-top: -6px;
+  border-right: 2px solid var(--wwp-gray07); border-bottom: 2px solid var(--wwp-gray07); transform: rotate(45deg); cursor: pointer; }
+.wwp-combo.is-disabled .wwp-combo__input { background: var(--wwp-gray02); color: var(--wwp-gray07); cursor: not-allowed; }
+/* Un combo deshabilitado (visualizar, campos que no se editan) no muestra la flecha de desplegar: ni la del combo
+   propio ni la del select nativo (data-combo="no"). */
+.wwp-combo.is-disabled .wwp-combo__flecha { display: none; }
+select:disabled { -webkit-appearance: none; -moz-appearance: none; appearance: none; background-image: none; }
+.wwp-combo__lista {
+  position: fixed; z-index: 100000; margin: 0; padding: 4px 0; list-style: none; overflow-y: auto;
+  background: #fff; border: 1px solid var(--wwp-gray05); border-radius: var(--wwp-radius-m);
+  box-shadow: 0 8px 24px rgba(16, 24, 40, .16); font-family: var(--wwp-font); font-size: var(--wwp-fs-s);
+}
+.wwp-combo__lista li { padding: 7px 12px; cursor: pointer; white-space: nowrap; color: var(--wwp-text); }
+.wwp-combo__lista li.is-marcado { background: rgba(var(--wwp-base-rgb), .08); color: var(--wwp-base); }
+.wwp-combo__lista li[aria-selected="true"] { font-family: var(--wwp-font-bold); }
+.wwp-combo__lista li.is-disabled { color: var(--wwp-gray06); cursor: not-allowed; }
+.wwp-combo__lista li mark { background: transparent; color: var(--wwp-base); font-family: var(--wwp-font-bold); }
+.wwp-combo__vacio { color: var(--wwp-gray07) !important; cursor: default !important; font-style: italic; }
+
+/* ============================================================================
+   CABECERA · bloque de usuario con menú (datos de la sesión y cerrar sesión)
+   ============================================================================ */
+.admin-header__user { position: relative; }
+.admin-header__user-btn {
+  display: flex; align-items: center; gap: .3rem;
+  background: none; border: 0; padding: 0; cursor: pointer; font: inherit; color: inherit;
+}
+.admin-header__user-btn[aria-expanded="true"] .admin-sidebar__user {
+  background: rgba(var(--wwp-base-rgb), .06); border-color: var(--wwp-base-30);
+}
+.admin-header__user-btn[aria-expanded="true"] .admin-header__user-chevron { transform: rotate(180deg); }
+.admin-header__user-chevron { transition: transform .15s; }
+.admin-header__user .admin-sidebar__user-text { text-align: left; line-height: 1.2; }
+.admin-header__user .admin-sidebar__user-text strong { color: var(--wwp-base); }
+/* Datos secundarios del usuario, debajo del nombre */
+.admin-header__user-meta {
+  display: block; font-size: var(--wwp-fs-xs); color: var(--wwp-gray07); white-space: nowrap;
+}
+.admin-header__user-meta span { font-size: inherit; }
+
+.admin-header__menu {
+  position: absolute; top: calc(100% + 8px); right: 0; z-index: 200; min-width: 230px;
+  background: #fff; border: 1px solid var(--wwp-gray05); border-radius: var(--wwp-radius-card);
+  box-shadow: 0 10px 28px rgba(16, 24, 40, .18); overflow: hidden;
+}
+.admin-header__menu-info {
+  display: flex; flex-direction: column; gap: 2px; padding: 12px 14px;
+  background: var(--wwp-base); color: #fff;
+}
+.admin-header__menu-info strong { color: #fff; font-family: var(--wwp-font-bold); }
+.admin-header__menu-info span { font-size: var(--wwp-fs-xs); color: rgba(255,255,255,.82); }
+.admin-header__menu-item {
+  display: flex; align-items: center; gap: 8px; width: 100%; padding: 11px 14px;
+  background: none; border: 0; cursor: pointer; text-align: left;
+  font-family: var(--wwp-font-bold); color: #a12622;
+}
+.admin-header__menu-item:hover { background: #fdeceb; }
+.admin-header__menu-item .lucide { color: #a12622; }
+
+@media (max-width: 1180px) {
+  .admin-header__user-meta { display: none; }
+}
+
+/* ======================================================================================================
+   Tipografía uniforme en todas las pantallas:
+   - texto, valores, botones y grillas: 14px (--wwp-fs-s);
+   - etiquetas de campo: 14px;
+   - título del panel azul: 14px, Poppins 600;
+   - leyenda de grupo: 18px (--wwp-fs-m);
+   - título de la pantalla 22px (--wwp-fs-l) y su descripción 11px (--wwp-fs-xs).
+   Las etiquetas de estado, contadores y textos de ayuda conservan su tamaño (11px).
+   ====================================================================================================== */
+.admin-content h1 { font-size: var(--wwp-fs-l); }
+.admin-content h1 + p, .admin-content header > p { font-size: var(--wwp-fs-xs); }
+.admin-content h2,
+.admin-content .gx-panel__titulo { font-family: var(--wwp-font); font-size: var(--wwp-fs-s); font-weight: 600; }
+.admin-content label { font-size: var(--wwp-fs-s); }
+.admin-content input:not([type="checkbox"]):not([type="radio"]),
+.admin-content select,
+.admin-content textarea,
+.admin-content .wwp-combo__input { font-size: var(--wwp-fs-s); }
+.admin-content button,
+.admin-content .btn,
+.admin-content a.gx-btn { font-size: var(--wwp-fs-s); }
+.admin-content table th,
+.admin-content table td { font-size: var(--wwp-fs-s); }
+.admin-content legend { font-family: var(--wwp-font); font-size: var(--wwp-fs-m); font-weight: normal; }

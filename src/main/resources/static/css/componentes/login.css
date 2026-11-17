@@ -1,0 +1,51 @@
+/* Pantalla de acceso: tarjeta blanca centrada con borde azul y sombra azulada, título en itálica, campos con línea
+   inferior, la contraseña con el botón para verla y el botón principal con sombra elevada. */
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  font-family: var(--wwp-font);
+}
+
+.gx-login {
+  width: 400px; max-width: calc(100vw - 32px); padding: 35px 0; background: var(--wwp-data-bg, #fff);
+  border: 1px solid var(--wwp-base, #001d7e); border-radius: var(--wwp-radius-l, 8px);
+  box-shadow: 0 0 14px rgba(var(--wwp-base-rgb, 0, 29, 126), .45); text-align: center;
+}
+.gx-login__logo { display: block; max-height: 83px; max-width: calc(100% - 30px); margin: 0 auto; }
+.gx-login__titulo {
+  margin: 30px 15px 0; font-family: var(--wwp-font-bold); font-style: italic; font-weight: 700; font-size: 1.25rem;
+  color: var(--wwp-base, #001d7e);
+}
+.gx-login__celda { padding: 15px 15px 2px; text-align: left; }
+.gx-login__celda--boton { text-align: center; }
+.gx-login__input {
+  width: 100%; height: 38px; padding: 6px 10px; font-family: var(--wwp-font); font-size: 14px; color: var(--wwp-gray08, #333);
+  background: transparent; border: 0; border-bottom: 1px solid var(--wwp-gray05, #b4b4b4); border-radius: 0;
+}
+.gx-login__input:focus { outline: none; border-bottom-color: var(--wwp-base, #001d7e); box-shadow: 0 1px 0 var(--wwp-base, #001d7e); }
+.gx-login__clave { position: relative; }
+.gx-login__clave .gx-login__input { padding-right: 40px; }
+/* Edge pone su propio "revelar contraseña" (y la X de borrar) en el borde derecho, encima del ojo de la página:
+   queda solo el de la página. */
+.gx-login__clave .gx-login__input::-ms-reveal,
+.gx-login__clave .gx-login__input::-ms-clear { display: none; }
+.gx-login__ver {
+  position: absolute; right: 4px; top: 50%; transform: translateY(-50%); display: grid; place-items: center;
+  width: 32px; height: 32px; padding: 0; border: 0; background: transparent; color: var(--wwp-gray07, #8c8d8e); cursor: pointer;
+}
+.gx-login__ver:hover, .gx-login__ver:focus-visible { color: var(--wwp-base, #001d7e); outline: none; }
+.gx-login__boton {
+  padding: 7px 12px; min-width: 140px; font-family: var(--wwp-font); font-size: 14px; color: #fff; cursor: pointer;
+  background: var(--wwp-base, #001d7e); border: 0; border-radius: var(--wwp-radius-m, 4px);
+  box-shadow: 0 7px 10px -5px rgba(var(--wwp-base-rgb, 0, 29, 126), .6);
+}
+.gx-login__boton:hover { box-shadow: 0 14px 26px -12px rgba(var(--wwp-base-rgb, 0, 29, 126), .6); }
+.gx-login__boton:disabled { opacity: .6; cursor: not-allowed; }
+.gx-login__mensaje {
+  margin: 15px 15px 0; padding: 10px; border-radius: 8px; font-size: 13px; text-align: left;
+  background: var(--ui-error-bg); border: 1px solid var(--ui-error-border); color: var(--ui-error-text);
+}
+.gx-login__pie { margin: 30px 15px 0; font-size: 12px; color: var(--wwp-gray07, #8c8d8e); }

@@ -1,0 +1,713 @@
+/*
+ * Componentes de pantalla: encabezado, panel con título azul, campos con la etiqueta arriba y línea inferior,
+ * botones, grilla con la columna de acciones y su menú desplegable, paginación, avisos, grupos, pasos y progreso.
+ * Usa las variables de diseño de tokens/tokens.css (--wwp-base, --wwp-gray05, --wwp-font, ...).
+ */
+
+/* Contenedor de cada pantalla: columna con separación uniforme entre bloques. */
+.gx-pantalla { display: flex; flex-direction: column; gap: 20px; width: 100%; padding: 1rem 1.25rem 2rem; box-sizing: border-box; }
+/* El encabezado queda a la izquierda del área de contenido; el cuerpo, centrado en una columna de 1280px (con el
+   padding), como las demás pantallas. Lo más angosto (fichas compactas) se alinea al borde izquierdo de la columna. */
+.gx-pantalla > :not(.gx-encabezado) { margin-left: max(0px, calc((100% - 1280px + 2.5rem) / 2)); margin-right: max(0px, calc((100% - 1280px + 2.5rem) / 2)); }
+
+/* ------------------------------------------------------------------ encabezado de la pantalla */
+.gx-encabezado h1 {
+  display: flex; align-items: center; gap: 8px; margin: 0 0 .35rem;
+  font-family: var(--wwp-font-bold); font-size: var(--wwp-fs-l, 22px); color: var(--wwp-base, #001d7e);
+}
+.gx-encabezado h1 .lucide { color: var(--wwp-base, #001d7e); }
+.gx-encabezado p { margin: 0; font-size: var(--wwp-fs-xs, 11px); color: var(--wwp-gray07, #8c8d8e); line-height: 1.45; }
+
+/* ------------------------------------------------------------------ DVPanel */
+.gx-panel {
+  background: var(--wwp-data-bg, #fafafa);
+  border: 1px solid var(--wwp-line, #d9d9d9);
+  border-radius: var(--wwp-radius-card, 14px);
+  box-shadow: var(--wwp-shadow-card, 0 5px 20px 0 rgba(0, 0, 0, .05));
+  overflow: hidden;
+}
+/* Título que pliega su panel (data-plegable, componentes.js): la flecha apunta abajo abierto y a la derecha cerrado. */
+.gx-panel__titulo--plegable { display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; }
+.gx-panel__titulo--plegable::after {
+  content: ""; width: 7px; height: 7px; margin: 0 4px 3px 12px; flex: none;
+  border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg); transition: transform .15s ease;
+}
+.gx-panel__titulo--plegable[aria-expanded="false"]::after { transform: rotate(-45deg); margin-bottom: 0; }
+.gx-panel__titulo--plegable:focus-visible { outline: 2px solid #93c5fd; outline-offset: -2px; }
+.gx-panel__titulo {
+  margin: 0;
+  padding: 10px 16px;
+  background: var(--wwp-base, #001d7e);
+  color: #fff;
+  /* PanelFilled > .panel-title de WorkWithPlusBaseDS: 14px, Poppins 600. */
+  font-family: var(--wwp-font);
+  font-size: var(--wwp-fs-s, 14px);
+  font-weight: 600;
+}
+.gx-panel__cuerpo { padding: 16px; }
+.gx-panel__cuerpo > * + * { margin-top: 16px; }
+.gx-panel--grilla .gx-panel__cuerpo { padding: 0; }
+
+/* ------------------------------------------------------------------ campos (LabelFL + Attribute) */
+.gx-campos { display: grid; grid-template-columns: repeat(var(--gx-columnas, 2), minmax(0, 1fr)); gap: 18px 48px; }
+.gx-campos--3 { --gx-columnas: 3; }
+.gx-campo { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.gx-campo > label, .gx-campo__etiqueta {
+  font-family: var(--wwp-font-bold);
+  font-size: var(--wwp-fs-s, 14px);
+  color: var(--wwp-gray08, #575b5d);
+}
+.gx-pantalla .gx-campo input:not([type="checkbox"]):not([type="radio"]),
+.gx-pantalla .gx-campo select,
+.gx-pantalla .gx-campo .wwp-combo__input,
+.gx-pantalla .gx-grilla input:not([type="checkbox"]):not([type="radio"]),
+.gx-pantalla .gx-grilla select {
+  width: 100%;
+  max-width: 320px;
+  padding: 6px 4px;
+  border: 0;
+  border-bottom: 1px solid var(--wwp-gray05, #d9d9d9);
+  border-radius: 0;
+  background: transparent;
+  color: var(--wwp-gray08, #575b5d);
+  font-size: var(--wwp-fs-s, 14px);
+  box-shadow: none;
+  outline: none;
+}
+.gx-campo .wwp-combo { max-width: 320px; }
+.gx-pantalla .gx-campo .wwp-combo,
+.gx-pantalla .gx-campo .wwp-combo.is-disabled { background: transparent !important; border-color: transparent !important; }
+.gx-pantalla .gx-campo .wwp-combo__input { background: transparent; }
+.gx-pantalla .gx-campo input:not([type="checkbox"]):not([type="radio"]):focus,
+.gx-pantalla .gx-campo select:focus,
+.gx-pantalla .gx-campo .wwp-combo__input:focus,
+.gx-pantalla .gx-grilla input:not([type="checkbox"]):not([type="radio"]):focus,
+.gx-pantalla .gx-grilla select:focus { border-bottom-color: var(--wwp-base, #001d7e); box-shadow: none; }
+.gx-pantalla .gx-campo input:not([type="checkbox"]):not([type="radio"]):disabled,
+.gx-pantalla .gx-campo select:disabled,
+.gx-pantalla .gx-campo .wwp-combo.is-disabled .wwp-combo__input {
+  background: transparent;
+  color: var(--wwp-gray07, #8c8d8e);
+  border-bottom-style: dotted;
+  cursor: default;
+}
+.gx-campo[hidden] { display: none; }
+/* RequiredDataContentCell: asterisco rojo en la etiqueta. */
+.gx-campo > label.requerido::after { content: " *"; color: var(--wwp-required, #ea0101); }
+/* Campo con error de validación (CHECKREQUIREDFIELDS): línea y mensaje en rojo debajo del control. */
+.gx-pantalla .gx-campo.is-error input:not([type="checkbox"]):not([type="radio"]),
+.gx-pantalla .gx-campo.is-error select,
+.gx-pantalla .gx-campo.is-error .wwp-combo__input { border-bottom: 2px solid var(--wwp-required, #ea0101); }
+.gx-campo.is-error > label { color: var(--wwp-required, #ea0101); }
+.gx-campo__error { display: flex; align-items: center; gap: 6px; margin: 0; font-size: var(--wwp-fs-xs, 12px); color: var(--wwp-required, #ea0101); }
+.gx-resumen-error {
+  display: flex; align-items: center; gap: 8px; padding: 10px 14px;
+  border: 1px solid #fecaca; border-radius: 8px; background: #fef2f2; color: #b91c1c;
+}
+.gx-resumen-error[hidden] { display: none; }
+/* Sin flechitas en los campos numéricos. */
+.gx-campo input[type=number] { -moz-appearance: textfield; }
+.gx-campo input[type=number]::-webkit-inner-spin-button,
+.gx-campo input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+
+/* ------------------------------------------------------------------ botones (Button / ButtonMaterial) */
+.gx-acciones-pie { display: flex; flex-wrap: wrap; gap: 10px; justify-content: flex-start; }
+.gx-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: 1px solid var(--wwp-action-focus, #000168);
+  border-radius: 6px;
+  background: var(--wwp-base, #001d7e);
+  color: #fff;
+  font-size: var(--wwp-fs-s, 14px);
+  line-height: 1.2;
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.gx-btn:hover, .gx-btn:focus-visible { background: var(--wwp-action-hover, #001077); color: #fff; }
+.gx-btn:disabled { opacity: .55; cursor: not-allowed; }
+.gx-btn--secundario {
+  background: #fff;
+  color: var(--wwp-base, #001d7e);
+  border-color: var(--wwp-gray05, #d9d9d9);
+}
+.gx-btn--secundario:hover, .gx-btn--secundario:focus-visible {
+  background: #fff;
+  color: var(--wwp-action-hover, #001077);
+  border-color: var(--wwp-base, #001d7e);
+}
+.gx-enlace { background: none; border: 0; padding: 0; color: var(--wwp-base, #001d7e); cursor: pointer; font: inherit; }
+.gx-enlace:hover { text-decoration: underline; }
+
+/* ------------------------------------------------------------------ grilla WorkWith */
+.gx-grilla-wrap { overflow-x: auto; }
+.gx-grilla { width: 100%; border-collapse: collapse; color: var(--wwp-gray08, #575b5d); }
+.gx-grilla thead th {
+  height: 46px;
+  padding: 6px 12px;
+  border-bottom: 2px solid var(--wwp-base, #001d7e);
+  background: transparent;
+  color: var(--wwp-text, #1f2937);
+  font-family: var(--wwp-font-bold);
+  text-align: left;
+  white-space: nowrap;
+}
+.gx-grilla tbody td { height: 40px; padding: 6px 12px; border-top: 1px solid var(--wwp-gray04, #eee); vertical-align: middle; white-space: nowrap; }
+.gx-grilla tbody tr:hover td { background: rgba(0, 26, 129, .03); }
+.gx-grilla .gx-num { text-align: right; white-space: nowrap; }
+.gx-grilla .gx-col-acciones { width: 1%; padding-right: 0; }
+.gx-grilla__vacio { padding: 18px 16px; color: var(--wwp-gray07, #8c8d8e); }
+.gx-grilla tr.gx-fila--peligro td { color: #b91c1c; }
+/* Fila en rojo sin tachar (registro con un problema que no lo anula). */
+.gx-grilla tr.gx-fila--roja td { color: #b91c1c; }
+
+/* Barra de progreso dentro de un panel. */
+.gx-progreso { margin-top: 16px; }
+.gx-progreso__texto { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 6px; font-size: 12.5px;
+  color: var(--wwp-gray08, #575b5d); }
+.gx-progreso__barra { height: 10px; overflow: hidden; border-radius: 999px; background: #e5e7eb; }
+.gx-progreso__relleno { height: 100%; width: 0; border-radius: 999px; background: var(--wwp-base, #001d7e); transition: width .4s ease; }
+/* Sin total todavía (o grabando): la barra se mueve sin un porcentaje. */
+.gx-progreso.is-indeterminado .gx-progreso__relleno { width: 30%; animation: gx-progreso-mover 1.2s ease-in-out infinite; }
+@keyframes gx-progreso-mover { from { transform: translateX(-100%); } to { transform: translateX(340%); } }
+/* Grilla compacta: cada celda en una sola línea y la columna del ancho de su contenido;
+   con muchas columnas se desplaza en horizontal. */
+.gx-grilla--compacta thead th, .gx-grilla--compacta tbody td { white-space: nowrap; padding-left: 10px; padding-right: 10px; }
+.gx-grilla--compacta tbody td { height: 36px; padding-top: 4px; padding-bottom: 4px; }
+
+/* Grilla enmarcada dentro de un panel. */
+.gx-grilla-marco { border: 1px solid var(--wwp-line, #d9d9d9); border-radius: 10px; overflow: hidden; background: #fff; }
+.gx-grilla-marco .gx-grilla thead th { background: var(--wwp-gray02, #f7f7f7); }
+/* Las grillas paginadas van en su marco con la barra de páginas adentro; en un panel de grilla, sin relleno propio,
+   el marco se separa 12px de los bordes del panel. */
+.gx-panel--grilla .gx-panel__cuerpo > .gx-grilla-marco { margin: 12px; }
+.gx-grilla-marco > .gx-paginacion { border-top: 1px solid var(--wwp-line, #d9d9d9); }
+/* El marco que agrega la paginación no cambia la grilla: cabecera blanca, como las demás. */
+.gx-grilla-marco--paginada .gx-grilla thead th { background: transparent; }
+.gx-grilla tr.gx-fila--peligro td:not(.gx-col-acciones) { text-decoration: line-through; }
+.gx-grilla tr.gx-fila--nueva td { background: rgba(0, 26, 129, .03); }
+
+/* Barra de paginación (GridWithPaginationBar / PaginationBar). */
+.gx-paginacion {
+  display: flex; align-items: center; justify-content: flex-start; gap: 6px;
+  padding: 10px 16px; border-top: 1px solid var(--wwp-gray04, #eee); color: var(--wwp-gray07, #8c8d8e);
+}
+/* "Página N de M" a la izquierda; Ant · páginas · Sig a la derecha, botones cuadrados. */
+.gx-paginacion > span { margin-right: auto; }
+.gx-paginacion button {
+  min-width: 30px; height: 30px; padding: 0 8px; border: 1px solid var(--wwp-gray05, #d9d9d9); border-radius: 0;
+  background: #fff; color: var(--wwp-gray08, #575b5d); cursor: pointer;
+}
+.gx-paginacion button.is-actual { background: var(--wwp-base, #001d7e); border-color: var(--wwp-base, #001d7e); color: #fff; }
+.gx-paginacion button:disabled { opacity: .45; cursor: default; }
+
+/* ------------------------------------------------------------------ WWActionGroupColumn: botón hamburguesa + menú */
+.gx-accion-grupo { position: relative; display: inline-block; }
+.gx-accion-grupo__boton, .gx-accion {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 30px; height: 30px; padding: 0;
+  border: 1px solid var(--wwp-gray06, #c8c8c8); border-radius: 4px;
+  background: #fff; color: var(--wwp-gray07, #8c8d8e); cursor: pointer;
+}
+/* En la grilla, el botón no estira la fila (la regla general de botones de la pantalla lo llevaba a 36 px). */
+.gx-grilla .gx-accion-grupo { display: inline-flex; vertical-align: middle; }
+.gx-grilla tbody td.gx-col-acciones { padding-top: 4px; padding-bottom: 4px; }
+.gx-grilla .gx-accion-grupo__boton, .gx-grilla .gx-accion { width: 28px; height: 28px; min-width: 28px; min-height: 0; margin: 0; }
+.gx-accion-grupo__boton:hover, .gx-accion-grupo.is-abierto .gx-accion-grupo__boton,
+.gx-accion:hover { border-color: var(--wwp-base, #001d7e); color: var(--wwp-base, #001d7e); }
+.gx-accion--peligro:hover { border-color: #b91c1c; color: #b91c1c; }
+.gx-accion-grupo__menu {
+  position: absolute; z-index: 50; top: calc(100% + 4px); left: 0; min-width: 190px;
+  margin: 0; padding: 4px 0; list-style: none;
+  background: var(--wwp-data-bg, #fafafa); border: 1px solid var(--wwp-gray05, #d9d9d9); border-radius: 4px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .12);
+}
+.gx-accion-grupo__menu[hidden] { display: none; }
+.gx-accion-grupo__menu a, .gx-accion-grupo__menu button {
+  display: flex; align-items: center; gap: 10px; width: 100%;
+  padding: 7px 12px; border: 0; background: transparent;
+  color: var(--wwp-gray08, #575b5d); text-align: left; text-decoration: none; cursor: pointer; font: inherit;
+}
+.gx-accion-grupo__menu a:hover, .gx-accion-grupo__menu button:hover { background: rgba(0, 26, 129, .06); color: var(--wwp-base, #001d7e); }
+
+/* ------------------------------------------------------------------ avisos */
+.gx-aviso {
+  display: flex; align-items: center; gap: 8px; padding: 10px 14px;
+  border: 1px solid #fde68a; border-radius: 6px; background: #fffbeb; color: #92400e;
+}
+.gx-subtitulo { color: var(--wwp-gray08, #575b5d); font-family: var(--wwp-font-bold); }
+
+@media (max-width: 900px) {
+  .gx-campos, .gx-campos--3 { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* Avisos de éxito y de error, y una etiqueta destacada junto a un texto (gx-badge). */
+.gx-aviso--exito { border-color: #bbf7d0; background: #f0fdf4; color: #166534; }
+.gx-aviso--error { border-color: #fecaca; background: #fef2f2; color: #991b1b; }
+.gx-badge {
+  display: inline-block; margin-left: 6px; padding: 1px 8px; border-radius: 10px;
+  background: #1e3a8a; color: #fff; font-size: 11px; font-weight: 600; letter-spacing: .02em;
+}
+.gx-grilla td.gx-col-check, .gx-grilla th.gx-col-check { width: 40px; text-align: center; }
+.gx-ayuda { display: block; margin-top: 4px; font-size: 12px; color: #64748b; }
+.gx-ayuda--error { color: #b91c1c; }
+
+/* ---- Fichas compactas ----
+   Modificadores opcionales: solo cambian las pantallas que los usan. */
+/* Contenedor principal blanco: agrupa los paneles de la ficha y el botón Volver. */
+.gx-contenedor {
+  display: flex; flex-direction: column; gap: 16px;
+  width: fit-content; max-width: 100%;
+  padding: 16px; background: #fff;
+  border: 1px solid var(--wwp-line, #d9d9d9); border-radius: var(--wwp-radius-card, 14px);
+}
+.gx-contenedor > .gx-acciones-pie { margin-top: 0; }
+/* Contenedor del ancho de la pantalla (fichas con dos columnas o grupos lado a lado). */
+.gx-contenedor--ancho { width: auto; box-sizing: border-box; }
+/* Panel que toma el ancho de su contenido en lugar de todo el ancho de la pantalla. */
+.gx-panel--compacto { width: fit-content; max-width: 100%; min-width: min(560px, 100%); }
+.gx-panel--compacto .gx-campos { grid-template-columns: repeat(var(--gx-columnas, 2), minmax(200px, 260px)); gap: 16px 32px; }
+.gx-contenedor > .gx-panel--compacto { width: 100%; }
+@media (max-width: 640px) {
+  .gx-panel--compacto .gx-campos { grid-template-columns: minmax(0, 1fr); }
+}
+/* Grilla con bordes en filas, columnas y contorno. */
+.gx-grilla--bordes { border: 1px solid var(--wwp-line, #d9d9d9); }
+.gx-grilla--bordes th, .gx-grilla--bordes td { border: 1px solid var(--wwp-line, #d9d9d9); }
+.gx-grilla-wrap--ajustada { width: fit-content; max-width: 100%; }
+.gx-grilla-wrap--ajustada .gx-grilla { width: auto; min-width: 420px; }
+
+/* ---- Grupos de campos (fieldset con legend): recuadro marcado con sombra, la leyenda sobre el borde y los campos
+   uno debajo del otro; dos grupos por fila, bien separados. */
+.gx-grupos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 36px; align-items: stretch; }
+.gx-grupo {
+  margin: 0; min-width: 0; padding: 12px 20px 20px;
+  border: 1px solid var(--wwp-base, #001d7e); border-radius: 4px; background: var(--wwp-data-bg, #fafafa);
+  box-shadow: 3px 4px 8px rgba(0, 0, 0, .18);
+}
+.gx-grupo > legend {
+  padding: 0 6px; font-family: var(--wwp-font); font-size: var(--wwp-fs-m, 18px); color: var(--wwp-gray08, #575b5d);
+}
+.gx-grupo .gx-campos { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+/* Los números de los formularios alineados a la izquierda, como los demás campos (en las grillas van a la derecha). */
+.gx-campo input.gx-num { text-align: left; font-variant-numeric: tabular-nums; }
+@media (max-width: 900px) {
+  .gx-grupos { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* Ficha compacta: el encabezado queda a la izquierda, como en el resto de las pantallas, y el panel
+   (del ancho de su contenido) se centra en el área disponible. */
+.gx-pantalla--ficha > .gx-contenedor, .gx-pantalla--ficha > .gx-panel--compacto { align-self: center; }
+
+/* Etiqueta de estado en grillas (AttributeTagSuccess / AttributeTagDanger del WorkWithPlus). */
+.gx-etiqueta { display: inline-block; padding: 1px 10px; border-radius: 10px; font-size: 11px; font-weight: 600; letter-spacing: .02em; }
+.gx-etiqueta--exito { background: #dcfce7; color: #166534; }
+.gx-etiqueta--peligro { background: #fee2e2; color: #991b1b; }
+/* Botón de una acción destructiva (Eliminar). */
+.gx-btn--peligro { background: #b91c1c; border-color: #991b1b; }
+.gx-btn--peligro:hover, .gx-btn--peligro:focus-visible { background: #991b1b; }
+/* Campo con botón de ícono a la derecha (por ejemplo, un código con su lupa). */
+.gx-campo__con-boton { display: flex; align-items: flex-end; gap: 8px; max-width: 360px; }
+.gx-campo__con-boton > input { flex: 1; min-width: 0; }
+.gx-campo__con-boton > .gx-accion { flex: none; }
+.gx-etiqueta--info { background: #e0f2fe; color: #075985; }
+/* Título de grupo de columnas en el encabezado de una grilla. */
+.gx-grilla thead th.gx-grilla__grupo { text-align: center; border-bottom: 1px solid var(--wwp-line, #d9d9d9); }
+
+/* ---- Pasos de un asistente ---- */
+/* En un recuadro claro: los confirmados con tilde azul, el actual con su número en gris y los pendientes con el
+   número en un círculo; la línea azul subraya lo recorrido hasta el actual. */
+.gx-pasos {
+  display: flex; flex-wrap: wrap; gap: 6px 0; margin: 0; padding: 14px 18px 0; list-style: none;
+  background: #f6f7fa; border-bottom: 1px solid #e3e6ee;
+}
+/* Dentro del contenedor de la pantalla: franja de borde a borde arriba de la tarjeta, sin recuadro propio. */
+.gx-contenedor > .gx-pasos {
+  margin: -16px -16px 0; border-radius: var(--wwp-radius-card, 14px) var(--wwp-radius-card, 14px) 0 0;
+}
+.gx-pasos li {
+  display: flex; align-items: center; gap: 8px; padding: 6px 16px 12px; border-bottom: 3px solid transparent;
+  color: #a3a6ad; font-size: 12px; font-weight: 600; letter-spacing: .02em; white-space: nowrap;
+}
+.gx-pasos__marca {
+  display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%;
+  border: 1.5px solid #c7cad1; color: #a3a6ad; font-size: 11px; font-weight: 600; flex: none;
+}
+.gx-pasos li.is-hecho { color: var(--wwp-base, #001d7e); border-bottom-color: var(--wwp-base, #001d7e); }
+.gx-pasos li.is-hecho .gx-pasos__marca { background: var(--wwp-base, #001d7e); border-color: var(--wwp-base, #001d7e); color: #fff; }
+.gx-pasos li.is-actual { color: #6b6f78; border-bottom-color: var(--wwp-base, #001d7e); }
+.gx-pasos li.is-actual .gx-pasos__marca { background: #8a8e96; border-color: #8a8e96; color: #fff; }
+.gx-pasos li.is-actual .gx-pasos__titulo { background: #e3e5ea; padding: 2px 4px; border-radius: 3px; }
+.gx-pasos li.is-rechazado { color: #b91c1c; border-bottom-color: #fca5a5; }
+.gx-pasos li.is-rechazado .gx-pasos__marca { border-color: #b91c1c; color: #b91c1c; }
+
+.gx-etiqueta--aviso { background: #fef3c7; color: #92400e; }
+.gx-accion--aprobar { color: #15803d; }
+.gx-accion--aprobar:hover { border-color: #15803d; color: #15803d; }
+.gx-accion--rechazar { color: #b91c1c; }
+.gx-accion--rechazar:hover { border-color: #b91c1c; color: #b91c1c; }
+.gx-documentos .gx-acciones-pie { justify-content: flex-start; margin-top: 18px; }
+.gx-oculto { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0);
+  white-space: nowrap; border: 0; }
+.gx-campo textarea { width: 100%; box-sizing: border-box; padding: 8px; border: 1px solid var(--wwp-gray05, #d9d9d9); border-radius: 6px; font: inherit; }
+.gx-campo__vacio { display: block; height: 18px; }
+/* Check en línea y campo a todo el ancho de la grilla de campos. */
+.gx-check { display: inline-flex; align-items: center; gap: 8px; min-height: 36px; font-weight: normal; cursor: pointer; }
+.gx-check input { width: 16px; height: 16px; margin: 0; }
+.gx-campo--ancho { grid-column: 1 / -1; }
+.gx-pantalla .gx-campo--ancho input:not([type="checkbox"]):not([type="radio"]) { max-width: none; }
+/* Texto largo (textarea). */
+.gx-pantalla .gx-campo textarea {
+  width: 100%; box-sizing: border-box; padding: 6px 8px; resize: vertical;
+  border: 1px solid var(--wwp-gray05, #d9d9d9); border-radius: 4px;
+  color: var(--wwp-gray08, #575b5d); font: inherit; font-size: var(--wwp-fs-s, 14px);
+}
+.gx-pantalla .gx-campo textarea:focus { outline: none; border-color: var(--wwp-base, #001d7e); }
+.gx-aviso--alerta { border-color: #fde68a; background: #fffbeb; color: #92400e; }
+/* Aviso informativo de un estado: queda en la pantalla, no sale flotante. */
+.gx-aviso--info { border-color: #bfdbfe; background: #eff6ff; color: #1e3a8a; }
+/* Botonera: varios botones en una fila. */
+.gx-botonera { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.gx-botonera--derecha { justify-content: flex-end; }
+/* Botón con ícono a la izquierda (WWP_IconButton). */
+.gx-btn--icono { display: inline-flex; align-items: center; gap: 6px; }
+.gx-btn--icono .lucide { flex: none; }
+/* Botón de una acción dentro de la fila de una grilla: más bajo para no agrandar la fila. */
+.gx-btn--fila { padding: 4px 12px; min-height: 0; font-size: 12.5px; white-space: nowrap; }
+/* Filtros en una fila de 4 (pantallas de consulta). */
+.gx-campos--filtros { --gx-columnas: 4; gap: 16px 24px; }
+@media (max-width: 900px) { .gx-campos--filtros { --gx-columnas: 2; } }
+/* Pantalla con grillas anchas (muchas columnas). */
+.gx-pantalla--ancha { max-width: 1500px; }
+/* Listas cortas (pocas columnas y filtros): el contenido centrado con un ancho de hasta 900px. */
+.gx-pantalla--angosta > :not(.gx-encabezado) {
+  width: 100%; max-width: 900px; box-sizing: border-box; margin-left: auto; margin-right: auto;
+}
+/* Fila de grupos de columnas: las celdas sin grupo no llevan línea ni altura. */
+.gx-grilla thead th.gx-grilla__vacia { height: auto; padding: 0; border-bottom: 0; }
+.gx-grilla thead tr + tr th { white-space: nowrap; }
+/* Cada registro en una sola línea: las columnas toman el ancho de su contenido y la
+   grilla se desplaza en horizontal si no entra. */
+.gx-grilla td.gx-celda--larga { white-space: nowrap; }
+/* Pantalla de grilla completa: el panel toma el ancho de sus grillas, con cada registro en una línea: 1240px
+   centrado si entran, o lo justo para que entren, hasta el ancho disponible. */
+#contenido.gx-pantalla--grilla-completa { max-width: none; padding-left: 12px; padding-right: 12px; }
+/* El contenedor toma el ancho de la grilla si entra en la ventana; si no (por ejemplo con el menú abierto), queda del
+   ancho disponible y la grilla se desplaza dentro de su panel: la página nunca es más ancha que la ventana, así el menú,
+   el encabezado y el fondo ocupan siempre la pantalla entera. */
+#contenido.gx-pantalla--grilla-completa > .gx-contenedor { align-self: safe center; width: fit-content;
+  min-width: min(100%, 1240px); max-width: 100%; margin-left: 0; margin-right: 0; padding: 8px; }
+#contenido.gx-pantalla--grilla-completa .gx-grilla-wrap { overflow-x: auto; }
+/* Menos separación entre columnas (6px por lado en lugar de 12px) para que el panel sea lo más angosto posible. */
+#contenido.gx-pantalla--grilla-completa .gx-grilla thead th,
+#contenido.gx-pantalla--grilla-completa .gx-grilla tbody td { padding-left: 6px; padding-right: 6px; }
+
+.gx-cargando {
+  position: absolute; inset: 0; z-index: 3; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 12px; border-radius: inherit; background: rgba(255, 255, 255, .82); animation: gx-cargando-entra .15s ease-out;
+}
+.gx-cargando[hidden] { display: none; }
+/* Mientras busca no se lee "No se encontraron registros" detrás de la capa. */
+.gx-cargando:not([hidden]) ~ .gx-grilla__vacio { visibility: hidden; }
+.gx-cargando__ruedita {
+  width: 36px; height: 36px; border-radius: 50%;
+  border: 3px solid rgba(var(--wwp-base-rgb, 0, 26, 129), .14); border-top-color: var(--wwp-base, #001a81);
+  animation: gx-cargando-gira .8s linear infinite;
+}
+.gx-cargando__texto { font-size: 14px; font-weight: 600; color: var(--wwp-base, #001a81); letter-spacing: .1px; }
+@keyframes gx-cargando-gira { to { transform: rotate(360deg); } }
+@keyframes gx-cargando-entra { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .gx-cargando__ruedita { animation-duration: 2s; } }
+/* Tarjeta de un proceso por pasos (window.progresoPorPasos): anillo con el porcentaje, título,
+   subtítulo y reloj total; la barra con un brillo que corre mientras trabaja; y la línea de tiempo de los pasos. */
+.gx-proceso { --proceso-color: var(--wwp-base, #001d7e); --proceso-claro: #2f54d6; position: relative; overflow: hidden;
+  padding: 18px 20px 14px; border: 1px solid #e3e7f1; border-radius: 12px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8faff 100%); box-shadow: 0 10px 28px rgba(0, 29, 126, .08);
+  animation: gx-proceso-entrar .28s ease-out; }
+.gx-proceso::before { content: ''; position: absolute; inset: 0 0 auto 0; height: 3px;
+  background: linear-gradient(90deg, var(--proceso-color), var(--proceso-claro)); }
+.gx-proceso.is-completo { --proceso-color: #15803d; --proceso-claro: #22c55e; }
+.gx-proceso.is-error { --proceso-color: #b91c1c; --proceso-claro: #ef4444; }
+.gx-proceso__cabecera { display: flex; align-items: center; gap: 14px; }
+.gx-proceso__anillo { position: relative; flex: none; width: 52px; height: 52px; }
+.gx-proceso__anillo svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.gx-proceso__pista { fill: none; stroke: #e6e9f2; stroke-width: 4; }
+.gx-proceso__arco { fill: none; stroke: var(--proceso-color); stroke-width: 4; stroke-linecap: round;
+  stroke-dasharray: 125.66; stroke-dashoffset: 125.66; transition: stroke-dashoffset .45s ease, stroke .3s ease; }
+.gx-proceso__pct { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--proceso-color); }
+.gx-proceso__titulos { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.gx-proceso__titulos strong { font-size: 13px; letter-spacing: .05em; color: #0b1640; }
+.gx-proceso.is-completo .gx-proceso__titulos strong { color: #15803d; }
+.gx-proceso.is-error .gx-proceso__titulos strong { color: #b91c1c; }
+.gx-proceso__sub { font-size: 12px; color: var(--wwp-gray08, #575b5d); overflow: hidden; text-overflow: ellipsis;
+  white-space: nowrap; }
+.gx-proceso__reloj { margin-left: auto; flex: none; padding: 3px 10px; border-radius: 999px; background: #eef1f9;
+  color: var(--proceso-color); font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.gx-proceso__barra { position: relative; height: 6px; margin: 14px 0 4px; background: #e6e9f2; }
+.gx-proceso .gx-progreso__relleno { position: relative; overflow: hidden;
+  background: linear-gradient(90deg, var(--proceso-color), var(--proceso-claro)); transition: width .45s ease; }
+.gx-proceso.is-trabajando .gx-progreso__relleno::after { content: ''; position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .55), transparent);
+  animation: gx-proceso-brillo 1.4s ease-in-out infinite; }
+@keyframes gx-proceso-brillo { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
+@keyframes gx-proceso-entrar { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+/* La tarjeta en una ventana modal: la pantalla queda oscurecida y sin clics mientras el servidor procesa. */
+.gx-proceso-modal { position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center;
+  padding: 16px; background: rgba(11, 22, 64, .38); backdrop-filter: blur(2px); animation: gx-proceso-fondo .2s ease-out; }
+.gx-proceso-modal .gx-proceso { width: min(560px, 100%); box-shadow: 0 24px 60px rgba(0, 18, 80, .28); }
+.gx-proceso__cabecera.is-arrastrable { cursor: grab; user-select: none; touch-action: none; }
+.gx-proceso.is-arrastrando { box-shadow: 0 30px 70px rgba(0, 18, 80, .34); }
+.gx-proceso.is-arrastrando .gx-proceso__cabecera { cursor: grabbing; }
+@keyframes gx-proceso-fondo { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .gx-proceso-modal { animation: none; } }
+/* Los pasos, en línea de tiempo: pendiente (su número), en curso (anillo girando), hecho (✓), con aviso (!) o con
+   error (✕), y el tiempo de cada uno. */
+.gx-avance { list-style: none; margin: 14px 0 0; padding: 0; font-size: 13px; }
+.gx-avance__paso { position: relative; display: grid; grid-template-columns: 22px 1fr auto; align-items: start;
+  gap: 10px; padding-bottom: 12px; color: #9ca3af; transition: color .2s ease; }
+.gx-avance__paso:last-child { padding-bottom: 0; }
+.gx-avance__paso:not(:last-child)::before { content: ''; position: absolute; left: 10px; top: 26px; bottom: 2px;
+  width: 2px; border-radius: 2px; background: #e5e7eb; transition: background .3s ease; }
+.gx-avance__paso.is-hecho:not(:last-child)::before, .gx-avance__paso.is-aviso:not(:last-child)::before {
+  background: #86efac; }
+.gx-avance__icono { position: relative; width: 22px; height: 22px; border-radius: 50%; border: 2px solid #d1d5db;
+  background: #fff; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700;
+  line-height: 1; box-sizing: border-box; transition: background .2s ease, border-color .2s ease, color .2s ease; }
+.gx-avance__texto { min-width: 0; padding-top: 2px; }
+.gx-avance__detalle { display: block; margin-top: 3px; font-size: 12px; font-weight: 400; color: var(--wwp-gray08, #575b5d); }
+.gx-avance__tiempo { padding-top: 3px; font-size: 12px; font-variant-numeric: tabular-nums; color: #9ca3af; }
+.gx-avance__paso.is-curso { color: #0b1640; font-weight: 600; }
+.gx-avance__paso.is-curso .gx-avance__icono { border-color: #c7d2fe; background: #eef1f9; color: var(--wwp-base, #001d7e); }
+.gx-avance__paso.is-curso .gx-avance__icono::after { content: ''; position: absolute; inset: -4px; border-radius: 50%;
+  border: 2px solid transparent; border-top-color: var(--wwp-base, #001d7e); border-right-color: var(--wwp-base, #001d7e);
+  animation: gx-avance-girar .8s linear infinite; }
+.gx-avance__paso.is-curso .gx-avance__tiempo { color: var(--wwp-base, #001d7e); }
+.gx-avance__paso.is-hecho { color: #374151; }
+.gx-avance__paso.is-hecho .gx-avance__icono { border-color: #15803d; background: #15803d; color: #fff;
+  animation: gx-avance-listo .3s ease-out; }
+.gx-avance__paso.is-aviso { color: #374151; }
+.gx-avance__paso.is-aviso .gx-avance__icono { border-color: #b45309; background: #b45309; color: #fff; }
+.gx-avance__paso.is-aviso .gx-avance__detalle { color: #92400e; }
+.gx-avance__paso.is-error { color: #b91c1c; }
+.gx-avance__paso.is-error .gx-avance__icono { border-color: #b91c1c; background: #b91c1c; color: #fff; }
+.gx-avance__paso.is-error .gx-avance__detalle { color: #b91c1c; }
+@keyframes gx-avance-girar { to { transform: rotate(360deg); } }
+@keyframes gx-avance-listo { 0% { transform: scale(.6); } 70% { transform: scale(1.12); } 100% { transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) {
+  .gx-proceso, .gx-avance__paso.is-hecho .gx-avance__icono { animation: none; }
+  .gx-avance__paso.is-curso .gx-avance__icono::after, .gx-proceso.is-trabajando .gx-progreso__relleno::after { animation: none; }
+}
+.gx-grilla tfoot td { padding: 8px 12px; border-top: 2px solid var(--wwp-gray05, #d9d9d9); white-space: nowrap; }
+/* La casilla de selección de las grillas (columna gx-col-check): un tilde azul claro sin marcar; marcada, azul oscuro
+   y más grueso. Sigue siendo un checkbox (formularios y teclado). */
+.gx-grilla td.gx-col-check input[type="checkbox"] {
+  -webkit-appearance: none; appearance: none; width: 22px; height: 22px; margin: 0; padding: 0; border: 0; border-radius: 3px;
+  background: no-repeat center / 20px 20px url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238fa3d6' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E");
+  cursor: pointer; vertical-align: middle;
+}
+.gx-grilla td.gx-col-check input[type="checkbox"]:hover:not(:disabled) { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23001d7e' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E"); }
+.gx-grilla td.gx-col-check input[type="checkbox"]:checked { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23001d7e' stroke-width='4.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E"); }
+.gx-grilla td.gx-col-check input[type="checkbox"]:focus-visible { outline: 2px solid var(--wwp-base, #001d7e); outline-offset: 1px; }
+.gx-grilla td.gx-col-check input[type="checkbox"]:disabled { opacity: .35; cursor: not-allowed; }
+.gx-grilla tbody tr:has(td.gx-col-check input:checked) td { background: rgba(0, 26, 129, .05); }
+/* La casilla del encabezado que marca todas: un cuadrado para tildar. Marcada, azul con el
+   tilde blanco; con algunas marcadas (indeterminado), azul con un guion. */
+.gx-grilla th.gx-col-check input[type="checkbox"] {
+  -webkit-appearance: none; appearance: none; width: 18px; height: 18px; margin: 0; padding: 0; box-sizing: border-box;
+  border: 2px solid #8fa3d6; border-radius: 4px; background: #fff no-repeat center / 14px 14px; cursor: pointer;
+  vertical-align: middle; transition: background-color .15s ease, border-color .15s ease;
+}
+.gx-grilla th.gx-col-check input[type="checkbox"]:hover:not(:disabled) { border-color: var(--wwp-base, #001d7e); }
+.gx-grilla th.gx-col-check input[type="checkbox"]:checked,
+.gx-grilla th.gx-col-check input[type="checkbox"]:indeterminate { border-color: var(--wwp-base, #001d7e); background-color: var(--wwp-base, #001d7e); }
+.gx-grilla th.gx-col-check input[type="checkbox"]:checked { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E"); }
+.gx-grilla th.gx-col-check input[type="checkbox"]:indeterminate { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='3.5' stroke-linecap='round'%3E%3Cline x1='6' y1='12' x2='18' y2='12'/%3E%3C/svg%3E"); }
+.gx-grilla th.gx-col-check input[type="checkbox"]:focus-visible { outline: 2px solid var(--wwp-base, #001d7e); outline-offset: 2px; }
+.gx-grilla th.gx-col-check input[type="checkbox"]:disabled { opacity: .35; cursor: not-allowed; }
+
+/* Ficha por secciones: cada sección con su título y la misma grilla de columnas, así los campos quedan
+   alineados en filas y columnas; los controles ocupan todo el ancho de su columna. */
+.gx-ficha-seccion + .gx-ficha-seccion { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--wwp-line, #e5e7eb); }
+.gx-ficha-seccion__titulo {
+  display: flex; align-items: center; gap: 8px; margin: 0 0 14px;
+  font-family: var(--wwp-font-bold); font-size: 12px; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--wwp-base, #001d7e);
+}
+.gx-campos--ficha { gap: 16px 40px; }
+.gx-pantalla .gx-campos--ficha .gx-campo input:not([type="checkbox"]):not([type="radio"]),
+.gx-pantalla .gx-campos--ficha .gx-campo select { max-width: none; }
+.gx-campos--ficha .gx-campo--doble { grid-column: span 2; }
+@media (max-width: 900px) { .gx-campos--ficha .gx-campo--doble { grid-column: auto; } }
+/* Campo con la lupa a la derecha: en línea y de tamaño fijo, sin posición
+   absoluta ni transform, así el botón no se desplaza al hacer clic. */
+.gx-campo__lupa { display: flex; align-items: center; gap: 8px; }
+.gx-pantalla .gx-campo__lupa > input:not([type="checkbox"]):not([type="radio"]) { flex: 1 1 auto; min-width: 0; }
+.gx-pantalla .gx-campo__lupa > button {
+  flex: 0 0 32px; display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; margin: 0; padding: 0;
+  border: 1px solid var(--wwp-line, #d9d9d9); border-radius: 6px; background: #fff; color: var(--wwp-base, #001d7e);
+  font-weight: normal; line-height: 1; cursor: pointer; transform: none; box-shadow: none;
+}
+.gx-pantalla .gx-campo__lupa > button:hover, .gx-pantalla .gx-campo__lupa > button:focus-visible {
+  border-color: var(--wwp-base, #001d7e); background: var(--wwp-base, #001d7e); color: #fff;
+}
+.gx-pantalla .gx-campo__lupa > button:active { transform: none; }
+
+/* Barra con el botón Agregar y un resumen a la derecha. */
+.gx-barra-resumen { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+.gx-resumen { display: flex; flex-wrap: wrap; gap: 10px; }
+.gx-resumen__item {
+  display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px;
+  border: 1px solid var(--wwp-line, #e5e7eb); border-radius: 8px; background: #fff;
+}
+.gx-resumen__item b { font-size: 15px; color: var(--wwp-gray08, #575b5d); }
+
+/* Nota informativa dentro de un panel. */
+.gx-panel__nota { margin: 0; color: var(--wwp-gray07, #8c8d8e); font-size: 13px; }
+
+/* Selectores: el botón "Seleccionar" es un tilde azul; la fila entera es elegible y, al pasar el mouse, se resalta
+   y el tilde se marca más fuerte. */
+.gx-elegir {
+  display: inline-flex; align-items: center; justify-content: center; width: auto; height: auto; min-height: 0;
+  margin: 0; padding: 2px; border: 0; background: none; color: #8fa3d6; cursor: pointer;
+}
+.gx-elegir svg { width: 18px; height: 18px; stroke-width: 2.5; }
+.gx-elegir:hover, .gx-grilla tr.gx-fila-elegible:hover .gx-elegir { color: var(--wwp-base, #001d7e); }
+.gx-elegir:hover svg, .gx-grilla tr.gx-fila-elegible:hover .gx-elegir svg { stroke-width: 4.5; }
+.gx-elegir:focus-visible { outline: 2px solid var(--wwp-base, #001d7e); outline-offset: 1px; }
+.gx-grilla tr.gx-fila-elegible { cursor: pointer; }
+.gx-grilla tr.gx-fila-elegible:hover td { background: rgba(0, 26, 129, .06); }
+.gx-grilla tr.is-seleccionada td { background: var(--wwp-base-10, #eef1fb); }
+.gx-grilla tr.is-seleccionada td:first-child { box-shadow: inset 3px 0 0 var(--wwp-base, #001d7e); }
+
+/* Un bloque (form) dentro del contenedor blanco que agrupa varios paneles y los botones, con la misma separación. */
+.gx-contenedor__grupo { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.gx-contenedor__grupo > .gx-acciones-pie { margin-top: 0; }
+
+/* Grilla con selección de filas: casilla propia, celdas de dos líneas y barra con lo marcado. */
+.gx-grilla--seleccion th, .gx-grilla--seleccion td { vertical-align: middle; }
+.gx-grilla--seleccion .gx-col-marca { width: 44px; padding-left: 14px; padding-right: 6px; text-align: center; }
+/* Casilla de marcar: cuadro blanco con borde gris; marcada, el tilde oscuro adentro (sin relleno). */
+.gx-marca {
+  appearance: none; -webkit-appearance: none; display: inline-grid; place-content: center;
+  width: 16px; height: 16px; margin: 0; border: 1.5px solid #6b6f73; border-radius: 3px; background: #fff;
+  cursor: pointer; vertical-align: middle;
+}
+.gx-marca::after {
+  content: ""; width: 8px; height: 4px; margin-top: -2px; border: solid #3a3d40; border-width: 0 0 2px 2px;
+  transform: rotate(-45deg) scale(0);
+}
+.gx-grilla input.gx-marca { flex: none; box-sizing: border-box; width: 16px; min-width: 16px; height: 16px; padding: 0; }
+.gx-marca:hover { border-color: var(--wwp-base, #001d7e); }
+.gx-marca:focus-visible { outline: 2px solid var(--wwp-base, #001d7e); outline-offset: 1px; }
+.gx-marca:checked { border-color: #3a3d40; }
+.gx-marca:checked::after { transform: rotate(-45deg) scale(1); }
+.gx-celda-doble { display: inline-flex; flex-direction: column; gap: 1px; line-height: 1.25; }
+.gx-celda-doble small { font-size: 11px; color: var(--wwp-muted, #6b7280); white-space: nowrap; }
+td.gx-num .gx-celda-doble { align-items: flex-end; }
+.gx-seleccion {
+  display: flex; align-items: center; gap: 10px; margin: 12px 12px 0; padding: 9px 14px;
+  border: 1px dashed var(--wwp-line, #d9d9d9); border-radius: 8px; color: var(--wwp-muted, #6b7280); font-size: 13px;
+}
+.gx-seleccion .lucide { flex: none; opacity: .6; }
+.gx-seleccion.is-activa { border-style: solid; border-color: #c7d0f0; background: var(--wwp-base-10, #eef1fb); color: var(--wwp-base, #001d7e); }
+.gx-seleccion.is-activa .lucide { opacity: 1; }
+.gx-seleccion__limpiar {
+  margin-left: auto; padding: 4px 10px; border: 1px solid currentColor; border-radius: 999px; background: transparent;
+  color: inherit; font-size: 12px; cursor: pointer; white-space: nowrap;
+}
+.gx-seleccion__limpiar:hover { background: #fff; }
+.gx-acciones-pie .gx-btn:disabled { opacity: .45; cursor: not-allowed; }
+.gx-campo__lupa > button:disabled { opacity: .45; cursor: not-allowed; }
+
+/* Fichas: un campo a todo el ancho de la grilla y un campo con un botón alineado a la altura de los inputs. */
+.gx-campos--ficha .gx-campo--completo { grid-column: 1 / -1; }
+.gx-campo--boton > .gx-btn { justify-content: center; width: 100%; min-height: 38px; box-sizing: border-box; }
+
+/* Cabecera de una ficha con un monto destacado y las etiquetas de estado. */
+.gx-monto-cabecera {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  margin-bottom: 20px; padding: 14px 18px; border: 1px solid #dbe2f4; border-radius: 10px; background: var(--wwp-base-10, #eef1fb);
+}
+.gx-monto-cabecera__etiqueta { display: block; margin-bottom: 2px; font-size: 12px; color: var(--wwp-gray07, #8c8d8e); }
+.gx-monto-cabecera__importe { font-size: 24px; font-weight: 600; color: var(--wwp-base, #001d7e); }
+.gx-monto-cabecera__moneda { margin-left: 6px; font-size: 13px; color: var(--wwp-gray08, #575b5d); }
+.gx-monto-cabecera__etiquetas { display: flex; flex-wrap: wrap; gap: 8px; }
+.gx-monto-cabecera__datos { display: flex; flex-wrap: wrap; gap: 12px 28px; }
+.gx-monto-cabecera__dato { display: flex; flex-direction: column; gap: 4px; }
+.gx-monto-cabecera__dato > b { font-size: 14px; color: var(--wwp-gray09, #333); font-weight: 600; }
+.gx-monto-cabecera__dato .gx-etiqueta { align-self: flex-start; }
+
+/* Recuadro informativo con ícono: explica qué hace la acción de la ficha. */
+.gx-explicacion {
+  display: flex; align-items: flex-start; gap: 10px; padding: 12px 16px;
+  border: 1px solid #bfdbfe; border-left: 4px solid var(--wwp-base, #001d7e); border-radius: 8px; background: #f5f8ff;
+}
+.gx-explicacion > svg { flex: none; margin-top: 1px; color: var(--wwp-base, #001d7e); }
+.gx-explicacion p { margin: 0; font-size: 13px; line-height: 1.5; color: var(--wwp-gray09, #333); }
+
+/* Un botón dentro de la grilla de campos, sin título, alineado abajo con los inputs de la fila. */
+.gx-campos--ficha .gx-campo--accion { justify-content: flex-end; align-items: flex-start; }
+.gx-giro { animation: gx-giro 0.9s linear infinite; }
+@keyframes gx-giro { to { transform: rotate(360deg); } }
+/* Campo que se escribe y se guarda en mayúsculas: se ve así antes de que el JS lo convierta. */
+.gx-mayusculas { text-transform: uppercase; }
+
+/* Resumen por estado: tarjetas compactas con ícono, nombre, cantidad e importe; cada una puede filtrar
+   la grilla por su estado. El tono sale de la variable --kpi (aviso, info, éxito, peligro). */
+/* Separado de los filtros por una línea fina y aire: el resumen y la búsqueda se leen como dos bloques. */
+.gx-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 18px;
+  padding-bottom: 18px; border-bottom: 1px solid #e6e9f0; }
+@media (max-width: 1100px) { .gx-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .gx-kpis { grid-template-columns: 1fr; } }
+.gx-kpi { --kpi: #001d7e; --kpi-suave: #eef1f9; position: relative; display: flex; align-items: center; gap: 10px;
+  padding: 8px 12px 8px 14px; border: 1px solid #e3e7f1; border-radius: 8px; background: #fff; color: inherit;
+  text-decoration: none; overflow: hidden; transition: border-color .15s ease, box-shadow .15s ease; }
+.gx-kpi::before { content: ''; position: absolute; inset: 0 auto 0 0; width: 3px; background: var(--kpi); }
+.gx-kpi:hover { border-color: var(--kpi); box-shadow: 0 3px 10px rgba(0, 29, 126, .08); }
+.gx-kpi:focus-visible { outline: 2px solid var(--kpi); outline-offset: 2px; }
+.gx-kpi.is-activo { border-color: var(--kpi); background: var(--kpi-suave); box-shadow: 0 0 0 1px var(--kpi) inset; }
+.gx-kpi--aviso { --kpi: #b45309; --kpi-suave: #fff8eb; }
+.gx-kpi--info { --kpi: #1d4ed8; --kpi-suave: #eff4ff; }
+.gx-kpi--exito { --kpi: #15803d; --kpi-suave: #effaf3; }
+.gx-kpi--peligro { --kpi: #b91c1c; --kpi-suave: #fef2f2; }
+.gx-kpi__icono { flex: none; display: grid; place-items: center; width: 30px; height: 30px; border-radius: 8px;
+  background: var(--kpi-suave); color: var(--kpi); }
+.gx-kpi.is-activo .gx-kpi__icono { background: #fff; }
+.gx-kpi__cuerpo { display: flex; flex-direction: column; gap: 1px; min-width: 0; flex: 1; }
+.gx-kpi__fila { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.gx-kpi__nombre { font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #4b5563;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gx-kpi__cantidad { flex: none; font-size: 18px; line-height: 1; font-weight: 700; color: #0b1640; font-variant-numeric: tabular-nums; }
+.gx-kpi__importe { font-size: 12px; font-weight: 600; color: var(--kpi); font-variant-numeric: tabular-nums;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gx-kpi__otras { margin-left: 4px; padding: 0 4px; border-radius: 6px; background: var(--kpi-suave); font-size: 10px;
+  font-weight: 700; vertical-align: 2px; }
+@media (prefers-reduced-motion: reduce) { .gx-kpi { transition: none; } }
+
+
+/* Una sección de ficha en un recuadro propio: borde marcado, el título en una franja y el cuerpo en blanco. */
+.gx-ficha-seccion.gx-ficha-seccion--grupo { margin-top: 24px; padding: 0 20px 20px; overflow: hidden;
+  border: 1px solid #b9c6ea; border-radius: 10px; background: #fff;
+  box-shadow: 0 4px 14px rgba(0, 29, 126, .10); }
+.gx-ficha-seccion--grupo > .gx-ficha-seccion__titulo { margin: 0 -20px 16px; padding: 11px 20px;
+  background: #e8edfb; border-bottom: 1px solid #c9d4f0; font-size: 13px; }
+.gx-ficha-seccion--grupo > .gx-explicacion { margin: 0; }
+
+/* Fichas de cuatro columnas. */
+.gx-campos--4 { --gx-columnas: 4; }
+@media (max-width: 1100px) { .gx-campos--4 { --gx-columnas: 2; } }
+@media (max-width: 900px) { .gx-campos--4 { grid-template-columns: minmax(0, 1fr); } }
+
+
+/* Las filas que se marcan con un clic en cualquier parte (componentes.js): la mano y el resaltado al pasar. */
+.gx-grilla tbody tr:has(td.gx-col-check input[type="checkbox"]:not(:disabled)) { cursor: pointer; }
+.gx-grilla tbody tr:has(td.gx-col-check input[type="checkbox"]:not(:disabled)):hover td { background: rgba(0, 26, 129, .035); }
+.gx-grilla tbody tr:has(td.gx-col-check input:checked):hover td { background: rgba(0, 26, 129, .07); }
+
+
+/* Zona que se está volviendo a pedir sin recargar la página: atenuada y sin clics hasta que llega. */
+.is-cargando { opacity: .8; pointer-events: none; transition: opacity .2s; }

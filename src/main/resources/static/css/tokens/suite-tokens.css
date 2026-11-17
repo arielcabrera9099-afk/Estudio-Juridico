@@ -1,0 +1,24 @@
+/* Paleta de estados de los componentes de suite (KPI, badges): 5 tonos */
+:root {
+  --suite-blue: #2563eb;
+  --suite-blue-soft: #eff6ff;
+  --suite-blue-border: #bfdbfe;
+  --suite-green: #16a34a;
+  --suite-green-soft: #ecfdf5;
+  --suite-green-border: #bbf7d0;
+  --suite-yellow: #ca8a04;
+  --suite-yellow-soft: #fffbeb;
+  --suite-yellow-border: #fde68a;
+  --suite-red: #dc2626;
+  --suite-red-soft: #fef2f2;
+  --suite-red-border: #fecaca;
+  --suite-gray: #64748b;
+  --suite-gray-soft: #f8fafc;
+  --suite-gray-border: #e2e8f0;
+  --suite-text: #0f172a;
+  --suite-muted: #94a3b8;
+  --suite-radius: 10px;
+  --suite-radius-sm: 8px;
+  --suite-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+  --suite-shadow-hover: 0 8px 22px rgba(15, 23, 42, 0.09);
+}

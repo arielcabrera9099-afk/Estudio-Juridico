@@ -1,0 +1,12 @@
+# Finales de línea LF en el repo y en la copia de trabajo, en cualquier sistema operativo.
+* text=auto eol=lf
+
+# Binarios: sin conversión.
+*.jar binary
+*.war binary
+*.png binary
+*.jpg binary
+*.ico binary
+*.ttf binary
+*.woff binary
+*.woff2 binary

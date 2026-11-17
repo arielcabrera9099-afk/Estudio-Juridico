@@ -1,0 +1,393 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  /* Marca: colores primarios de la base (la capa de tema usa los tokens --wwp-*) */
+  --brand-primary: #1E3A56;
+  --brand-primary-hover: #4A9EC8;
+  --brand-primary-active: #163044;
+  --brand-primary-soft: #e8f2f6;
+  --brand-primary-soft-2: #e8f2f6;
+  --brand-primary-border: #e8f2f6;
+  --brand-primary-contrast: #ffffff;
+  --brand-gradient: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-primary-hover) 100%);
+  --brand-gradient-deep: linear-gradient(135deg, var(--brand-primary-hover) 0%, var(--brand-primary-active) 55%, var(--brand-primary-active) 100%);
+  --brand-focus-ring: rgba(30, 58, 86, 0.22);
+
+  --app-bg: #f6f7fb;
+  --app-text: #1f2937;
+  --ui-card-bg: #ffffff;
+  --ui-card-border: #dcdad7;
+  --ui-card-title: #1f2937;
+  --ui-muted: #6b7280;
+  --ui-text: #0f172a;
+  --ui-input-bg: #ffffff;
+  --ui-input-border: #d1d5db;
+  --ui-input-text: #0f172a;
+  --ui-btn-bg: #f8fafc;
+  --ui-btn-border: #d1d5db;
+  --ui-btn-text: #0f172a;
+  --ui-btn-hover-bg: #f1f5f9;
+  --ui-error-bg: #fef2f2;
+  --ui-error-border: #fecaca;
+  --ui-error-text: #b91c1c;
+  --ui-toggle-bg: #f8fafc;
+  --ui-toggle-border: #e5e7eb;
+  --ui-toggle-checked-bg: var(--brand-primary-soft);
+  --ui-toggle-checked-border: var(--brand-primary-border);
+  --ui-toggle-label: #374151;
+  --ui-toggle-label-checked: var(--brand-primary-active);
+  --ui-section-bg: #f8fafc;
+  --ui-section-border: #e2e8f0;
+  --ui-section-title: #334155;
+  --ui-table-head-bg: #f1f1f2;
+  --ui-table-head-text: #6b7280;
+  --ui-table-cell-text: #1f2937;
+  --ui-table-border: #ecebea;
+  --ui-table-wrap-bg: #ffffff;
+  --ui-table-row-alt: #f7f7f7;
+  --ui-kpi-bg: #ffffff;
+  --ui-kpi-border: #d8d5d1;
+  --ui-focus-ring: var(--brand-focus-ring);
+
+  /* Foco de botones. El anillo va SÓLIDO: --ui-focus-ring es un rgba al 22% que
+     sirve como glow interno de un input, pero como único indicador de foco no
+     llega al 3:1 que exige WCAG y en la práctica no se ve. El halo claro exterior
+     hace que el anillo se distinga tanto sobre relleno oscuro como sobre claro. */
+  --ui-focus-outline: var(--brand-primary-active);
+  --ui-focus-halo: rgba(255, 255, 255, 0.9);
+
+  /* Geometría de botones de acción (formularios y modales). No se aplica al
+     selector global para no mover el layout de las pantallas existentes: la usa
+     el componente Button. */
+  --btn-height: 42px;
+  --btn-min-width: 158px;
+  --btn-min-width-compact: 96px;
+
+  /* Preferencias de lectura (tamaño, fuente y espaciado) */
+  --font-size-base: 14px;
+  --font-family-app: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 14px;
+  --row-padding: 8px;
+}
+
+body[data-contrast='high'] {
+  --ui-muted: #374151;
+  --ui-card-border: #94a3b8;
+  --ui-input-border: #6b7280;
+  --ui-table-border: #94a3b8;
+  --app-text: #000000;
+}
+
+body[data-theme='dark'][data-contrast='high'] {
+  --ui-muted: #e2e8f0;
+  --ui-card-border: #94a3b8;
+  --ui-input-border: #cbd5e1;
+  --ui-table-border: #94a3b8;
+  --app-text: #ffffff;
+}
+
+/* Accesibilidad (atributos data-* en body) */
+body[data-underline-links='on'] a {
+  text-decoration: underline;
+}
+
+body[data-focus-ring='on'] :focus-visible {
+  outline: 2px solid var(--ui-focus-ring);
+  outline-offset: 2px;
+}
+
+body[data-focus-ring='on'][data-focus-size='large'] :focus-visible {
+  outline-width: 4px;
+  outline-offset: 4px;
+}
+
+body[data-reading-mode='high'] {
+  --app-text: #000000;
+  --ui-text: #000000;
+  --ui-muted: #1f2937;
+}
+
+body[data-theme='dark'][data-reading-mode='high'] {
+  --app-text: #ffffff;
+  --ui-text: #ffffff;
+  --ui-muted: #f1f5f9;
+}
+
+body[data-reduce-motion='on'] *,
+body[data-reduce-motion='on'] *::before,
+body[data-reduce-motion='on'] *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}
+
+body[data-theme='dark'] {
+  --app-bg: #0f172a;
+  --app-text: #e2e8f0;
+  --ui-card-bg: #1e293b;
+  --ui-card-border: #334155;
+  --ui-card-title: #f1f5f9;
+  --ui-muted: #94a3b8;
+  --ui-text: #e2e8f0;
+  --ui-input-bg: #0f172a;
+  --ui-input-border: #475569;
+  --ui-input-text: #f1f5f9;
+  --ui-btn-bg: #1e293b;
+  --ui-btn-border: #475569;
+  --ui-btn-text: #e2e8f0;
+  --ui-btn-hover-bg: #334155;
+  --ui-error-bg: rgba(127, 29, 29, 0.25);
+  --ui-error-border: #7f1d1d;
+  --ui-error-text: #fca5a5;
+  --ui-toggle-bg: #0f172a;
+  --ui-toggle-border: #475569;
+  --ui-toggle-checked-bg: color-mix(in srgb, var(--brand-primary) 18%, transparent);
+  --ui-toggle-checked-border: var(--brand-primary);
+  --ui-toggle-label: #cbd5e1;
+  --ui-toggle-label-checked: var(--brand-primary-border);
+  --ui-section-bg: #0f172a;
+  --ui-section-border: #334155;
+  --ui-section-title: #e2e8f0;
+  --ui-table-head-bg: #334155;
+  --ui-table-head-text: #cbd5e1;
+  --ui-table-cell-text: #e2e8f0;
+  --ui-table-border: #475569;
+  --ui-table-wrap-bg: #1e293b;
+  --ui-table-row-alt: #273449;
+  --ui-kpi-bg: #1e293b;
+  --ui-kpi-border: #475569;
+  --ui-focus-ring: rgba(14, 165, 233, 0.28);
+  /* En oscuro el anillo tiene que aclarar, no oscurecer, y el halo pasa a ser negro. */
+  --ui-focus-outline: var(--brand-primary-border);
+  --ui-focus-halo: rgba(2, 6, 23, 0.9);
+}
+
+body {
+  font-family: var(--font-family-app);
+  background: var(--app-bg);
+  color: var(--app-text);
+  font-size: var(--font-size-base);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+input, select, textarea, button { font-family: inherit; font-size: inherit; }
+
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+select,
+textarea {
+  width: 100%;
+  min-height: 38px;
+  padding: var(--row-padding, 8px) 10px;
+  border: 1px solid var(--ui-input-border);
+  border-radius: 8px;
+  background: var(--ui-input-bg);
+  color: var(--ui-input-text);
+  transition: border-color .15s ease, box-shadow .15s ease, background-color .15s ease;
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+  width: auto;
+  min-height: auto;
+  padding: 0;
+  margin: 0;
+}
+
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 3px var(--ui-focus-ring);
+}
+
+textarea {
+  resize: vertical;
+  min-height: 82px;
+}
+
+button {
+  /* inline-flex + centrado: el icono, el spinner y el texto quedan alineados sin
+     depender de line-height, y el alto no salta cuando cambia el contenido. */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 8px 12px;
+  border: 1px solid var(--ui-btn-border);
+  border-radius: 8px;
+  background: var(--ui-btn-bg);
+  color: var(--ui-btn-text);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color .15s ease, border-color .15s ease, transform .05s ease, filter .15s ease;
+}
+
+/* El hover global sólo pinta los botones SIN clase.
+   Antes era `button:hover`, con especificidad (0,0,1,1) = 11, que le gana a
+   cualquier clase única como `.x-btn--primary` (0,0,1,0) = 10: le imponía el
+   fondo casi blanco --ui-btn-hover-bg mientras la clase seguía aportando
+   `color: #fff`, y el texto desaparecía. Los botones con clase manejan su
+   propio hover; para los que no lo definen queda el brightness de abajo, que
+   oscurece el relleno que ya tengan en lugar de reemplazarlo. */
+button:not([class]):hover {
+  background: var(--ui-btn-hover-bg);
+  border-color: var(--ui-input-border);
+}
+
+button:hover:not(:disabled):not([aria-busy='true']) {
+  filter: brightness(0.97);
+}
+
+button:active:not(:disabled):not([aria-busy='true']) {
+  transform: translateY(1px);
+}
+
+button:disabled {
+  opacity: .65;
+  cursor: not-allowed;
+}
+
+/* Foco de teclado con anillo sólido de alto contraste, visible sobre relleno
+   claro u oscuro. No reemplaza colores del botón: sólo agrega el anillo. */
+body[data-focus-ring='on'] button:focus-visible,
+body[data-focus-ring='on'] [role='button']:focus-visible,
+body[data-focus-ring='on'] a.btn:focus-visible {
+  outline: 2px solid var(--ui-focus-outline);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px var(--ui-focus-halo);
+}
+
+/* Durante una petición: no se puede volver a clickear y el cursor lo dice.
+   El texto sigue visible a propósito, para no perder el contexto de la acción. */
+button[aria-busy='true'] {
+  cursor: progress;
+  pointer-events: none;
+}
+
+input[type="number"]::-webkit-inner-spin-button { opacity: 0.5; }
+
+.ui-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  user-select: none;
+  min-height: 38px;
+  padding: 4px 0;
+}
+
+.ui-switch.is-disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.ui-switch__input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.ui-switch__track {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  border-radius: 999px;
+  background: var(--ui-input-border);
+  transition: background-color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.ui-switch.is-on .ui-switch__track {
+  background: var(--brand-primary);
+}
+
+.ui-switch__thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.22);
+  transition: transform 0.2s ease;
+}
+
+.ui-switch.is-on .ui-switch__thumb {
+  transform: translateX(20px);
+}
+
+.ui-switch__text {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ui-muted);
+  min-width: 1.5rem;
+}
+
+.ui-switch.is-on .ui-switch__text {
+  color: var(--ui-toggle-label-checked);
+}
+
+.ui-switch--row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: 38px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--ui-section-border);
+  cursor: pointer;
+}
+
+.ui-switch-group__list > .ui-switch--row:last-child {
+  border-bottom: none;
+  padding-bottom: 2px;
+}
+
+.ui-switch--row .ui-switch__label {
+  flex: 1;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ui-text);
+  line-height: 1.35;
+}
+
+.ui-switch__control {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.ui-switch-group {
+  border: 1px solid var(--ui-section-border);
+  border-radius: 10px;
+  background: var(--ui-section-bg);
+  padding: 8px 12px 6px;
+}
+
+.ui-switch-group__title {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ui-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 2px;
+}
+
+.ui-switch-group__list {
+  display: flex;
+  flex-direction: column;
+}

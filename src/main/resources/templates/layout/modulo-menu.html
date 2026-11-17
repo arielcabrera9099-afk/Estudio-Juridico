@@ -1,0 +1,39 @@
+<!doctype html>
+<!--
+  Un módulo del menú lateral: encabezado con ícono que despliega sus secciones y opciones, plegado al entrar; shell.js
+  recuerda, por módulo, si el usuario lo abre. Cada sección con título también se pliega desde su rótulo; arranca
+  abierta y shell.js recuerda las que se plegaron.
+-->
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="modulo(clave, titulo, icono, secciones, activo)" class="admin-module"
+     th:classappend="${activo} ? 'has-active'" data-shell="modulo" th:attr="data-modulo=${clave}">
+  <button type="button" class="admin-module__head" aria-expanded="false" data-shell="acordeon"
+          th:title="${titulo}" th:attr="data-accent=${moduloAccent}">
+    <span class="admin-module__icon" th:style="'background:' + ${moduloAccent} + '1f;color:' + ${moduloAccent}">
+      <svg class="lucide" width="17" height="17"><use th:attr="href='#i-' + ${icono}"/></svg>
+    </span>
+    <span class="admin-module__meta" data-shell="solo-expandido"><strong th:text="${titulo}">Módulo</strong></span>
+    <svg class="lucide admin-module__chevron" width="16" height="16" data-shell="solo-expandido"><use href="#i-chevron-right"/></svg>
+  </button>
+  <div class="admin-module__body" data-shell="cuerpo-modulo" hidden>
+    <div th:each="seccion, it : ${secciones}" data-shell="seccion"
+         th:with="conTitulo=${!#strings.isEmpty(seccion.titulo())}">
+      <button type="button" class="admin-subsection__label" th:if="${conTitulo}" data-shell="seccion-titulo"
+              aria-expanded="true" th:attr="data-seccion=${clave + '-' + it.index + '-' + seccion.titulo()},
+              aria-controls=${'seccion-' + clave + '-' + it.index}"
+              th:title="'Mostrar u ocultar ' + ${seccion.titulo()}"><span th:text="${seccion.titulo()}">Sección</span>
+        <svg class="lucide admin-subsection__chevron" width="14" height="14" aria-hidden="true"><use href="#i-chevron-down"/></svg>
+      </button>
+      <div class="admin-subsection__items" data-shell="items-seccion" th:id="${'seccion-' + clave + '-' + it.index}">
+      <button type="button" th:each="item : ${seccion.items()}" class="admin-nav-item"
+         th:classappend="${item.id() == pagina} ? 'is-active'"
+         th:attr="data-href=@{'/' + ${item.id()}},data-titulo=${item.titulo()}">
+        <span class="admin-nav-item__dot" aria-hidden="true"></span><th:block th:text="${item.titulo()}">Opción</th:block>
+      </button>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
