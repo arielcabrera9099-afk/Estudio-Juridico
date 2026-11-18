@@ -1,0 +1,64 @@
+<!doctype html>
+<!--
+  Cambio de la propia contraseña, con el estilo de la pantalla de acceso. Es obligatorio en el primer ingreso y después
+  de que un administrador reinicia la clave (FiltroCambioClave no deja ir a otra pantalla); si no es obligatorio se
+  puede cancelar.
+-->
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/svg+xml" href="/img/favicon.svg" th:href="@{/img/favicon.svg}">
+  <title>Cambiar contraseña</title>
+  <link rel="stylesheet" th:href="@{/css/base/base.css}">
+  <link rel="stylesheet" th:href="@{/css/base/ajustes.css}">
+  <link rel="stylesheet" th:href="@{/css/tokens/tokens.css}">
+  <link rel="stylesheet" th:href="@{/css/tema/tema.css}">
+  <link rel="stylesheet" th:href="@{/css/tema/lex-nova.css}">
+  <link rel="stylesheet" th:href="@{/css/componentes/login.css}">
+</head>
+<body>
+<div class="login-page">
+  <div class="gx-login">
+    <div class="gx-login__marca">
+      <img th:if="${!#strings.isEmpty(app.logo)}" th:src="@{${app.logo}}" class="gx-login__logo" alt="">
+      <div class="gx-login__marca-texto">
+        <strong th:text="${app.nombre}">LEX NOVA</strong>
+        <span th:text="${app.subtitulo}">Gestión jurídica</span>
+      </div>
+    </div>
+    <h1 class="gx-login__titulo">Cambiar contraseña</h1>
+    <p class="gx-login__nota" th:if="${obligatorio}">Antes de continuar, elija una contraseña nueva. La que tiene ahora es provisoria.</p>
+    <p class="gx-login__nota" th:text="${reglas}">Al menos 8 caracteres, con letras y números.</p>
+
+    <form th:action="@{/cambiar-clave}" method="post" id="form-clave">
+      <div class="gx-login__celda">
+        <input class="gx-login__input" type="password" name="actual" maxlength="64" autocomplete="current-password"
+               required autofocus placeholder="Contraseña actual" aria-label="Contraseña actual">
+        <p class="gx-login__error" th:if="${errores.tiene('actual')}" th:text="${errores.de('actual')}">Error</p>
+      </div>
+      <div class="gx-login__celda">
+        <input class="gx-login__input" type="password" name="nueva" maxlength="64" autocomplete="new-password"
+               required placeholder="Contraseña nueva" aria-label="Contraseña nueva">
+        <p class="gx-login__error" th:if="${errores.tiene('nueva')}" th:text="${errores.de('nueva')}">Error</p>
+      </div>
+      <div class="gx-login__celda">
+        <input class="gx-login__input" type="password" name="repetir" maxlength="64" autocomplete="new-password"
+               required placeholder="Repetir la contraseña nueva" aria-label="Repetir la contraseña nueva">
+        <p class="gx-login__error" th:if="${errores.tiene('repetir')}" th:text="${errores.de('repetir')}">Error</p>
+      </div>
+      <div class="gx-login__celda gx-login__celda--boton">
+        <button type="submit" class="gx-login__boton">Guardar</button>
+      </div>
+    </form>
+
+    <div class="gx-login__pie">
+      <a th:unless="${obligatorio}" th:href="@{/}">Cancelar</a>
+      <form th:if="${obligatorio}" th:action="@{/salir}" method="post" class="gx-login__salir">
+        <button type="submit" class="gx-login__ghost">Cerrar sesión</button>
+      </form>
+    </div>
+  </div>
+</div>
+</body>
+</html>

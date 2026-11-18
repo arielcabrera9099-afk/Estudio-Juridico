@@ -1,4 +1,4 @@
-# Estudio-Juridico
+# LEX NOVA (Estudio-Juridico)
 
 Proyecto basado en la plantilla frontend (layout, sistema de diseño y componentes).
 
@@ -10,7 +10,41 @@ Plantilla base para construir sistemas web con pantallas del lado del servidor. 
 
 ## Ejecutar
 
-Requisitos: JDK 11 o superior y Maven 3.8 o superior.
+Requisitos: JDK 11 o superior, Maven 3.8 o superior y SQL Server 2019 o superior.
+
+### Base de datos
+
+1. Crear la base vacía, con la intercalación en español (búsquedas sin distinguir mayúsculas ni acentos):
+
+   ```sql
+   CREATE DATABASE EstudioJuridico COLLATE Modern_Spanish_CI_AI;
+   ```
+
+2. Definir la conexión en variables de entorno (nunca en el repositorio). En PowerShell:
+
+   ```powershell
+   $env:DB_URL = "jdbc:sqlserver://localhost:1433;databaseName=EstudioJuridico;encrypt=true;trustServerCertificate=true"
+   $env:DB_USER = "usuario_sql"
+   $env:DB_PASSWORD = "clave"
+   ```
+
+   SQL Server debe aceptar conexiones TCP/IP (puerto 1433) y autenticación de SQL Server.
+
+3. Al arrancar, Flyway crea las tablas, las vistas y los datos iniciales con los scripts de `src/main/resources/db/migration`. Un cambio de esquema se hace con un script nuevo (`V8__descripcion.sql`); los ya aplicados no se tocan.
+
+### Primer ingreso
+
+En el primer arranque, si la base no tiene usuarios, se crea el usuario **`admin`** (rol Administrador) con la clave de la variable de entorno `APP_ADMIN_CLAVE`. Si no está definida, se genera una al azar y se muestra una sola vez en el log. El sistema pide cambiarla en el primer ingreso. Después, los demás usuarios se crean desde **Administración → Seguridad → Usuarios**.
+
+- La contraseña debe tener al menos 8 caracteres, con letras y números, y no contener el nombre de usuario.
+- Tras 5 intentos fallidos el usuario queda bloqueado 15 minutos (parámetros `seguridad.max_intentos` y `seguridad.minutos_bloqueo`); un administrador puede desbloquearlo antes.
+- Un administrador puede reiniciar la clave de cualquier usuario; el usuario deberá cambiarla al ingresar.
+
+### Pruebas
+
+`mvn test` usa la base de `DB_URL` (con las migraciones aplicadas); cada prueba deshace sus cambios. Sin `DB_URL` las pruebas se saltean.
+
+### Comandos
 
 ```bash
 # Desarrollo
@@ -29,9 +63,11 @@ El mismo `ROOT.war` también se puede copiar a la carpeta `webapps/` de un Tomca
 
 | Ruta | Qué muestra |
 |---|---|
-| `/` | Inicio: el layout con el contenido vacío |
-| `/componentes` | Catálogo de todos los componentes, con datos de ejemplo |
-| `/login` | Pantalla de acceso (solo visual, sin autenticación) |
+| `/login` | Ingreso con usuario y contraseña |
+| `/` | Inicio |
+| `/cambiar-clave` | Cambio de la propia contraseña (también desde el menú del usuario, arriba a la derecha) |
+| `/admin/usuarios` | Usuarios: lista con filtros y ABM (solo administradores) |
+| `/componentes` | Catálogo de todos los componentes, con datos de ejemplo (solo administradores) |
 
 ## Estructura
 
@@ -144,8 +180,7 @@ Resumen:
 
 ## Qué no incluye
 
-- **Autenticación:** `/login` es solo visual. El layout ya está preparado. Muestra el bloque de usuario si el modelo trae `usuario` (y opcionalmente `usuarioNombre` y `usuarioDetalle`), y `componentes.js` manda el CSRF si el layout publica las metas `_csrf`.
-- **Base de datos y servicios externos.**
+- **Pantallas de negocio:** se construyen de a una (ver el plan en [docs/modelo-de-datos.md](docs/modelo-de-datos.md)); las opciones del menú que faltan muestran "en construcción".
 - **Modo oscuro:** la base tiene las variables, pero el tema fija el modo claro (`tema.js`).
 
 ## Licencias de terceros

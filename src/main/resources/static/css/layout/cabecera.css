@@ -23,3 +23,8 @@
 }
 .admin-header__datos b { color: var(--wwp-base, #001d7e); font-family: var(--wwp-font-bold); font-weight: 600; }
 .admin-header__user-btn[aria-expanded="true"] .admin-header__datos { background: rgba(var(--wwp-base-rgb), .06); border-radius: 8px; }
+
+/* Opción común del menú del usuario (Cambiar contraseña): azul; la roja de tema.css queda para Cerrar sesión. */
+.admin-header__menu-item.admin-header__menu-item--normal { color: var(--wwp-base); text-decoration: none; }
+.admin-header__menu-item.admin-header__menu-item--normal .lucide { color: var(--wwp-base); }
+.admin-header__menu-item.admin-header__menu-item--normal:hover { background: rgba(var(--wwp-base-rgb), .06); }

@@ -1,6 +1,6 @@
 /* ============================================================================
-   Variables de diseño (tokens): paleta, tipografía, escala, formas y sombras.
-   Cambiar la marca = cambiar estos valores.
+   Variables de diseño (tokens) de LEX NOVA: paleta, tipografía, escala, formas y sombras.
+   Cambiar la marca = cambiar estos valores (y la capa tema/lex-nova.css).
    ============================================================================ */
 
 /* ---- Fuente Poppins, local en /static/fonts (TTF, SIL OFL) ---- */
@@ -24,43 +24,56 @@
 }
 
 :root {
-  /* ---- Colores de marca (BaseColor azul marino) ---- */
-  --wwp-base:            #001A81;
-  --wwp-base-rgb:        0, 26, 129;
-  --wwp-action-focus:    #000168;
-  --wwp-action-hover:    #001077;
-  --wwp-action-hover-bd: #00066D;
-  --wwp-base-shadow:     rgba(0, 26, 129, 0.7);
+  /* ---- Paleta institucional LEX NOVA (docs/sistema-de-diseno.md) ----
+     Grafito y blanco son la mayor parte de la interfaz; el dorado es solo acento de marca. */
+  --lx-grafito:          #20242B;   /* navegación lateral, encabezados y estructura */
+  --lx-carbon:           #2B3038;   /* paneles secundarios y elementos de navegación */
+  --lx-gris-claro:       #F3F4F6;   /* fondo principal */
+  --lx-dorado:           #B99A5B;   /* botón principal, selección activa, identidad */
+  --lx-dorado-rgb:       185, 154, 91;
+  --lx-dorado-oscuro:    #8C733F;   /* hover, detalles y bordes destacados */
+  --lx-enlace:           #7A6434;   /* dorado oscuro legible sobre blanco (enlaces) */
+  --lx-borde:            #D9DDE3;   /* separación de controles, grillas y paneles */
+  --lx-texto:            #30343B;
+  --lx-texto-secundario: #747B85;
+
+  /* ---- Colores base de los componentes (BaseColor = grafito) ---- */
+  --wwp-base:            #20242B;
+  --wwp-base-rgb:        32, 36, 43;
+  --wwp-action-focus:    #8C733F;
+  --wwp-action-hover:    #2B3038;
+  --wwp-action-hover-bd: #20242B;
+  --wwp-base-shadow:     rgba(32, 36, 43, 0.6);
   --wwp-base-forecolor:  #FFFFFF;
-  --wwp-base-30:         rgba(0, 26, 129, 0.3);
+  --wwp-base-30:         rgba(185, 154, 91, 0.35);
 
   /* ---- Texto / requeridos ---- */
-  --wwp-text:            #2b2f33;
-  --wwp-required:        #EA0101;
+  --wwp-text:            #30343B;
+  --wwp-required:        #C62828;
 
   /* ---- Fondos ---- */
-  --wwp-bg:              #EEEEEE;   /* fondo de la app */
-  --wwp-app-bg:          #899eb3;   /* fondo detrás de las pantallas (tema.css) */
-  --wwp-data-bg:         #FFFFFF;   /* tarjetas / contenido */
-  --wwp-data-bg-soft:    #FAFAFA;
+  --wwp-bg:              #F3F4F6;   /* fondo de la app */
+  --wwp-app-bg:          #F3F4F6;   /* fondo detrás de las pantallas (tema.css) */
+  --wwp-data-bg:         #FFFFFF;   /* formularios, grillas, contenido */
+  --wwp-data-bg-soft:    #FAFAFB;
 
   /* ---- Escala de grises ---- */
-  --wwp-gray01: #fbfbfb;
-  --wwp-gray02: #f7f7f7;
-  --wwp-gray03: #f5f4f4;
-  --wwp-gray04: #eeeeee;
-  --wwp-gray05: #d9d9d9;
-  --wwp-gray06: #c8c8c8;
-  --wwp-gray07: #8c8d8e;
-  --wwp-gray08: #575b5d;
+  --wwp-gray01: #FAFAFB;
+  --wwp-gray02: #F5F6F8;
+  --wwp-gray03: #F3F4F6;
+  --wwp-gray04: #ECEEF1;
+  --wwp-gray05: #D9DDE3;
+  --wwp-gray06: #C4C9D0;
+  --wwp-gray07: #747B85;
+  --wwp-gray08: #4A5059;
 
   /* ---- Grilla ---- */
-  --wwp-grid-title:      #00066D;
-  --wwp-grid-forecolor:  #000000;
-  --wwp-grid-row-sel:    #c8c8c8;
+  --wwp-grid-title:      #20242B;
+  --wwp-grid-forecolor:  #30343B;
+  --wwp-grid-row-sel:    #ECEEF1;
 
   /* ---- Login ---- */
-  --wwp-login-bg:        #6098c9;
+  --wwp-login-bg:        #20242B;
 
   /* ---- Semánticos ---- */
   --wwp-danger:   #f56a67;
@@ -82,18 +95,17 @@
   --wwp-fs-xxl: 34px;
   --wwp-fs-title: 30px;
 
-  /* ---- Formas ---- */
+  /* ---- Formas: rectangulares, de sistema de gestión (sin redondeos ni sombras exageradas) ---- */
   --wwp-radius-s:    2px;
-  --wwp-radius-m:    4px;
-  --wwp-radius-l:    6px;
-  --wwp-radius-card: 12px;
+  --wwp-radius-m:    3px;
+  --wwp-radius-l:    3px;
+  --wwp-radius-card: 4px;
   --wwp-border-xs:   1px;
   --wwp-border-s:    2px;
-  /* Sombras suaves y modernas (limpio/profesional) */
-  --wwp-shadow-card:  0 1px 3px rgba(16, 24, 40, 0.08), 0 1px 2px rgba(16, 24, 40, 0.04);
-  --wwp-shadow-hover: 0 6px 16px rgba(16, 24, 40, 0.10), 0 2px 6px rgba(16, 24, 40, 0.06);
-  --wwp-shadow-btn:   0 4px 12px rgba(0, 26, 129, 0.22);
-  --wwp-line:         #e6e8eb;  /* borde sutil de tarjetas */
+  --wwp-shadow-card:  0 1px 2px rgba(32, 36, 43, 0.06);
+  --wwp-shadow-hover: 0 2px 6px rgba(32, 36, 43, 0.10);
+  --wwp-shadow-btn:   none;
+  --wwp-line:         #D9DDE3;  /* borde de paneles y grillas */
 
   /* ---- Alto de la cabecera ---- */
   --wwp-header-h: 101px;

@@ -1,6 +1,20 @@
 spring:
   application:
     name: plantilla-frontend
+  # Base de datos SQL Server. Las credenciales van en variables de entorno, nunca en el repositorio. Ejemplo de DB_URL:
+  # jdbc:sqlserver://localhost:1433;databaseName=EstudioJuridico;encrypt=true;trustServerCertificate=true
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+  # El esquema lo crea y actualiza Flyway al arrancar.
+  flyway:
+    locations: classpath:db/migration
+  # Fechas de los formularios: <input type="date"> y <input type="datetime-local"> envían ISO (2026-11-17, 2026-11-17T09:30).
+  mvc:
+    format:
+      date: iso
+      date-time: iso
   # Estilos, JS e imágenes: con el hash de su contenido en el nombre (Thymeleaf @{} y los url() de los CSS lo agregan)
   # y guardados por el navegador un año. Un archivo que cambia cambia de nombre: nada queda viejo después de un
   # despliegue.
@@ -19,6 +33,10 @@ spring:
 server:
   port: 8080
   shutdown: graceful
+  # La sesión vence a los 30 minutos sin uso.
+  servlet:
+    session:
+      timeout: 30m
   compression:
     enabled: true
     mime-types: text/html,text/css,application/javascript,application/json,image/svg+xml
@@ -26,7 +44,13 @@ server:
 
 # Identidad de la aplicación en el layout y el login (AppProperties).
 app:
-  nombre: Plantilla
-  subtitulo: ""
+  nombre: LEX NOVA
+  subtitulo: "Gestión jurídica"
   # Ruta dentro de static/, por ejemplo /img/logo.png. Vacío: se muestra la inicial del nombre.
-  logo: ""
+  logo: /img/lex-nova.svg
+  # Usuario administrador que se crea al arrancar si la base no tiene ningún usuario. La clave inicial sale de la
+  # variable de entorno APP_ADMIN_CLAVE (nunca en el repositorio); se pide cambiarla en el primer ingreso.
+  admin:
+    usuario: admin
+    email: admin@estudio.local
+    clave-inicial: ${APP_ADMIN_CLAVE:}

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="LEX NOVA">
+  <title>LEX NOVA</title>
+  <rect width="64" height="64" rx="4" fill="#20242B"/>
+  <rect x="3" y="3" width="58" height="58" rx="2" fill="none" stroke="#B99A5B" stroke-width="1" opacity=".55"/>
+  <g fill="none" stroke="#B99A5B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M32 14v31"/>
+    <path d="M24 49h16"/>
+    <path d="M27 45h10"/>
+    <path d="M15 20h34"/>
+    <path d="M18 20l-5.5 13M18 20l5.5 13"/>
+    <path d="M46 20l-5.5 13M46 20l5.5 13"/>
+  </g>
+  <circle cx="32" cy="13" r="2.4" fill="#B99A5B"/>
+  <path d="M11 33h14a7 4.2 0 0 1-14 0z" fill="#B99A5B"/>
+  <path d="M39 33h14a7 4.2 0 0 1-14 0z" fill="#B99A5B"/>
+</svg>

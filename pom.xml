@@ -19,8 +19,8 @@
     <artifactId>plantilla-frontend</artifactId>
     <version>0.1.0-SNAPSHOT</version>
     <packaging>war</packaging>
-    <name>plantilla-frontend</name>
-    <description>Plantilla base de frontend: layout, sistema de diseño y componentes (Thymeleaf)</description>
+    <name>estudio-juridico</name>
+    <description>Sistema de gestión de casos jurídicos (Thymeleaf, Spring Boot, SQL Server)</description>
 
     <properties>
         <java.version>11</java.version>
@@ -45,9 +45,45 @@
             <artifactId>spring-boot-starter-thymeleaf</artifactId>
         </dependency>
 
+        <!-- Ingreso, sesión, permisos y CSRF -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.thymeleaf.extras</groupId>
+            <artifactId>thymeleaf-extras-springsecurity5</artifactId>
+        </dependency>
+
+        <!-- Base de datos: SQL Server con JDBC (consultas SQL explícitas), con el esquema versionado por Flyway
+             (src/main/resources/db/migration) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-jdbc</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+        </dependency>
+        <!-- Desde Flyway 8, el soporte de SQL Server viene en un módulo aparte -->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-sqlserver</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.microsoft.sqlserver</groupId>
+            <artifactId>mssql-jdbc</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-test</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

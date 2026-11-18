@@ -1,0 +1,100 @@
+<!doctype html>
+<!-- Auditoría: lista con filtros (solo consulta) y, desde ella, el detalle de cada registro (AuditoriaController). -->
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/layout :: layout(~{::title}, ~{::#contenido}, ~{::estilos})}">
+<head>
+  <title>Auditoría</title>
+  <th:block th:fragment="estilos"></th:block>
+</head>
+<body>
+<div id="contenido" class="gx-pantalla">
+  <header class="gx-encabezado">
+    <h1><svg class="lucide" width="20" height="20"><use href="#i-history"/></svg>Auditoría</h1>
+    <p>Quién hizo qué y cuándo: ingresos, altas, modificaciones y bajas</p>
+  </header>
+
+  <section class="gx-panel">
+    <h2 class="gx-panel__titulo">Filtros</h2>
+    <div class="gx-panel__cuerpo">
+      <div class="gx-barra-resumen">
+        <span class="gx-panel__nota" th:text="${#lists.size(filas)} == 1 ? '1 registro' : |${#lists.size(filas)} registros|">0 registros</span>
+      </div>
+      <form class="gx-campos gx-campos--filtros" method="get" th:action="@{/admin/auditoria}" data-filtros>
+        <div class="gx-campo" th:classappend="${errorFiltro != null} ? 'is-error'"><label for="f-desde">Desde</label>
+          <input id="f-desde" name="desde" type="date" th:value="${desde}"></div>
+        <div class="gx-campo" th:classappend="${errorFiltro != null} ? 'is-error'"><label for="f-hasta">Hasta</label>
+          <input id="f-hasta" name="hasta" type="date" th:value="${hasta}"></div>
+        <div class="gx-campo"><label for="f-usuario">Usuario</label>
+          <select id="f-usuario" name="usuario">
+            <option value="">TODOS</option>
+            <option th:each="u : ${usuarios}" th:value="${u.id}" th:text="${u.texto}" th:selected="${u.id == usuario}">usuario</option>
+          </select></div>
+        <div class="gx-campo"><label for="f-accion">Acción</label>
+          <select id="f-accion" name="accion">
+            <option value="">TODAS</option>
+            <option th:each="a : ${acciones}" th:value="${a.key}" th:text="${#strings.toUpperCase(a.value)}" th:selected="${a.key == accion}">Acción</option>
+          </select></div>
+        <div class="gx-campo"><label for="f-tabla">Pantalla</label>
+          <select id="f-tabla" name="tabla">
+            <option value="">TODAS</option>
+            <option th:each="t : ${tablas}" th:value="${t.id}" th:text="${#strings.toUpperCase(t.texto)}" th:selected="${t.id == tabla}">Tabla</option>
+          </select></div>
+        <div class="gx-campo"><label for="f-registro">N.º de registro</label>
+          <input id="f-registro" name="registro" th:value="${registro}" inputmode="numeric" maxlength="18" autocomplete="off"></div>
+        <div class="gx-campo gx-campo--boton">
+          <div class="gx-botonera">
+            <button type="submit" class="gx-btn gx-btn--icono"><svg class="lucide" width="16" height="16"><use href="#i-search"/></svg>Buscar</button>
+            <a class="gx-btn gx-btn--secundario" th:href="@{/admin/auditoria}">Limpiar</a>
+          </div>
+        </div>
+      </form>
+      <p class="gx-ayuda gx-ayuda--error" th:if="${errorFiltro != null}" th:text="${errorFiltro}">Error</p>
+      <p class="gx-panel__nota">Al entrar se muestran los últimos 7 días. Deje las fechas vacías para buscar en todo el historial.
+        La auditoría no se modifica ni se borra.</p>
+    </div>
+  </section>
+
+  <p class="gx-aviso gx-aviso--alerta" th:if="${recortada}">
+    <svg class="lucide" width="16" height="16"><use href="#i-alert-triangle"/></svg>
+    <span th:text="|Se muestran los ${maximo} registros más recientes. Ajuste los filtros para ver el resto.|">Se muestran los primeros.</span>
+  </p>
+
+  <section class="gx-panel gx-panel--grilla">
+    <div class="gx-panel__cuerpo">
+      <div class="gx-grilla-wrap">
+        <table class="gx-grilla" id="grilla-auditoria" data-paginar="10">
+          <thead><tr>
+            <th class="gx-col-acciones"></th><th>Fecha y hora</th><th>Usuario</th><th>Acción</th><th>Pantalla</th>
+            <th class="gx-num">Registro</th><th>IP</th>
+          </tr></thead>
+          <tbody>
+            <tr th:if="${#lists.isEmpty(filas)}"><td colspan="7" class="gx-grilla__vacio">No hay registros con esos filtros.</td></tr>
+            <tr th:each="f : ${filas}" th:classappend="${f.accion == 'INGRESO_FALLIDO' or f.accion == 'BAJA'} ? 'gx-fila--peligro'">
+              <td class="gx-col-acciones">
+                <div class="gx-accion-grupo">
+                  <button type="button" class="gx-accion-grupo__boton" aria-haspopup="true" aria-label="Acciones">
+                    <svg class="lucide" width="16" height="16"><use href="#i-menu"/></svg></button>
+                  <ul class="gx-accion-grupo__menu" hidden>
+                    <li><a th:href="@{/admin/auditoria/{id}(id=${f.id})}"><svg class="lucide" width="15" height="15"><use href="#i-search"/></svg>Visualizar</a></li>
+                    <li th:if="${f.registro_id != null}"><a th:href="@{/admin/auditoria(tabla=${f.tabla},registro=${f.registro_id},desde='',hasta='')}"><svg class="lucide" width="15" height="15"><use href="#i-history"/></svg>Historial del registro</a></li>
+                  </ul>
+                </div>
+              </td>
+              <td><a class="gx-enlace" th:href="@{/admin/auditoria/{id}(id=${f.id})}" th:text="${#temporals.format(f.fecha, 'dd/MM/yyyy HH:mm:ss')}">fecha</a></td>
+              <td th:text="${f.nombre_usuario != null} ? ${f.nombre_usuario} : (${f.usuario_intentado != null} ? |${f.usuario_intentado} (no existe)| : '—')">usuario</td>
+              <td>
+                <span class="gx-etiqueta" th:text="${#strings.toUpperCase(acciones[f.accion] ?: f.accion)}"
+                      th:classappend="${f.accion == 'ALTA'} ? 'gx-etiqueta--exito' : (${f.accion == 'BAJA' or f.accion == 'INGRESO_FALLIDO'} ? 'gx-etiqueta--peligro' : (${f.accion == 'MODIFICACION'} ? 'gx-etiqueta--aviso' : 'gx-etiqueta--info'))">ACCIÓN</span>
+              </td>
+              <td th:text="${nombresTabla[f.tabla] ?: f.tabla}">Pantalla</td>
+              <td class="gx-num" th:text="${f.registro_id}">1</td>
+              <td th:text="${f.ip}">ip</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</div>
+</body>
+</html>

@@ -1,0 +1,87 @@
+<!doctype html>
+<!--
+  Registro de un catálogo: alta ("alta"), visualización ("ver", todo deshabilitado) y modificación ("editar").
+  Los campos salen de la definición del catálogo (Secciones). El código no cambia después del alta.
+-->
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/layout :: layout(~{::title}, ~{::#contenido}, ~{::estilos})}">
+<head>
+  <title>Catálogo</title>
+  <th:block th:fragment="estilos"></th:block>
+</head>
+<body>
+<div id="contenido" class="gx-pantalla gx-pantalla--angosta">
+  <header class="gx-encabezado">
+    <h1><svg class="lucide" width="20" height="20"><use th:attr="href=|#i-${seccion.icono}|"/></svg><span th:text="${paginaTitulo}">Registro</span></h1>
+    <p th:text="${modo == 'alta'} ? |${seccion.titulo} · ${cat.plural}| : (${valores.codigo != null} ? |${valores.codigo} · ${valores.nombre}| : ${valores.nombre})">Catálogo</p>
+  </header>
+
+  <p th:replace="~{componentes/componentes :: erroresResumen}"></p>
+
+  <form method="post" novalidate
+        th:action="${modo == 'alta'} ? @{/admin/{s}/{c}(s=${seccion.clave},c=${cat.tabla})} : @{/admin/{s}/{c}/{id}(s=${seccion.clave},c=${cat.tabla},id=${ficha.id})}"
+        th:attr="data-confirmar=${modo == 'alta'} ? |¿Confirma el alta de ${cat.conArticulo}?| : '¿Confirma los cambios?'">
+    <section class="gx-panel">
+      <h2 class="gx-panel__titulo" th:text="|Datos de ${cat.conArticulo}|">Datos</h2>
+      <div class="gx-panel__cuerpo">
+        <div class="gx-campos">
+          <div class="gx-campo" th:if="${cat.conCodigo}" th:classappend="${errores.tiene('codigo')} ? 'is-error'">
+            <label for="codigo">Código</label>
+            <input id="codigo" name="codigo" th:value="${valores.codigo}" maxlength="30" autocomplete="off"
+                   th:disabled="${modo != 'alta'}" th:placeholder="${modo == 'alta'} ? 'Se arma con el nombre si queda vacío' : null">
+            <p th:replace="~{componentes/componentes :: error('codigo')}"></p>
+          </div>
+
+          <div th:each="campo : ${cat.campos}" class="gx-campo"
+               th:classappend="|${errores.tiene(campo.columna) ? 'is-error' : ''} ${campo.largo > 80 and campo.tipoNombre == 'TEXTO' ? 'gx-campo--ancho' : ''}|"
+               th:with="v=${valores[campo.columna]}, bloqueado=${ver or (modo == 'editar' and campo.fijoTrasAlta)}">
+            <th:block th:switch="${campo.tipoNombre}">
+              <th:block th:case="'SINO'">
+                <label>&nbsp;</label>
+                <label class="gx-check"><input type="checkbox" th:id="${campo.columna}" th:name="${campo.columna}" value="true"
+                       th:checked="${v == 'true'}" th:disabled="${bloqueado}"> <span th:text="${campo.etiqueta}">Sí/No</span></label>
+              </th:block>
+              <th:block th:case="'REFERENCIA'">
+                <label th:for="${campo.columna}" th:text="${campo.etiqueta}" th:classappend="${campo.requerido} ? 'requerido'">Referencia</label>
+                <select th:id="${campo.columna}" th:name="${campo.columna}" th:disabled="${bloqueado}">
+                  <option value="">Seleccione…</option>
+                  <option th:each="o : ${opciones[campo.columna]}" th:value="${o.id}" th:text="${o.texto}" th:selected="${o.id == v}">Opción</option>
+                </select>
+              </th:block>
+              <th:block th:case="'OPCIONES'">
+                <label th:for="${campo.columna}" th:text="${campo.etiqueta}" th:classappend="${campo.requerido} ? 'requerido'">Opción</label>
+                <select th:id="${campo.columna}" th:name="${campo.columna}" th:disabled="${bloqueado}">
+                  <option value="">Seleccione…</option>
+                  <option th:each="o : ${opciones[campo.columna]}" th:value="${o.id}" th:text="${o.texto}" th:selected="${o.id == v}">Opción</option>
+                </select>
+              </th:block>
+              <th:block th:case="'ENTERO'">
+                <label th:for="${campo.columna}" th:text="${campo.etiqueta}" th:classappend="${campo.requerido} ? 'requerido'">Número</label>
+                <input th:id="${campo.columna}" th:name="${campo.columna}" th:value="${v}" inputmode="numeric" maxlength="6"
+                       autocomplete="off" th:disabled="${bloqueado}">
+              </th:block>
+              <th:block th:case="*">
+                <label th:for="${campo.columna}" th:text="${campo.etiqueta}" th:classappend="${campo.requerido} ? 'requerido'">Texto</label>
+                <input th:id="${campo.columna}" th:name="${campo.columna}" th:value="${v}" th:maxlength="${campo.largo}"
+                       autocomplete="off" th:disabled="${bloqueado}" th:autofocus="${campo.columna == 'nombre' and !ver}">
+              </th:block>
+            </th:block>
+            <p th:replace="~{componentes/componentes :: error(${campo.columna})}"></p>
+            <span class="gx-ayuda" th:if="${campo.ayuda != null and !ver}" th:text="${campo.ayuda}">Ayuda</span>
+          </div>
+
+          <div class="gx-campo" th:if="${ficha != null}"><label>Estado</label>
+            <input disabled th:value="${ficha.activo} ? 'Activo' : 'Dado de baja'"></div>
+        </div>
+        <p class="gx-panel__nota" th:if="${cat.descripcion != null and !ver}" th:text="${cat.descripcion}">Nota</p>
+        <div class="gx-acciones-pie">
+          <button th:unless="${ver}" type="submit" class="gx-btn gx-btn--icono"><svg class="lucide" width="16" height="16"><use href="#i-save"/></svg>Confirmar</button>
+          <a th:if="${ver}" class="gx-btn gx-btn--icono" th:href="@{/admin/{s}/{c}/{id}/editar(s=${seccion.clave},c=${cat.tabla},id=${ficha.id})}"><svg class="lucide" width="16" height="16"><use href="#i-pencil"/></svg>Modificar</a>
+          <a class="gx-btn gx-btn--secundario" th:href="@{/admin/{s}(s=${seccion.clave},catalogo=${cat.tabla})}" th:text="${ver} ? 'Volver' : 'Cancelar'">Cancelar</a>
+        </div>
+      </div>
+    </section>
+  </form>
+</div>
+</body>
+</html>

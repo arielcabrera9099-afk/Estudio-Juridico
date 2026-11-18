@@ -38,6 +38,7 @@
   <!-- Variables de diseño y tema: al final para imponer el look. -->
   <link rel="stylesheet" th:href="@{/css/tokens/tokens.css}">
   <link rel="stylesheet" th:href="@{/css/tema/tema.css}">
+  <link rel="stylesheet" th:href="@{/css/tema/lex-nova.css}">
   <!-- Tema antes de pintar, para que no parpadee. -->
   <script th:src="@{/js/layout/tema.js}"></script>
 </head>
@@ -128,6 +129,10 @@
               <strong th:text="${usuarioNombre ?: usuario}">Nombre del usuario</strong>
               <span th:text="'Usuario ' + ${usuario}">Usuario USUARIO</span>
             </div>
+            <a class="admin-header__menu-item admin-header__menu-item--normal" th:href="@{/cambiar-clave}">
+              <svg class="lucide" width="15" height="15" aria-hidden="true"><use href="#i-key-round"/></svg>
+              Cambiar contraseña
+            </a>
             <form th:action="@{/salir}" method="post">
               <button type="submit" class="admin-header__menu-item">
                 <svg class="lucide" width="15" height="15" aria-hidden="true"><use href="#i-log-out"/></svg>
@@ -147,5 +152,6 @@
 <script th:src="@{/js/componentes/componentes.js}"></script>
 <script th:src="@{/js/componentes/combo.js}"></script>
 <script th:src="@{/js/componentes/grilla.js}"></script>
+<script th:src="@{/js/componentes/abm.js}"></script>
 </body>
 </html>

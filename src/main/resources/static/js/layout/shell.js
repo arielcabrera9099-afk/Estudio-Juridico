@@ -1,11 +1,11 @@
-// Comportamiento del layout: colapsar el menú, acordeón de los módulos, búsqueda de pantallas, menú móvil (< 960px)
+// Comportamiento del layout: colapsar el menú, acordeón de los módulos, búsqueda de pantallas, menú móvil (< 640px: solo celulares; en una computadora, aun con zoom, el menú queda fijo)
 // y tema. Cada pantalla recarga la página, así que el colapso se recuerda en localStorage y el estado de los módulos
 // y secciones en sessionStorage para que no se pierdan al navegar.
 (function () {
   var CLAVE_COLAPSO = 'app-sidebar-colapsado';
   // Módulo desplegado: arranca plegado y se recuerda en sessionStorage dentro de la sesión.
   var CLAVE_ABIERTO = 'app-modulo-abierto';
-  var ANCHO_MOVIL = 960;
+  var ANCHO_MOVIL = 640;
 
   function $(sel, raiz) { return (raiz || document).querySelector(sel); }
   function $$(sel, raiz) { return Array.prototype.slice.call((raiz || document).querySelectorAll(sel)); }
@@ -245,9 +245,18 @@
     if (guardada !== null) {
       desplazable.scrollTop = Number(guardada) || 0;
     } else {
+      // Solo en vertical y solo dentro del menú: scrollIntoView también desplazaría en horizontal la barra lateral (y
+      // la página) si algo del menú fuera más ancho que ella, y dejaría cortado el borde izquierdo.
       var activa = $('.admin-nav-item.is-active', desplazable);
-      if (activa) activa.scrollIntoView({ block: 'nearest' });
+      if (activa) {
+        var ra = activa.getBoundingClientRect();
+        var rd = desplazable.getBoundingClientRect();
+        if (ra.bottom > rd.bottom) desplazable.scrollTop += ra.bottom - rd.bottom;
+        else if (ra.top < rd.top) desplazable.scrollTop -= rd.top - ra.top;
+      }
     }
+    desplazable.scrollLeft = 0;
+    sidebar.scrollLeft = 0;
     window.addEventListener('pagehide', function () {
       try { sessionStorage.setItem(CLAVE_SCROLL, String(desplazable.scrollTop)); } catch (e) { /* modo privado */ }
     });

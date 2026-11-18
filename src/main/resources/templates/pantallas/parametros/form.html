@@ -1,0 +1,49 @@
+<!doctype html>
+<!-- Parámetro: visualización ("ver", todo deshabilitado) y modificación del valor. Clave, tipo y descripción son fijos. -->
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/layout :: layout(~{::title}, ~{::#contenido}, ~{::estilos})}">
+<head>
+  <title>Parámetro</title>
+  <th:block th:fragment="estilos"></th:block>
+</head>
+<body>
+<div id="contenido" class="gx-pantalla gx-pantalla--angosta">
+  <header class="gx-encabezado">
+    <h1><svg class="lucide" width="20" height="20"><use href="#i-settings2"/></svg><span th:text="${paginaTitulo}">Parámetro</span></h1>
+    <p th:text="${ficha.descripcion}">Descripción</p>
+  </header>
+
+  <p th:replace="~{componentes/componentes :: erroresResumen}"></p>
+
+  <form method="post" novalidate th:action="@{/admin/parametros/{id}(id=${ficha.id})}"
+        data-confirmar="¿Confirma el nuevo valor del parámetro? Rige de inmediato.">
+    <section class="gx-panel">
+      <h2 class="gx-panel__titulo">Datos del parámetro</h2>
+      <div class="gx-panel__cuerpo">
+        <div class="gx-campos">
+          <div class="gx-campo"><label>Clave</label><input disabled th:value="${ficha.clave}"></div>
+          <div class="gx-campo"><label>Tipo</label><input disabled th:value="${ficha.tipo}"></div>
+          <div class="gx-campo gx-campo--ancho"><label>Descripción</label><input disabled th:value="${ficha.descripcion}"></div>
+          <div class="gx-campo gx-campo--ancho" th:classappend="${errores.tiene('valor')} ? 'is-error'">
+            <label for="valor" class="requerido">Valor</label>
+            <input id="valor" name="valor" th:value="${valor}" maxlength="500" autocomplete="off" th:disabled="${ver}"
+                   th:autofocus="${!ver}" th:attr="inputmode=${ficha.tipo == 'NUMERO'} ? 'numeric' : null">
+            <p th:replace="~{componentes/componentes :: error('valor')}"></p>
+            <span class="gx-ayuda" th:text="${ayuda}">Ayuda</span>
+          </div>
+          <div class="gx-campo"><label>Alta</label>
+            <input disabled th:value="|${#temporals.format(ficha.creado_en, 'dd/MM/yyyy HH:mm')}${ficha.creado_por_usuario != null ? ' · ' + ficha.creado_por_usuario : ''}|"></div>
+          <div class="gx-campo"><label>Última modificación</label>
+            <input disabled th:value="${ficha.modificado_en != null} ? |${#temporals.format(ficha.modificado_en, 'dd/MM/yyyy HH:mm')} · ${ficha.modificado_por_usuario}| : 'Valor inicial'"></div>
+        </div>
+        <div class="gx-acciones-pie">
+          <button th:unless="${ver}" type="submit" class="gx-btn gx-btn--icono"><svg class="lucide" width="16" height="16"><use href="#i-save"/></svg>Confirmar</button>
+          <a th:if="${ver}" class="gx-btn gx-btn--icono" th:href="@{/admin/parametros/{id}/editar(id=${ficha.id})}"><svg class="lucide" width="16" height="16"><use href="#i-pencil"/></svg>Modificar</a>
+          <a class="gx-btn gx-btn--secundario" th:href="@{/admin/parametros}" th:text="${ver} ? 'Volver' : 'Cancelar'">Cancelar</a>
+        </div>
+      </div>
+    </section>
+  </form>
+</div>
+</body>
+</html>

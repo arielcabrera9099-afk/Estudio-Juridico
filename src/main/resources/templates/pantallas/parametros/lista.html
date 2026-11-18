@@ -1,0 +1,79 @@
+<!doctype html>
+<!-- Parámetros: lista con filtros; desde ella, visualizar y modificar el valor (ParametrosController). -->
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/layout :: layout(~{::title}, ~{::#contenido}, ~{::estilos})}">
+<head>
+  <title>Parámetros</title>
+  <th:block th:fragment="estilos"></th:block>
+</head>
+<body>
+<div id="contenido" class="gx-pantalla">
+  <p th:replace="~{componentes/componentes :: ok}"></p>
+
+  <header class="gx-encabezado">
+    <h1><svg class="lucide" width="20" height="20"><use href="#i-settings2"/></svg>Parámetros</h1>
+    <p>Valores que ajustan el comportamiento del sistema sin cambiar el programa</p>
+  </header>
+
+  <section class="gx-panel">
+    <h2 class="gx-panel__titulo">Filtros</h2>
+    <div class="gx-panel__cuerpo">
+      <div class="gx-barra-resumen">
+        <span class="gx-panel__nota" th:text="${#lists.size(filas)} == 1 ? '1 parámetro' : |${#lists.size(filas)} parámetros|">0 parámetros</span>
+      </div>
+      <form class="gx-campos gx-campos--filtros" method="get" th:action="@{/admin/parametros}" data-filtros>
+        <div class="gx-campo"><label for="f-texto">Buscar</label>
+          <input id="f-texto" name="texto" th:value="${texto}" maxlength="80" autocomplete="off"
+                 placeholder="Clave, descripción o valor"></div>
+        <div class="gx-campo"><label for="f-grupo">Grupo</label>
+          <select id="f-grupo" name="grupo">
+            <option value="">TODOS</option>
+            <option th:each="g : ${grupos}" th:value="${g}" th:text="${#strings.toUpperCase(nombresGrupo[g] ?: g)}"
+                    th:selected="${g == grupo}">Grupo</option>
+          </select></div>
+        <div class="gx-campo gx-campo--boton">
+          <div class="gx-botonera">
+            <button type="submit" class="gx-btn gx-btn--icono"><svg class="lucide" width="16" height="16"><use href="#i-search"/></svg>Buscar</button>
+            <a class="gx-btn gx-btn--secundario" th:href="@{/admin/parametros}">Limpiar</a>
+          </div>
+        </div>
+      </form>
+      <p class="gx-panel__nota">Los parámetros los define el sistema: se modifica su valor, que rige de inmediato.</p>
+    </div>
+  </section>
+
+  <section class="gx-panel gx-panel--grilla">
+    <div class="gx-panel__cuerpo">
+      <div class="gx-grilla-wrap">
+        <table class="gx-grilla" id="grilla-parametros" data-paginar="10">
+          <thead><tr>
+            <th class="gx-col-acciones"></th><th>Grupo</th><th>Parámetro</th><th>Clave</th><th>Valor</th>
+            <th>Última modificación</th>
+          </tr></thead>
+          <tbody>
+            <tr th:if="${#lists.isEmpty(filas)}"><td colspan="6" class="gx-grilla__vacio">No hay parámetros con esos filtros.</td></tr>
+            <tr th:each="f : ${filas}" th:with="g=${#strings.substringBefore(f.clave + '.', '.')}">
+              <td class="gx-col-acciones">
+                <div class="gx-accion-grupo">
+                  <button type="button" class="gx-accion-grupo__boton" aria-haspopup="true" aria-label="Acciones">
+                    <svg class="lucide" width="16" height="16"><use href="#i-menu"/></svg></button>
+                  <ul class="gx-accion-grupo__menu" hidden>
+                    <li><a th:href="@{/admin/parametros/{id}(id=${f.id})}"><svg class="lucide" width="15" height="15"><use href="#i-search"/></svg>Visualizar</a></li>
+                    <li><a th:href="@{/admin/parametros/{id}/editar(id=${f.id})}"><svg class="lucide" width="15" height="15"><use href="#i-pencil"/></svg>Modificar</a></li>
+                  </ul>
+                </div>
+              </td>
+              <td th:text="${nombresGrupo[g] ?: g}">Grupo</td>
+              <td><a class="gx-enlace" th:href="@{/admin/parametros/{id}(id=${f.id})}" th:text="${f.descripcion ?: f.clave}">Descripción</a></td>
+              <td th:text="${f.clave}">clave</td>
+              <td><strong th:text="${f.valor}">valor</strong></td>
+              <td th:text="${f.modificado_en != null} ? |${#temporals.format(f.modificado_en, 'dd/MM/yyyy HH:mm')} · ${f.modificado_por_usuario}| : 'Valor inicial'">Valor inicial</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</div>
+</body>
+</html>

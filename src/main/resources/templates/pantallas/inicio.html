@@ -1,5 +1,8 @@
 <!doctype html>
-<!-- Pantalla de inicio: vacía, lista para el contenido del nuevo sistema. -->
+<!--
+  Inicio: la imagen institucional de LEX NOVA de fondo (lex-nova.css, html:has(.lx-inicio)) y la bienvenida al
+  usuario. Muestra el mensaje de la acción anterior (?ok=), por ejemplo después de cambiar la contraseña.
+-->
 <html lang="es" xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/layout :: layout(~{::title}, ~{::#contenido}, ~{::estilos})}">
 <head>
@@ -7,6 +10,16 @@
   <th:block th:fragment="estilos"></th:block>
 </head>
 <body>
-<div id="contenido" class="gx-pantalla"></div>
+<div id="contenido" class="gx-pantalla lx-inicio">
+  <p th:replace="~{componentes/componentes :: ok}"></p>
+  <section class="lx-bienvenida">
+    <img class="lx-bienvenida__emblema" th:src="@{${app.logo}}" alt="" th:if="${!#strings.isEmpty(app.logo)}">
+    <div>
+      <span class="lx-bienvenida__marca" th:text="${app.nombre}">LEX NOVA</span>
+      <h1 th:text="|Bienvenido, ${usuarioNombre}|">Bienvenido</h1>
+      <p th:text="|${app.subtitulo} · ${usuarioDetalle}|">Gestión jurídica · Administrador</p>
+    </div>
+  </section>
+</div>
 </body>
 </html>

@@ -1,0 +1,133 @@
+<!doctype html>
+<!--
+  Usuario: alta (modo "alta"), visualización ("ver", todo deshabilitado) y modificación ("editar").
+  El nombre de usuario no cambia después del alta. La contraseña inicial se pide solo en el alta.
+-->
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/layout :: layout(~{::title}, ~{::#contenido}, ~{::estilos})}">
+<head>
+  <title>Usuario</title>
+  <th:block th:fragment="estilos"></th:block>
+</head>
+<body>
+<div id="contenido" class="gx-pantalla">
+  <header class="gx-encabezado">
+    <h1><svg class="lucide" width="20" height="20"><use th:attr="href=${modo == 'alta'} ? '#i-user-plus' : '#i-user'"/></svg>
+      <span th:text="${paginaTitulo}">Usuario</span></h1>
+    <p th:text="${modo == 'alta'} ? 'Complete los datos del nuevo usuario' : ${form.nombreUsuario}">Datos del usuario</p>
+  </header>
+
+  <p th:replace="~{componentes/componentes :: erroresResumen}"></p>
+
+  <form id="form-usuario" method="post" th:object="${form}" novalidate
+        th:action="${modo == 'alta'} ? @{/admin/usuarios} : @{/admin/usuarios/{id}(id=${form.id})}"
+        th:attr="data-confirmar=${modo == 'alta'} ? '¿Confirma el alta del usuario?' : '¿Confirma los cambios del usuario?'">
+
+    <section class="gx-panel">
+      <h2 class="gx-panel__titulo">Datos del usuario</h2>
+      <div class="gx-panel__cuerpo">
+        <div class="gx-campos gx-campos--3">
+          <div class="gx-campo" th:classappend="${errores.tiene('nombreUsuario')} ? 'is-error'">
+            <label for="nombreUsuario" th:classappend="${modo == 'alta'} ? 'requerido'">Usuario</label>
+            <input th:field="*{nombreUsuario}" maxlength="30" autocomplete="off"
+                   th:disabled="${modo != 'alta'}" placeholder="por ejemplo, jperez">
+            <p th:replace="~{componentes/componentes :: error('nombreUsuario')}"></p>
+          </div>
+          <div class="gx-campo" th:classappend="${errores.tiene('email')} ? 'is-error'">
+            <label for="email" class="requerido">Email</label>
+            <input th:field="*{email}" type="email" maxlength="120" autocomplete="off" th:disabled="${ver}">
+            <p th:replace="~{componentes/componentes :: error('email')}"></p>
+          </div>
+          <div class="gx-campo" th:classappend="${errores.tiene('telefono')} ? 'is-error'">
+            <label for="telefono">Teléfono</label>
+            <input th:field="*{telefono}" maxlength="30" inputmode="tel" autocomplete="off" th:disabled="${ver}">
+            <p th:replace="~{componentes/componentes :: error('telefono')}"></p>
+          </div>
+          <div class="gx-campo" th:classappend="${errores.tiene('nombres')} ? 'is-error'">
+            <label for="nombres" class="requerido">Nombres</label>
+            <input th:field="*{nombres}" maxlength="80" autocomplete="off" th:disabled="${ver}">
+            <p th:replace="~{componentes/componentes :: error('nombres')}"></p>
+          </div>
+          <div class="gx-campo" th:classappend="${errores.tiene('apellidos')} ? 'is-error'">
+            <label for="apellidos" class="requerido">Apellidos</label>
+            <input th:field="*{apellidos}" maxlength="80" autocomplete="off" th:disabled="${ver}">
+            <p th:replace="~{componentes/componentes :: error('apellidos')}"></p>
+          </div>
+          <div class="gx-campo" th:classappend="${errores.tiene('matricula')} ? 'is-error'">
+            <label for="matricula">Matrícula profesional</label>
+            <input th:field="*{matricula}" maxlength="30" autocomplete="off" th:disabled="${ver}"
+                   placeholder="Obligatoria para abogados">
+            <p th:replace="~{componentes/componentes :: error('matricula')}"></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="gx-panel">
+      <h2 class="gx-panel__titulo">Roles y estado</h2>
+      <div class="gx-panel__cuerpo">
+        <div class="gx-campos gx-campos--3">
+          <div class="gx-campo gx-campo--ancho" th:classappend="${errores.tiene('roles')} ? 'is-error'">
+            <label class="requerido">Roles</label>
+            <div class="gx-botonera">
+              <label class="gx-check" th:each="r : ${roles}">
+                <input type="checkbox" th:field="*{roles}" th:value="${r.id}" th:disabled="${ver}">
+                <span th:text="${r.texto}">Rol</span>
+              </label>
+            </div>
+            <p th:replace="~{componentes/componentes :: error('roles')}"></p>
+          </div>
+          <div class="gx-campo" th:if="${modo != 'alta'}" th:classappend="${errores.tiene('activo')} ? 'is-error'">
+            <label class="gx-check"><input type="checkbox" th:field="*{activo}" th:disabled="${ver}"> Activo (puede ingresar)</label>
+            <p th:replace="~{componentes/componentes :: error('activo')}"></p>
+          </div>
+        </div>
+        <p class="gx-panel__nota">Lo que permite cada rol se define en Administración → Roles y permisos. Los cambios
+          de roles rigen desde el próximo ingreso del usuario.</p>
+      </div>
+    </section>
+
+    <section class="gx-panel" th:if="${modo == 'alta'}">
+      <h2 class="gx-panel__titulo">Contraseña inicial</h2>
+      <div class="gx-panel__cuerpo">
+        <div class="gx-campos gx-campos--3">
+          <div class="gx-campo" th:classappend="${errores.tiene('clave')} ? 'is-error'">
+            <label for="clave" class="requerido">Contraseña</label>
+            <input id="clave" name="clave" type="password" maxlength="64" autocomplete="new-password">
+            <p th:replace="~{componentes/componentes :: error('clave')}"></p>
+          </div>
+          <div class="gx-campo" th:classappend="${errores.tiene('claveRepetir')} ? 'is-error'">
+            <label for="claveRepetir" class="requerido">Repetir contraseña</label>
+            <input id="claveRepetir" name="claveRepetir" type="password" maxlength="64" autocomplete="new-password">
+            <p th:replace="~{componentes/componentes :: error('claveRepetir')}"></p>
+          </div>
+        </div>
+        <p class="gx-panel__nota" th:text="|${reglas} El usuario deberá cambiarla en su primer ingreso.|">Reglas.</p>
+      </div>
+    </section>
+
+    <section class="gx-panel" th:if="${ficha != null and modo != 'alta'}">
+      <h2 class="gx-panel__titulo">Actividad</h2>
+      <div class="gx-panel__cuerpo">
+        <div class="gx-campos gx-campos--4">
+          <div class="gx-campo"><label>Último acceso</label>
+            <input disabled th:value="${ficha.ultimo_acceso != null} ? ${#temporals.format(ficha.ultimo_acceso, 'dd/MM/yyyy HH:mm')} : 'Nunca'"></div>
+          <div class="gx-campo"><label>Bloqueado hasta</label>
+            <input disabled th:value="${ficha.bloqueado == 1} ? ${#temporals.format(ficha.bloqueado_hasta, 'dd/MM/yyyy HH:mm')} : 'No está bloqueado'"></div>
+          <div class="gx-campo"><label>Alta</label>
+            <input disabled th:value="|${#temporals.format(ficha.creado_en, 'dd/MM/yyyy HH:mm')}${ficha.creado_por_usuario != null ? ' · ' + ficha.creado_por_usuario : ''}|"></div>
+          <div class="gx-campo"><label>Última modificación</label>
+            <input disabled th:value="${ficha.modificado_en != null} ? |${#temporals.format(ficha.modificado_en, 'dd/MM/yyyy HH:mm')} · ${ficha.modificado_por_usuario}| : 'Sin cambios'"></div>
+        </div>
+      </div>
+    </section>
+
+    <div class="gx-acciones-pie">
+      <button th:unless="${ver}" type="submit" class="gx-btn gx-btn--icono"><svg class="lucide" width="16" height="16"><use href="#i-save"/></svg>Confirmar</button>
+      <a th:if="${ver}" class="gx-btn gx-btn--icono" th:href="@{/admin/usuarios/{id}/editar(id=${form.id})}"><svg class="lucide" width="16" height="16"><use href="#i-pencil"/></svg>Modificar</a>
+      <a class="gx-btn gx-btn--secundario" th:href="@{/admin/usuarios}" th:text="${ver} ? 'Volver' : 'Cancelar'">Cancelar</a>
+    </div>
+  </form>
+</div>
+</body>
+</html>

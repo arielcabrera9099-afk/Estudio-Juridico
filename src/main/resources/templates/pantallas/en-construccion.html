@@ -1,0 +1,28 @@
+<!doctype html>
+<!-- Opción del menú cuya pantalla todavía no está construida (PantallasController#pendiente). -->
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/layout :: layout(~{::title}, ~{::#contenido}, ~{::estilos})}">
+<head>
+  <title>En construcción</title>
+  <th:block th:fragment="estilos"></th:block>
+</head>
+<body>
+<div id="contenido" class="gx-pantalla gx-pantalla--angosta">
+  <header class="gx-encabezado">
+    <h1><svg class="lucide" width="20" height="20"><use href="#i-clock"/></svg><span th:text="${paginaTitulo}">Pantalla</span></h1>
+    <p>Pantalla en construcción</p>
+  </header>
+  <section class="gx-panel">
+    <h2 class="gx-panel__titulo" th:text="${paginaTitulo}">Pantalla</h2>
+    <div class="gx-panel__cuerpo">
+      <div class="gx-explicacion">
+        <svg class="lucide" width="18" height="18"><use href="#i-info"/></svg>
+        <p>Esta pantalla todavía no está disponible: se construye en una próxima etapa. Las tablas de la base de datos ya
+          están listas.</p>
+      </div>
+      <div class="gx-acciones-pie"><a class="gx-btn gx-btn--secundario" th:href="@{/}">Volver al inicio</a></div>
+    </div>
+  </section>
+</div>
+</body>
+</html>

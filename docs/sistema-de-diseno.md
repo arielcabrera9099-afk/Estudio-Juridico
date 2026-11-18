@@ -1,6 +1,26 @@
-# Sistema de diseño
+# Sistema de diseño — LEX NOVA
 
-Referencia de las variables, los componentes y las funciones JavaScript de la plantilla. Para verlo funcionando, abrí `/componentes`.
+Referencia de las variables, los componentes y las funciones JavaScript del sistema. Para verlo funcionando, abrí `/componentes` (solo administradores).
+
+## 0. Identidad LEX NOVA
+
+El sistema se llama **LEX NOVA** (`app.nombre`) y su estilo es el de una aplicación de gestión hecha con GeneXus 18 y WorkWithPlus: barra lateral fija grafito, barra superior compacta, área de trabajo gris claro, formularios y grillas blancos, formas rectangulares y sin efectos decorativos. **El dorado es solo acento de marca:** botón principal, opción activa del menú, filos de identidad. La mayor parte de la interfaz es grafito, blanco y gris claro.
+
+| Token | Valor | Uso |
+|---|---|---|
+| `--lx-grafito` | `#20242B` | Barra lateral, títulos de panel, estructura (`--wwp-base` apunta a este color) |
+| `--lx-carbon` | `#2B3038` | Paneles secundarios y módulos abiertos del menú |
+| `--lx-gris-claro` | `#F3F4F6` | Fondo principal y cabecera de grillas |
+| `--lx-dorado` | `#B99A5B` | Botón principal, selección activa, identidad |
+| `--lx-dorado-oscuro` | `#8C733F` | Hover del botón principal, foco, detalles |
+| `--lx-enlace` | `#7A6434` | Enlaces (dorado oscuro legible sobre blanco) |
+| `--lx-borde` | `#D9DDE3` | Bordes de controles, grillas y paneles |
+| `--lx-texto` / `--lx-texto-secundario` | `#30343B` / `#747B85` | Texto principal / secundario |
+
+- **Capa de marca:** `css/tema/lex-nova.css`, después de `tema.css` en el layout, el login, el cambio de clave y la página de error.
+- **Emblema:** `static/img/lex-nova.svg` (balanza dorada sobre grafito), también como favicon.
+- **Fondo institucional:** `static/img/fondo-lex-nova.jpg`, solo en el login y en el inicio (`#contenido.lx-inicio`). Las demás pantallas van sobre gris claro.
+- **Botones:** principal dorado con texto grafito (hover dorado oscuro con texto blanco); secundario blanco con borde gris; destructivo rojo moderado (`.gx-btn--peligro`), solo cuando corresponde.
 
 ## 1. Variables de diseño (`css/tokens/tokens.css`)
 
@@ -8,19 +28,19 @@ Referencia de las variables, los componentes y las funciones JavaScript de la pl
 
 | Token | Valor | Uso |
 |---|---|---|
-| `--wwp-base` | `#001A81` | Azul principal: títulos de panel, botones, bordes, acentos |
-| `--wwp-base-rgb` | `0, 26, 129` | El mismo azul para `rgba(var(--wwp-base-rgb), .08)` |
-| `--wwp-action-focus` | `#000168` | Foco de inputs y botones |
-| `--wwp-action-hover` / `--wwp-action-hover-bd` | `#001077` / `#00066D` | Hover de botones |
-| `--wwp-base-30` | `rgba(0,26,129,.3)` | Selección de texto, bordes suaves |
-| `--wwp-text` | `#2b2f33` | Texto general |
-| `--wwp-required` | `#EA0101` | Asterisco y error de campos obligatorios |
-| `--wwp-bg` / `--wwp-app-bg` | `#EEEEEE` / `#899eb3` | Fondo base / fondo detrás de las pantallas |
-| `--wwp-data-bg` / `--wwp-data-bg-soft` | `#FFFFFF` / `#FAFAFA` | Tarjetas y contenido |
-| `--wwp-gray01` a `--wwp-gray08` | `#fbfbfb` a `#575b5d` | Bordes, líneas y texto secundario |
-| `--wwp-grid-title` | `#00066D` | Encabezados de grillas genéricas |
+| `--wwp-base` | `#20242B` | Grafito: títulos de panel, bordes, estructura |
+| `--wwp-base-rgb` | `32, 36, 43` | El mismo grafito para `rgba(var(--wwp-base-rgb), .08)` |
+| `--wwp-action-focus` | `#8C733F` | Foco de inputs y botones |
+| `--wwp-action-hover` / `--wwp-action-hover-bd` | `#2B3038` / `#20242B` | Hover |
+| `--wwp-base-30` | `rgba(185,154,91,.35)` | Selección de texto |
+| `--wwp-text` | `#30343B` | Texto general |
+| `--wwp-required` | `#C62828` | Asterisco y error de campos obligatorios |
+| `--wwp-bg` / `--wwp-app-bg` | `#F3F4F6` | Fondo de la aplicación |
+| `--wwp-data-bg` / `--wwp-data-bg-soft` | `#FFFFFF` / `#FAFAFB` | Formularios, grillas y contenido |
+| `--wwp-gray01` a `--wwp-gray08` | `#FAFAFB` a `#4A5059` | Bordes, líneas y texto secundario |
+| `--wwp-grid-title` | `#20242B` | Encabezados de grillas genéricas |
 | `--wwp-danger` · `--wwp-warning` · `--wwp-success` · `--wwp-info` | `#f56a67` · `#f39c12` · `#00a65a` · `#3c8dbc` | Estados |
-| `--wwp-line` | `#e6e8eb` | Borde sutil de tarjetas |
+| `--wwp-line` | `#D9DDE3` | Borde de paneles y grillas |
 
 Los componentes de suite (KPI y badges) usan su propia paleta de cinco tonos: `css/tokens/suite-tokens.css` (`--suite-blue`, `-green`, `-yellow`, `-red`, `-gray`, cada uno con `-soft` y `-border`).
 
@@ -40,8 +60,8 @@ Los componentes de suite (KPI y badges) usan su propia paleta de cinco tonos: `c
 
 | Token | Valor |
 |---|---|
-| `--wwp-radius-s` / `-m` / `-l` | 2 / 4 / 6 px |
-| `--wwp-radius-card` | 12 px (paneles y tarjetas) |
+| `--wwp-radius-s` / `-m` / `-l` | 2 / 3 / 3 px |
+| `--wwp-radius-card` | 4 px (paneles y tarjetas: rectangulares, estilo sistema de gestión) |
 | `--wwp-border-xs` / `-s` | 1 / 2 px |
 | `--wwp-shadow-card` | sombra suave de tarjeta |
 | `--wwp-shadow-hover` | sombra al pasar el mouse |
@@ -58,7 +78,7 @@ Los componentes de suite (KPI y badges) usan su propia paleta de cinco tonos: `c
   - Se colapsa a solo íconos (el estado se recuerda en `localStorage`).
 - **Cabecera** (`.admin-header`): el título y la descripción del `header.gx-encabezado` de cada pantalla pasan a la barra superior (`shell.js`). El bloque de usuario aparece si el modelo trae `usuario`.
 - **Contenido** (`main.admin-content > #contenido`): la raíz de cada pantalla.
-- **Responsive:** por debajo de 960 px el menú pasa a ser un panel que se abre con el botón hamburguesa, con fondo oscurecido. Las grillas de campos pasan a 2 columnas o a 1 por debajo de 900 px, y los grupos a 1 columna.
+- **Responsive:** por debajo de 640 px (celulares) el menú pasa a ser un panel que se abre con el botón hamburguesa, sin oscurecer ni desenfocar el fondo; en una computadora, aun con zoom, el menú queda fijo a la izquierda. Las grillas de campos pasan a 2 columnas o a 1 por debajo de 900 px, y los grupos a 1 columna.
 
 ## 3. Componentes de pantalla (`css/componentes/pantalla.css`)
 

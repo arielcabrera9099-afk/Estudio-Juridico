@@ -1,0 +1,48 @@
+<!doctype html>
+<!-- Reinicio de la contraseña de un usuario por un administrador: el usuario deberá cambiarla al ingresar. -->
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/layout :: layout(~{::title}, ~{::#contenido}, ~{::estilos})}">
+<head>
+  <title>Reiniciar contraseña</title>
+  <th:block th:fragment="estilos"></th:block>
+</head>
+<body>
+<div id="contenido" class="gx-pantalla gx-pantalla--angosta">
+  <header class="gx-encabezado">
+    <h1><svg class="lucide" width="20" height="20"><use href="#i-key-round"/></svg>Reiniciar contraseña</h1>
+    <p th:text="|${usuarioFicha.nombre_usuario} · ${usuarioFicha.nombres} ${usuarioFicha.apellidos}|">usuario</p>
+  </header>
+
+  <p th:replace="~{componentes/componentes :: erroresResumen}"></p>
+
+  <form method="post" th:action="@{/admin/usuarios/{id}/clave(id=${usuarioFicha.id})}" novalidate
+        th:attr="data-confirmar=|¿Reiniciar la contraseña de ${usuarioFicha.nombre_usuario}?|">
+    <section class="gx-panel">
+      <h2 class="gx-panel__titulo">Contraseña provisoria</h2>
+      <div class="gx-panel__cuerpo">
+        <div class="gx-campos">
+          <div class="gx-campo" th:classappend="${errores.tiene('clave')} ? 'is-error'">
+            <label for="clave" class="requerido">Contraseña</label>
+            <input id="clave" name="clave" type="password" maxlength="64" autocomplete="new-password" autofocus>
+            <p th:replace="~{componentes/componentes :: error('clave')}"></p>
+          </div>
+          <div class="gx-campo" th:classappend="${errores.tiene('repetir')} ? 'is-error'">
+            <label for="repetir" class="requerido">Repetir contraseña</label>
+            <input id="repetir" name="repetir" type="password" maxlength="64" autocomplete="new-password">
+            <p th:replace="~{componentes/componentes :: error('repetir')}"></p>
+          </div>
+        </div>
+        <div class="gx-explicacion">
+          <svg class="lucide" width="18" height="18"><use href="#i-info"/></svg>
+          <p th:text="|${reglas} Se desbloquea al usuario si estaba bloqueado, y deberá elegir una contraseña nueva en su próximo ingreso.|">Reglas.</p>
+        </div>
+        <div class="gx-acciones-pie">
+          <button type="submit" class="gx-btn gx-btn--icono"><svg class="lucide" width="16" height="16"><use href="#i-save"/></svg>Confirmar</button>
+          <a class="gx-btn gx-btn--secundario" th:href="@{/admin/usuarios}">Cancelar</a>
+        </div>
+      </div>
+    </section>
+  </form>
+</div>
+</body>
+</html>

@@ -11,13 +11,14 @@
   <link rel="stylesheet" th:href="@{/css/componentes/pantalla.css}">
   <link rel="stylesheet" th:href="@{/css/tokens/tokens.css}">
   <link rel="stylesheet" th:href="@{/css/tema/tema.css}">
+  <link rel="stylesheet" th:href="@{/css/tema/lex-nova.css}">
 </head>
 <body>
 <div class="gx-pantalla gx-pantalla--angosta">
   <section class="gx-panel">
-    <h2 class="gx-panel__titulo" th:text="${status} == 404 ? 'Página no encontrada' : 'No se pudo completar'">No se pudo completar</h2>
+    <h2 class="gx-panel__titulo" th:text="${status} == 404 ? 'Página no encontrada' : (${status} == 403 ? 'Sin permiso' : 'No se pudo completar')">No se pudo completar</h2>
     <div class="gx-panel__cuerpo">
-      <p class="gx-aviso gx-aviso--error" th:text="${status} == 404 ? 'La dirección no existe.' : 'Ocurrió un error inesperado. Intente nuevamente.'">Ocurrió un error inesperado.</p>
+      <p class="gx-aviso gx-aviso--error" th:text="${status} == 404 ? 'La dirección no existe o el registro ya no está.' : (${status} == 403 ? 'Su usuario no tiene permiso para esta pantalla o acción. Si la necesita, consulte con un administrador.' : 'Ocurrió un error inesperado. Intente nuevamente.')">Ocurrió un error inesperado.</p>
       <p class="gx-panel__nota" th:if="${status != null}" th:text="'Código: ' + ${status}">Código: 500</p>
       <div class="gx-acciones-pie">
         <a class="gx-btn" th:href="@{/}">Volver al inicio</a>

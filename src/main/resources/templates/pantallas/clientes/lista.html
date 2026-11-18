@@ -1,0 +1,113 @@
+<!doctype html>
+<!-- Clientes: lista con filtros y, desde ella, el ABM (ClientesController). -->
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/layout :: layout(~{::title}, ~{::#contenido}, ~{::estilos})}">
+<head>
+  <title>Clientes</title>
+  <th:block th:fragment="estilos"></th:block>
+</head>
+<body>
+<div id="contenido" class="gx-pantalla">
+  <p th:replace="~{componentes/componentes :: ok}"></p>
+
+  <header class="gx-encabezado">
+    <h1><svg class="lucide" width="20" height="20"><use href="#i-users"/></svg>Clientes</h1>
+    <p>Personas y empresas que el estudio representa, con sus contactos y su historial de casos</p>
+  </header>
+
+  <section class="gx-panel">
+    <h2 class="gx-panel__titulo">Filtros</h2>
+    <div class="gx-panel__cuerpo">
+      <div class="gx-barra-resumen">
+        <a th:if="${puedeEditar}" class="gx-btn gx-btn--icono" th:href="@{/clientes/nuevo}"><svg class="lucide" width="16" height="16"><use href="#i-user-plus"/></svg>Agregar</a>
+        <span th:unless="${puedeEditar}"></span>
+        <span class="gx-panel__nota" th:text="${#lists.size(filas)} == 1 ? '1 cliente' : |${#lists.size(filas)} clientes|">0 clientes</span>
+      </div>
+      <form class="gx-campos gx-campos--filtros" method="get" th:action="@{/clientes}" data-filtros>
+        <div class="gx-campo"><label for="f-texto">Buscar</label>
+          <input id="f-texto" name="texto" th:value="${texto}" maxlength="80" autocomplete="off"
+                 placeholder="Nombre, razón social, documento o email"></div>
+        <div class="gx-campo"><label for="f-tipo">Tipo de persona</label>
+          <select id="f-tipo" name="tipo">
+            <option value="" th:selected="${tipo == ''}">TODOS</option>
+            <option value="F" th:selected="${tipo == 'F'}">FÍSICA</option>
+            <option value="J" th:selected="${tipo == 'J'}">JURÍDICA</option>
+          </select></div>
+        <div class="gx-campo"><label for="f-estado">Estado</label>
+          <select id="f-estado" name="estado">
+            <option value="ACTIVOS" th:selected="${estado == 'ACTIVOS'}">ACTIVOS</option>
+            <option value="INACTIVOS" th:selected="${estado == 'INACTIVOS'}">DADOS DE BAJA</option>
+            <option value="" th:selected="${estado == ''}">TODOS</option>
+          </select></div>
+        <div class="gx-campo gx-campo--boton">
+          <div class="gx-botonera">
+            <button type="submit" class="gx-btn gx-btn--icono"><svg class="lucide" width="16" height="16"><use href="#i-search"/></svg>Buscar</button>
+            <a class="gx-btn gx-btn--secundario" th:href="@{/clientes}">Limpiar</a>
+          </div>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <p class="gx-aviso gx-aviso--alerta" th:if="${recortada}">
+    <svg class="lucide" width="16" height="16"><use href="#i-alert-triangle"/></svg>
+    <span th:text="|Se muestran los primeros ${maximo} clientes. Ajuste los filtros para ver el resto.|">Se muestran los primeros 500.</span>
+  </p>
+
+  <section class="gx-panel gx-panel--grilla">
+    <div class="gx-panel__cuerpo">
+      <div class="gx-grilla-wrap">
+        <table class="gx-grilla" id="grilla-clientes" data-paginar="10">
+          <thead><tr>
+            <th class="gx-col-acciones"></th><th>Cliente</th><th>Tipo</th><th>Documento</th><th>Teléfono</th>
+            <th>Email</th><th>Ciudad</th><th class="gx-num">Casos</th><th>Estado</th>
+          </tr></thead>
+          <tbody>
+            <tr th:if="${#lists.isEmpty(filas)}"><td colspan="9" class="gx-grilla__vacio">No hay clientes con esos filtros.</td></tr>
+            <tr th:each="f : ${filas}" th:classappend="${!f.activo} ? 'gx-fila--peligro'">
+              <td class="gx-col-acciones">
+                <div class="gx-accion-grupo">
+                  <button type="button" class="gx-accion-grupo__boton" aria-haspopup="true" aria-label="Acciones">
+                    <svg class="lucide" width="16" height="16"><use href="#i-menu"/></svg></button>
+                  <ul class="gx-accion-grupo__menu" hidden>
+                    <li><a th:href="@{/clientes/{id}(id=${f.id})}"><svg class="lucide" width="15" height="15"><use href="#i-search"/></svg>Visualizar</a></li>
+                    <li th:if="${puedeEditar}"><a th:href="@{/clientes/{id}/editar(id=${f.id})}"><svg class="lucide" width="15" height="15"><use href="#i-pencil"/></svg>Modificar</a></li>
+                    <li><a th:href="@{/clientes/{id}(id=${f.id})} + '#historial'"><svg class="lucide" width="15" height="15"><use href="#i-history"/></svg>Historial de casos</a></li>
+                    <li th:if="${puedeEditar}"><a th:href="@{/clientes/{id}/contactos/nuevo(id=${f.id})}"><svg class="lucide" width="15" height="15"><use href="#i-phone"/></svg>Agregar contacto</a></li>
+                    <li th:if="${puedeEditar and f.activo}">
+                      <form method="post" th:action="@{/clientes/{id}/baja(id=${f.id})}" data-confirmar-tipo="error"
+                            data-confirmar-boton="Dar de baja"
+                            th:attr="data-confirmar=|¿Dar de baja al cliente ${f.nombre}? No aparecerá al registrar casos nuevos, pero conserva su historial.|">
+                        <button><svg class="lucide" width="15" height="15"><use href="#i-trash2"/></svg>Dar de baja</button>
+                      </form>
+                    </li>
+                    <li th:if="${puedeEditar and !f.activo}">
+                      <form method="post" th:action="@{/clientes/{id}/reactivar(id=${f.id})}"
+                            th:attr="data-confirmar=|¿Reactivar al cliente ${f.nombre}?|">
+                        <button><svg class="lucide" width="15" height="15"><use href="#i-rotate-ccw"/></svg>Reactivar</button>
+                      </form>
+                    </li>
+                  </ul>
+                </div>
+              </td>
+              <td><a class="gx-enlace" th:href="@{/clientes/{id}(id=${f.id})}" th:text="${f.nombre}">Cliente</a></td>
+              <td th:text="${f.tipo_persona == 'J'} ? 'Jurídica' : 'Física'">Física</td>
+              <td th:text="${f.numero_documento != null} ? |${f.documento_tipo} ${f.numero_documento}| : '—'">CI 1234567</td>
+              <td th:text="${f.celular ?: f.telefono}">0981 000 000</td>
+              <td th:text="${f.email ?: '—'}">email</td>
+              <td th:text="${f.ciudad ?: '—'}">Ciudad</td>
+              <td class="gx-num" th:text="${f.casos == 0} ? '—' : |${f.casos_activos} / ${f.casos}|"
+                  th:title="${f.casos == 0} ? 'Sin casos' : |${f.casos_activos} activos de ${f.casos}|">0</td>
+              <td>
+                <span th:if="${f.activo}" class="gx-etiqueta gx-etiqueta--exito">ACTIVO</span>
+                <span th:unless="${f.activo}" class="gx-etiqueta gx-etiqueta--peligro">DADO DE BAJA</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</div>
+</body>
+</html>

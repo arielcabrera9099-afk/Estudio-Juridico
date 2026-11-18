@@ -1,0 +1,120 @@
+<!doctype html>
+<!--
+  Rol: alta ("alta"), visualización ("ver", todo deshabilitado) y modificación ("editar").
+  El código no cambia después del alta. El rol Administrador tiene siempre todos los permisos y no se da de baja.
+-->
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/layout :: layout(~{::title}, ~{::#contenido}, ~{::estilos})}">
+<head>
+  <title>Rol</title>
+  <th:block th:fragment="estilos"></th:block>
+</head>
+<body>
+<div id="contenido" class="gx-pantalla">
+  <header class="gx-encabezado">
+    <h1><svg class="lucide" width="20" height="20"><use href="#i-shield-check"/></svg>
+      <span th:text="${paginaTitulo}">Rol</span></h1>
+    <p th:text="${modo == 'alta'} ? 'Complete los datos del nuevo rol y elija sus permisos' : |${form.codigo} · ${form.nombre}|">Datos del rol</p>
+  </header>
+
+  <p th:replace="~{componentes/componentes :: erroresResumen}"></p>
+
+  <form id="form-rol" method="post" th:object="${form}" novalidate
+        th:action="${modo == 'alta'} ? @{/admin/roles} : @{/admin/roles/{id}(id=${form.id})}"
+        th:attr="data-confirmar=${modo == 'alta'} ? '¿Confirma el alta del rol?' : '¿Confirma los cambios del rol?'">
+
+    <section class="gx-panel">
+      <h2 class="gx-panel__titulo">Datos del rol</h2>
+      <div class="gx-panel__cuerpo">
+        <div class="gx-campos gx-campos--3">
+          <div class="gx-campo" th:classappend="${errores.tiene('codigo')} ? 'is-error'">
+            <label for="codigo" th:classappend="${modo == 'alta'} ? 'requerido'">Código</label>
+            <input th:field="*{codigo}" maxlength="30" autocomplete="off" th:disabled="${modo != 'alta'}"
+                   placeholder="por ejemplo, PROCURADOR">
+            <p th:replace="~{componentes/componentes :: error('codigo')}"></p>
+          </div>
+          <div class="gx-campo" th:classappend="${errores.tiene('nombre')} ? 'is-error'">
+            <label for="nombre" class="requerido">Nombre</label>
+            <input th:field="*{nombre}" maxlength="60" autocomplete="off" th:disabled="${ver}">
+            <p th:replace="~{componentes/componentes :: error('nombre')}"></p>
+          </div>
+          <div class="gx-campo" th:if="${modo != 'alta'}" th:classappend="${errores.tiene('activo')} ? 'is-error'">
+            <label>Estado</label>
+            <label class="gx-check"><input type="checkbox" th:field="*{activo}" th:disabled="${ver or administrador}"> Activo (se puede asignar)</label>
+            <p th:replace="~{componentes/componentes :: error('activo')}"></p>
+          </div>
+          <div class="gx-campo gx-campo--completo" th:classappend="${errores.tiene('descripcion')} ? 'is-error'">
+            <label for="descripcion">Descripción</label>
+            <textarea th:field="*{descripcion}" rows="2" maxlength="500" th:disabled="${ver}"
+                      placeholder="Para qué se usa este rol"></textarea>
+            <p th:replace="~{componentes/componentes :: error('descripcion')}"></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="gx-panel" id="permisos">
+      <h2 class="gx-panel__titulo">Permisos</h2>
+      <div class="gx-panel__cuerpo">
+        <p class="gx-aviso gx-aviso--info" th:if="${administrador}">
+          <svg class="lucide" width="16" height="16"><use href="#i-info"/></svg>
+          <span>El rol Administrador tiene siempre todos los permisos y no puede darse de baja, para que nadie quede sin acceso a la administración.</span>
+        </p>
+        <p class="gx-ayuda gx-ayuda--error" th:if="${errores.tiene('permisos')}" th:text="${errores.de('permisos')}">Error</p>
+        <div class="gx-grilla-wrap">
+          <table class="gx-grilla" id="grilla-permisos">
+            <thead><tr><th class="gx-col-check"></th><th>Módulo</th><th>Permiso</th><th>Código</th></tr></thead>
+            <tbody>
+              <th:block th:each="m : ${gruposPermisos}">
+                <tr th:each="p : ${m.value}">
+                  <td class="gx-col-check">
+                    <input type="checkbox" name="permisos" th:value="${p.id}" th:id="|permiso-${p.id}|"
+                           th:checked="${administrador or #lists.contains(form.permisos, p.id)}"
+                           th:disabled="${ver or administrador}" th:attr="aria-label=${p.descripcion}">
+                  </td>
+                  <td th:text="${nombresModulo[m.key] ?: m.key}">Módulo</td>
+                  <td><label th:for="|permiso-${p.id}|" th:text="${p.descripcion}">Descripción</label></td>
+                  <td th:text="${p.codigo}">CODIGO</td>
+                </tr>
+              </th:block>
+            </tbody>
+          </table>
+        </div>
+        <p class="gx-panel__nota">Los permisos de "ver" abren el módulo en el menú; los demás habilitan los botones de cambio.
+          Los cambios rigen desde el próximo ingreso de cada usuario.</p>
+      </div>
+    </section>
+
+    <section class="gx-panel" th:if="${ficha != null and modo != 'alta'}">
+      <h2 class="gx-panel__titulo" th:text="|Usuarios activos con este rol (${#lists.size(usuarios)})|">Usuarios</h2>
+      <div class="gx-panel__cuerpo">
+        <div class="gx-grilla-wrap">
+          <table class="gx-grilla" data-paginar="10">
+            <thead><tr><th>Usuario</th><th>Nombre</th></tr></thead>
+            <tbody>
+              <tr th:if="${#lists.isEmpty(usuarios)}"><td colspan="2" class="gx-grilla__vacio">Ningún usuario activo tiene este rol.</td></tr>
+              <tr th:each="u : ${usuarios}">
+                <td><a class="gx-enlace" th:href="@{/admin/usuarios/{id}(id=${u.id})}" th:text="${u.nombre_usuario}">usuario</a></td>
+                <td th:text="|${u.apellidos}, ${u.nombres}|">Apellido, Nombre</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="gx-campos gx-campos--4">
+          <div class="gx-campo"><label>Alta</label>
+            <input disabled th:value="|${#temporals.format(ficha.creado_en, 'dd/MM/yyyy HH:mm')}${ficha.creado_por_usuario != null ? ' · ' + ficha.creado_por_usuario : ''}|"></div>
+          <div class="gx-campo"><label>Última modificación</label>
+            <input disabled th:value="${ficha.modificado_en != null} ? |${#temporals.format(ficha.modificado_en, 'dd/MM/yyyy HH:mm')} · ${ficha.modificado_por_usuario}| : 'Sin cambios'"></div>
+        </div>
+      </div>
+    </section>
+
+    <div class="gx-acciones-pie">
+      <button th:unless="${ver}" type="submit" class="gx-btn gx-btn--icono"><svg class="lucide" width="16" height="16"><use href="#i-save"/></svg>Confirmar</button>
+      <a th:if="${ver}" class="gx-btn gx-btn--icono" th:href="@{/admin/roles/{id}/editar(id=${form.id})}"><svg class="lucide" width="16" height="16"><use href="#i-pencil"/></svg>Modificar</a>
+      <a class="gx-btn gx-btn--secundario" th:href="@{/admin/roles}" th:text="${ver} ? 'Volver' : 'Cancelar'">Cancelar</a>
+    </div>
+  </form>
+</div>
+</body>
+</html>

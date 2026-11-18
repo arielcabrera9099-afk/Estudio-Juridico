@@ -1,0 +1,60 @@
+<!doctype html>
+<!-- Contacto de un cliente: alta y modificación. Vuelve a la ficha del cliente. -->
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/layout :: layout(~{::title}, ~{::#contenido}, ~{::estilos})}">
+<head>
+  <title>Contacto</title>
+  <th:block th:fragment="estilos"></th:block>
+</head>
+<body>
+<div id="contenido" class="gx-pantalla gx-pantalla--angosta">
+  <header class="gx-encabezado">
+    <h1><svg class="lucide" width="20" height="20"><use href="#i-phone"/></svg><span th:text="${paginaTitulo}">Contacto</span></h1>
+    <p th:text="|Cliente: ${cliente.nombre}|">Cliente</p>
+  </header>
+
+  <p th:replace="~{componentes/componentes :: erroresResumen}"></p>
+
+  <form method="post" th:object="${contacto}" novalidate
+        th:action="${contacto.id == null} ? @{/clientes/{id}/contactos(id=${cliente.id})} : @{/clientes/{id}/contactos/{c}(id=${cliente.id},c=${contacto.id})}"
+        th:attr="data-confirmar=${contacto.id == null} ? '¿Confirma el alta del contacto?' : '¿Confirma los cambios del contacto?'">
+    <section class="gx-panel">
+      <h2 class="gx-panel__titulo">Datos del contacto</h2>
+      <div class="gx-panel__cuerpo">
+        <div class="gx-campos">
+          <div class="gx-campo" th:classappend="${errores.tiene('nombre')} ? 'is-error'">
+            <label for="nombre" class="requerido">Nombre</label>
+            <input th:field="*{nombre}" maxlength="120" autocomplete="off" autofocus>
+            <p th:replace="~{componentes/componentes :: error('nombre')}"></p>
+          </div>
+          <div class="gx-campo" th:classappend="${errores.tiene('cargo')} ? 'is-error'">
+            <label for="cargo">Cargo</label>
+            <input th:field="*{cargo}" maxlength="60" autocomplete="off" placeholder="Gerente, apoderado…">
+            <p th:replace="~{componentes/componentes :: error('cargo')}"></p>
+          </div>
+          <div class="gx-campo" th:classappend="${errores.tiene('email')} ? 'is-error'">
+            <label for="email">Email</label>
+            <input th:field="*{email}" type="email" maxlength="120" autocomplete="off">
+            <p th:replace="~{componentes/componentes :: error('email')}"></p>
+          </div>
+          <div class="gx-campo" th:classappend="${errores.tiene('telefono')} ? 'is-error'">
+            <label for="telefono">Teléfono</label>
+            <input th:field="*{telefono}" maxlength="30" inputmode="tel" autocomplete="off">
+            <p th:replace="~{componentes/componentes :: error('telefono')}"></p>
+          </div>
+          <div class="gx-campo gx-campo--ancho">
+            <label class="gx-check"><input type="checkbox" th:field="*{esPrincipal}"> Contacto principal</label>
+          </div>
+        </div>
+        <p class="gx-panel__nota">Se requiere un teléfono o un email. Hay un solo contacto principal por cliente: al
+          marcar este, deja de serlo el anterior. El primer contacto siempre es el principal.</p>
+        <div class="gx-acciones-pie">
+          <button type="submit" class="gx-btn gx-btn--icono"><svg class="lucide" width="16" height="16"><use href="#i-save"/></svg>Confirmar</button>
+          <a class="gx-btn gx-btn--secundario" th:href="@{/clientes/{id}(id=${cliente.id})} + '#contactos'">Cancelar</a>
+        </div>
+      </div>
+    </section>
+  </form>
+</div>
+</body>
+</html>

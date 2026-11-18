@@ -4,7 +4,7 @@ Versión del 2026-11-17. Copia del documento de diseño; esta copia en el reposi
 
 ## Alcance
 
-El modelo cubre los cinco módulos funcionales del sistema con 31 tablas en PostgreSQL, más la base de seguridad (usuarios, roles, permisos y menús) que los sostiene. El asistente legal con IA queda fuera de esta versión y se describe como sugerencia al final.
+El modelo cubre los cinco módulos funcionales del sistema con 31 tablas en SQL Server, más la base de seguridad (usuarios, roles, permisos y menús) que los sostiene. El asistente legal con IA queda fuera de esta versión y se describe como sugerencia al final.
 
 | Requerimiento | Módulo | Tablas que lo cubren |
 | --- | --- | --- |
@@ -28,17 +28,21 @@ Todas las tablas siguen las mismas reglas, así el código de acceso a datos es 
 
 | Tema | Regla |
 | --- | --- |
-| Motor | PostgreSQL 16, un solo esquema `public`. En desarrollo se puede usar H2 en modo PostgreSQL |
-| Versionado del esquema | Flyway, con scripts numerados en `src/main/resources/db/migration` (`V1__seguridad.sql`, `V2__clientes.sql`…) |
-| Nombres | Español, `snake_case`, tablas en singular (`cliente`, `expediente`) |
-| Clave primaria | `id BIGINT GENERATED ALWAYS AS IDENTITY` en todas las tablas, salvo las tablas puente (clave compuesta) |
-| Claves foráneas | `<tabla>_id`, con índice propio. `ON DELETE RESTRICT` por defecto |
+| Motor | SQL Server 2019 o superior (desarrollo: SQL Server 2022 Developer local), base `EstudioJuridico`, esquema `dbo` |
+| Intercalación | `Modern_Spanish_CI_AI` en la base: las búsquedas y las claves únicas no distinguen mayúsculas ni acentos (la Ñ sigue siendo una letra distinta de la N) |
+| Versionado del esquema | Flyway, con scripts numerados en `src/main/resources/db/migration` (`V1__seguridad.sql`, `V2__catalogos.sql`…). Una vista por lote, separadas con `GO` |
+| Nombres | Español, `snake_case`, tablas en singular (`cliente`, `expediente`). Restricciones con prefijo: `pk_`, `fk_`, `uq_`, `ck_`, `df_`, `ix_` |
+| Clave primaria | `id BIGINT IDENTITY(1,1)` en todas las tablas, salvo las tablas puente (clave compuesta) |
+| Claves foráneas | `<tabla>_id`, con índice propio. Sin borrado en cascada (`NO ACTION`, equivalente a `RESTRICT`) |
 | Códigos de catálogo | `codigo VARCHAR(30) UNIQUE` en mayúsculas (`CIVIL`, `AUDIENCIA`), usados por el código en lugar del `id` |
-| Campos de auditoría | En las tablas de negocio: `creado_en`, `creado_por`, `modificado_en`, `modificado_por` (`TIMESTAMPTZ` y `BIGINT` hacia `usuario`) |
-| Borrado | Lógico, con `activo BOOLEAN DEFAULT TRUE` en catálogos, clientes y usuarios, y `eliminado_en TIMESTAMPTZ` en documentos. Los expedientes no se borran: se cierran |
-| Fechas y horas | `DATE` para fechas sin hora; `TIMESTAMPTZ` para momentos, guardados en UTC y mostrados en hora de Paraguay (`America/Asuncion`) |
+| Campos de auditoría | En las tablas de negocio: `creado_en`, `creado_por`, `modificado_en`, `modificado_por` (`DATETIMEOFFSET` y `BIGINT` hacia `usuario`) |
+| Borrado | Lógico, con `activo BIT DEFAULT 1` en catálogos, clientes y usuarios, y `eliminado_en DATETIMEOFFSET` en documentos. Los expedientes no se borran: se cierran |
+| Fechas y horas | `DATE` para fechas sin hora; `DATETIMEOFFSET(3)` para momentos, guardados en UTC y mostrados en hora de Paraguay (`America/Asuncion` en Java, `Paraguay Standard Time` en SQL Server) |
+| Lógicos | `BIT` (`1` verdadero, `0` falso) |
 | Importes | `NUMERIC(15,2)` con `moneda CHAR(3)` (`PYG`, `USD`) |
-| Textos | `VARCHAR(n)` con límite para campos cortos; `TEXT` para descripciones y observaciones |
+| Textos | `NVARCHAR(n)` para lo que escribe el usuario (nombres, direcciones, descripciones), así se guardan bien tildes y eñes; `VARCHAR(n)` para códigos, teléfonos y otros valores ASCII; `NVARCHAR(MAX)` para descripciones y observaciones |
+| JSON | `NVARCHAR(MAX)` con una restricción `ISJSON(...) = 1` |
+| Únicos con nulos | Índice único filtrado (`WHERE columna IS NOT NULL`), porque en SQL Server una restricción `UNIQUE` admite un solo nulo |
 | Archivos | En disco o en un almacenamiento de objetos, nunca dentro de la base. La base guarda la ruta, el tipo y el hash |
 | Contraseñas | Solo el hash (BCrypt), nunca la contraseña |
 | Credenciales de conexión | Variables de entorno (`DB_URL`, `DB_USER`, `DB_PASSWORD`), nunca en el repositorio |
@@ -59,11 +63,11 @@ Un usuario tiene uno o más roles, cada rol agrupa permisos, y cada opción del 
 | `nombres`, `apellidos` | VARCHAR(80) | Obligatorios |
 | `telefono` | VARCHAR(30) | Opcional |
 | `matricula` | VARCHAR(30) | Matrícula profesional, solo para abogados |
-| `debe_cambiar_clave` | BOOLEAN | `TRUE` al crear el usuario o al reiniciar su clave |
+| `debe_cambiar_clave` | BIT | `1` al crear el usuario o al reiniciar su clave |
 | `intentos_fallidos` | SMALLINT | Se bloquea al llegar al límite (parámetro `seguridad.max_intentos`) |
-| `bloqueado_hasta` | TIMESTAMPTZ | Nulo si no está bloqueado |
-| `ultimo_acceso` | TIMESTAMPTZ | Fecha del último ingreso correcto |
-| `activo` | BOOLEAN | Un usuario inactivo no puede ingresar |
+| `bloqueado_hasta` | DATETIMEOFFSET | Nulo si no está bloqueado |
+| `ultimo_acceso` | DATETIMEOFFSET | Fecha del último ingreso correcto |
+| `activo` | BIT | Un usuario inactivo no puede ingresar |
 
 ### rol
 
@@ -71,8 +75,8 @@ Un usuario tiene uno o más roles, cada rol agrupa permisos, y cada opción del 
 | --- | --- | --- |
 | `codigo` | VARCHAR(30) | Único (`ADMINISTRADOR`, `ABOGADO`, `ASISTENTE`) |
 | `nombre` | VARCHAR(60) | Nombre visible |
-| `descripcion` | TEXT | Opcional |
-| `activo` | BOOLEAN | |
+| `descripcion` | NVARCHAR(MAX) | Opcional |
+| `activo` | BIT | |
 
 ### usuario_rol
 
@@ -104,7 +108,7 @@ Tabla puente con clave `(rol_id, permiso_id)`.
 | `ruta` | VARCHAR(120) | Solo en opciones (`/clientes`) |
 | `permiso_id` | BIGINT | Permiso que exige la opción. Un módulo o una sección se muestran si tienen al menos una opción visible |
 | `orden` | SMALLINT | Orden dentro de su padre |
-| `activo` | BOOLEAN | |
+| `activo` | BIT | |
 
 ### token_recuperacion
 
@@ -112,8 +116,8 @@ Tabla puente con clave `(rol_id, permiso_id)`.
 | --- | --- | --- |
 | `usuario_id` | BIGINT | Usuario que pidió recuperar la clave |
 | `token_hash` | VARCHAR(100) | Hash del enlace enviado por email, nunca el token |
-| `vence_en` | TIMESTAMPTZ | 30 minutos después de creado |
-| `usado_en` | TIMESTAMPTZ | Nulo hasta que se usa; un token se usa una sola vez |
+| `vence_en` | DATETIMEOFFSET | 30 minutos después de creado |
+| `usado_en` | DATETIMEOFFSET | Nulo hasta que se usa; un token se usa una sola vez |
 
 Las sesiones las maneja Spring Security en memoria: no hace falta una tabla. Los ingresos y los intentos fallidos quedan en `auditoria`.
 
@@ -135,8 +139,8 @@ Un cliente puede ser una persona física o una empresa. Una empresa puede tener 
 | `telefono`, `celular` | VARCHAR(30) | Al menos uno obligatorio |
 | `direccion` | VARCHAR(200) | Opcional |
 | `ciudad_id` | BIGINT | Opcional, catálogo de ciudades de Paraguay |
-| `observaciones` | TEXT | Notas internas del estudio |
-| `activo` | BOOLEAN | Un cliente inactivo no aparece al registrar casos nuevos, pero conserva su historial |
+| `observaciones` | NVARCHAR(MAX) | Notas internas del estudio |
+| `activo` | BIT | Un cliente inactivo no aparece al registrar casos nuevos, pero conserva su historial |
 
 ### cliente_contacto
 
@@ -147,7 +151,7 @@ Un cliente puede ser una persona física o una empresa. Una empresa puede tener 
 | `cargo` | VARCHAR(60) | Por ejemplo, gerente o apoderado |
 | `email` | VARCHAR(120) | Opcional |
 | `telefono` | VARCHAR(30) | Opcional |
-| `es_principal` | BOOLEAN | Un solo contacto principal por cliente |
+| `es_principal` | BIT | Un solo contacto principal por cliente |
 
 ### Historial de casos
 
@@ -173,8 +177,8 @@ El expediente es la tabla central: une al cliente, al abogado responsable, al ju
 | `estado_expediente_id` | BIGINT | Estado actual |
 | `fecha_inicio` | DATE | Obligatoria |
 | `fecha_cierre` | DATE | Obligatoria al pasar a un estado de cierre |
-| `motivo_cierre` | TEXT | Obligatorio al cerrar (sentencia, acuerdo, desistimiento…) |
-| `descripcion` | TEXT | Resumen de los hechos y del objetivo |
+| `motivo_cierre` | NVARCHAR(MAX) | Obligatorio al cerrar (sentencia, acuerdo, desistimiento…) |
+| `descripcion` | NVARCHAR(MAX) | Resumen de los hechos y del objetivo |
 | `monto_reclamado` | NUMERIC(15,2) | Opcional, con `moneda` |
 | `moneda` | CHAR(3) | `PYG` por defecto |
 
@@ -204,7 +208,7 @@ Las otras personas del caso (contraparte, terceros). No son clientes del estudio
 | `numero_documento` | VARCHAR(20) | Opcional |
 | `abogado` | VARCHAR(120) | Abogado de esa parte, opcional |
 | `contacto` | VARCHAR(150) | Teléfono o email, opcional |
-| `observaciones` | TEXT | Opcional |
+| `observaciones` | NVARCHAR(MAX) | Opcional |
 
 ### actuacion
 
@@ -215,7 +219,7 @@ La bitácora del expediente: cada movimiento en orden de fecha.
 | `expediente_id` | BIGINT | |
 | `tipo_actuacion_id` | BIGINT | |
 | `fecha` | DATE | Fecha del movimiento, puede ser anterior a la carga |
-| `descripcion` | TEXT | Obligatoria |
+| `descripcion` | NVARCHAR(MAX) | Obligatoria |
 | `usuario_id` | BIGINT | Quien la registró |
 
 ### expediente_estado_historial
@@ -225,9 +229,9 @@ La bitácora del expediente: cada movimiento en orden de fecha.
 | `expediente_id` | BIGINT | |
 | `estado_anterior_id` | BIGINT | Nulo en el primer registro |
 | `estado_nuevo_id` | BIGINT | |
-| `fecha` | TIMESTAMPTZ | Momento del cambio |
+| `fecha` | DATETIMEOFFSET | Momento del cambio |
 | `usuario_id` | BIGINT | Quien lo cambió |
-| `observacion` | TEXT | Motivo del cambio |
+| `observacion` | NVARCHAR(MAX) | Motivo del cambio |
 
 Cada cambio de estado del expediente inserta una fila aquí, en la misma transacción.
 
@@ -242,7 +246,7 @@ Audiencias, plazos procesales, reuniones y diligencias son eventos de una misma 
 | `codigo` | VARCHAR(30) | `AUDIENCIA`, `VENCIMIENTO`, `REUNION`, `DILIGENCIA` |
 | `nombre` | VARCHAR(60) | |
 | `color` | VARCHAR(20) | Token de color para el calendario |
-| `es_plazo` | BOOLEAN | `TRUE` para vencimientos: no tienen hora de fin y generan avisos por defecto |
+| `es_plazo` | BIT | `1` para vencimientos: no tienen hora de fin y generan avisos por defecto |
 | `aviso_dias_defecto` | SMALLINT | Días de anticipación del primer aviso (por ejemplo, 3) |
 
 ### evento_agenda
@@ -252,15 +256,15 @@ Audiencias, plazos procesales, reuniones y diligencias son eventos de una misma 
 | `tipo_evento_id` | BIGINT | |
 | `expediente_id` | BIGINT | Opcional: una reunión puede no tener caso |
 | `titulo` | VARCHAR(150) | Por ejemplo, “Audiencia de conciliación” o “Vence plazo para contestar demanda” |
-| `descripcion` | TEXT | Opcional |
-| `fecha_inicio` | TIMESTAMPTZ | Para un vencimiento, el día y la hora límite |
-| `fecha_fin` | TIMESTAMPTZ | Nula en vencimientos |
-| `todo_el_dia` | BOOLEAN | |
+| `descripcion` | NVARCHAR(MAX) | Opcional |
+| `fecha_inicio` | DATETIMEOFFSET | Para un vencimiento, el día y la hora límite |
+| `fecha_fin` | DATETIMEOFFSET | Nula en vencimientos |
+| `todo_el_dia` | BIT | |
 | `lugar` | VARCHAR(200) | Opcional |
 | `juzgado_id` | BIGINT | Opcional, para audiencias |
 | `responsable_id` | BIGINT | Usuario a cargo |
 | `estado` | VARCHAR(15) | `PENDIENTE`, `REALIZADO`, `SUSPENDIDO`, `CANCELADO` |
-| `resultado` | TEXT | Qué pasó, al marcarlo realizado |
+| `resultado` | NVARCHAR(MAX) | Qué pasó, al marcarlo realizado |
 
 ### recordatorio
 
@@ -268,10 +272,10 @@ Audiencias, plazos procesales, reuniones y diligencias son eventos de una misma 
 | --- | --- | --- |
 | `evento_agenda_id` | BIGINT | |
 | `usuario_id` | BIGINT | A quién avisar |
-| `fecha_aviso` | TIMESTAMPTZ | Cuándo avisar; se calcula al guardar el evento |
+| `fecha_aviso` | DATETIMEOFFSET | Cuándo avisar; se calcula al guardar el evento |
 | `canal` | VARCHAR(10) | `SISTEMA` (campana del sistema) o `EMAIL` |
 | `estado` | VARCHAR(10) | `PENDIENTE`, `ENVIADO`, `ERROR`, `ANULADO` |
-| `enviado_en` | TIMESTAMPTZ | |
+| `enviado_en` | DATETIMEOFFSET | |
 
 Al crear un vencimiento se generan, por defecto, avisos a 3 días, 1 día y el mismo día (parámetro `agenda.dias_aviso`). Si el evento cambia de fecha, los recordatorios pendientes se recalculan; si se cancela, se anulan.
 
@@ -281,10 +285,10 @@ Al crear un vencimiento se generan, por defecto, avisos a 3 días, 1 día y el m
 | --- | --- | --- |
 | `usuario_id` | BIGINT | Destinatario |
 | `titulo` | VARCHAR(150) | |
-| `mensaje` | TEXT | |
+| `mensaje` | NVARCHAR(MAX) | |
 | `tipo` | VARCHAR(20) | `VENCIMIENTO`, `AUDIENCIA`, `SISTEMA` |
 | `referencia_tipo`, `referencia_id` | VARCHAR(30), BIGINT | Qué abrir al hacer clic (por ejemplo, `EXPEDIENTE` y su id) |
-| `leida_en` | TIMESTAMPTZ | Nula mientras no se lee |
+| `leida_en` | DATETIMEOFFSET | Nula mientras no se lee |
 
 Además de los recordatorios, la pantalla de inicio puede listar los vencimientos de los próximos 7 días directamente desde `evento_agenda`.
 
@@ -296,7 +300,7 @@ Cada archivo adjunto es una fila de `documento` ligada a un expediente; el archi
 
 | Campo | Tipo | Ejemplos |
 | --- | --- | --- |
-| `codigo`, `nombre`, `activo` | VARCHAR(30), VARCHAR(60), BOOLEAN | Escrito, Resolución judicial, Notificación, Prueba, Contrato, Poder, Cédula de identidad, Otro |
+| `codigo`, `nombre`, `activo` | VARCHAR(30), NVARCHAR(60), BIT | Escrito, Resolución judicial, Notificación, Prueba, Contrato, Poder, Cédula de identidad, Otro |
 
 ### documento
 
@@ -305,7 +309,7 @@ Cada archivo adjunto es una fila de `documento` ligada a un expediente; el archi
 | `expediente_id` | BIGINT | Obligatorio |
 | `tipo_documento_id` | BIGINT | Obligatorio |
 | `nombre` | VARCHAR(200) | Título visible, editable (por defecto, el nombre del archivo) |
-| `descripcion` | TEXT | Opcional |
+| `descripcion` | NVARCHAR(MAX) | Opcional |
 | `fecha_documento` | DATE | Fecha del documento en sí (de la resolución, del escrito), no la de carga |
 | `nombre_archivo` | VARCHAR(255) | Nombre original del archivo |
 | `ruta_almacenamiento` | VARCHAR(500) | Ruta relativa: `expedientes/<id>/<uuid>.<extensión>` |
@@ -313,29 +317,29 @@ Cada archivo adjunto es una fila de `documento` ligada a un expediente; el archi
 | `tamano_bytes` | BIGINT | Límite por parámetro `documentos.tamano_max_mb` |
 | `hash_sha256` | CHAR(64) | Detecta archivos duplicados y alteraciones |
 | `actuacion_id` | BIGINT | Opcional: la actuación con la que llegó el documento |
-| `eliminado_en` | TIMESTAMPTZ | Borrado lógico; el archivo se conserva |
+| `eliminado_en` | DATETIMEOFFSET | Borrado lógico; el archivo se conserva |
 
 ### Buscador
 
 | Filtro | Cómo se resuelve |
 | --- | --- |
-| Nombre | `nombre` con búsqueda parcial sin distinguir mayúsculas ni acentos: extensiones `pg_trgm` y `unaccent`, índice GIN |
+| Nombre | `nombre LIKE '%texto%'`, sin distinguir mayúsculas ni acentos gracias a la intercalación de la base; índice sobre `nombre` |
 | Tipo | Índice sobre `tipo_documento_id` |
 | Fecha | Índice sobre `fecha_documento`, con rango desde–hasta |
 | Expediente o cliente | Índice sobre `expediente_id`; el cliente, a través del expediente |
 
-La búsqueda dentro del contenido de los PDF (texto completo) queda para más adelante: encaja con el módulo de IA.
+La búsqueda dentro del contenido de los PDF (texto completo) queda para más adelante: encaja con el módulo de IA. Si la tabla crece mucho, la búsqueda por nombre puede pasar a la búsqueda de texto completo de SQL Server (`CONTAINS`).
 
 ## Reportes
 
-Los reportes no guardan datos propios: son vistas sobre las tablas anteriores, con filtros que elige el usuario en pantalla.
+Los reportes no guardan datos propios: son vistas sobre las tablas anteriores, con filtros que elige el usuario en pantalla. Las vistas devuelven una fila por expediente o por evento; los filtros y los totales (`COUNT … GROUP BY`) los aplica la consulta de la aplicación, porque una vista ya agrupada no se podría filtrar por fecha.
 
 | Vista | Qué devuelve | Filtros en pantalla |
 | --- | --- | --- |
-| `v_expedientes_por_estado` | Cantidad de expedientes por estado y su agrupación activo/cerrado (según `estado_expediente.es_activo`), por materia y por abogado | Rango de fecha de inicio, materia, abogado responsable |
-| `v_agenda` | Eventos con fecha, hora, tipo, título, expediente, carátula, juzgado, responsable y estado | Semana o mes, tipo de evento, responsable, estado |
+| `v_expedientes_por_estado` | Cada expediente con su estado, su agrupación activo/cerrado (`situacion`, según `estado_expediente.es_activo`), su materia y su abogado, para contarlos por esos grupos | Rango de fecha de inicio, materia, abogado responsable |
+| `v_agenda` | Eventos con fecha, hora (también en hora local de Paraguay), tipo y color, título, expediente, carátula, juzgado, responsable y estado | Semana o mes, tipo de evento, responsable, estado |
 | `v_historial_cliente` | Expedientes de cada cliente con estado y próxima fecha de agenda (ver Gestión de clientes) | Cliente |
-| `v_vencimientos_proximos` | Plazos pendientes de los próximos N días, ordenados por fecha | Días (7 por defecto), responsable |
+| `v_vencimientos_proximos` | Plazos pendientes con `dias_restantes` (negativo si ya venció) | Días (7 por defecto), responsable |
 
 La semana va de lunes a domingo. Los reportes se ven en pantalla y se exportan a PDF y Excel desde la aplicación.
 
@@ -347,12 +351,12 @@ Registra quién hizo qué y cuándo: ingresos, intentos fallidos y cada alta, mo
 
 | Campo | Tipo | Regla |
 | --- | --- | --- |
-| `fecha` | TIMESTAMPTZ | |
+| `fecha` | DATETIMEOFFSET | |
 | `usuario_id` | BIGINT | Nulo en un intento de ingreso con usuario inexistente |
 | `accion` | VARCHAR(20) | `INGRESO`, `INGRESO_FALLIDO`, `SALIDA`, `ALTA`, `MODIFICACION`, `BAJA`, `DESCARGA` |
 | `tabla` | VARCHAR(50) | Tabla afectada |
 | `registro_id` | BIGINT | Fila afectada |
-| `datos_anteriores`, `datos_nuevos` | JSONB | Valores antes y después del cambio |
+| `datos_anteriores`, `datos_nuevos` | NVARCHAR(MAX) con JSON | Valores antes y después del cambio |
 | `ip` | VARCHAR(45) | Dirección de origen |
 
 ### parametro
@@ -375,7 +379,7 @@ Campos: `clave` (única), `valor`, `tipo` (`NUMERO`, `TEXTO`, `LISTA`, `BOOLEANO
 | Tabla | Campos | Contenido inicial |
 | --- | --- | --- |
 | `departamento` | `codigo`, `nombre` | Los 17 departamentos de Paraguay y Asunción |
-| `ciudad` | `departamento_id`, `nombre` | Ciudades de cada departamento |
+| `ciudad` | `departamento_id`, `nombre` | Capitales departamentales y ciudades principales; el resto de los distritos se agrega cuando haga falta |
 | `tipo_documento_identidad` | `codigo`, `nombre` | Cédula de identidad, RUC, Pasaporte |
 
 ## Diagrama entidad-relación
@@ -386,7 +390,7 @@ Las flechas van de la tabla que guarda la clave foránea a la tabla referenciada
 
 ## Datos iniciales
 
-La primera migración crea tres roles, los permisos de cada módulo y el menú completo, más un usuario administrador que debe cambiar su clave en el primer ingreso.
+La primera migración (`V1__seguridad.sql`) crea tres roles, los permisos de cada módulo y el menú completo; la segunda (`V2__catalogos.sql`), los catálogos y los parámetros. El usuario administrador no va en las migraciones, porque su clave no puede quedar en un repositorio público: lo crea la aplicación en el paso de seguridad, con una clave inicial tomada de una variable de entorno y `debe_cambiar_clave = 1`.
 
 ### Roles y permisos
 
@@ -438,7 +442,7 @@ Este módulo queda para la última etapa y no se crea ahora; el modelo de esta v
 
 - **Enfoque sugerido:** en lugar de entrenar un modelo, cargar el texto de las leyes paraguayas por artículo y buscar los artículos más parecidos a la consulta (búsqueda semántica). Un modelo de lenguaje redacta la respuesta citando esos artículos. Así cada sugerencia indica de qué ley y artículo sale, y actualizar una ley es volver a cargar su texto.
 - **Fuentes iniciales:** Constitución Nacional, Código Civil, Código Penal, Código Procesal Civil, Código Procesal Penal y leyes especiales que el estudio elija.
-- **Tablas tentativas:** `norma` (ley o código, número, fecha, fuente oficial), `articulo_norma` (número, texto y su representación para la búsqueda, con la extensión `pgvector` de PostgreSQL), `consulta_ia` (usuario, expediente opcional, pregunta, respuesta, fecha) y `consulta_ia_articulo` (artículos sugeridos en cada respuesta).
+- **Tablas tentativas:** `norma` (ley o código, número, fecha, fuente oficial), `articulo_norma` (número, texto y su representación para la búsqueda, guardada como vector; SQL Server 2025 trae el tipo `VECTOR`, y en versiones anteriores se usa un servicio de búsqueda aparte), `consulta_ia` (usuario, expediente opcional, pregunta, respuesta, fecha) y `consulta_ia_articulo` (artículos sugeridos en cada respuesta).
 - **Otros usos posibles:** ayuda para redactar escritos a partir de los datos del expediente, y búsqueda dentro del contenido de los documentos adjuntos.
 - **A definir en esa etapa:** qué proveedor de IA usar y su costo, de dónde se obtienen los textos oficiales actualizados, y cómo se cuida la confidencialidad de los datos del cliente que se envían en una consulta.
 
@@ -448,10 +452,10 @@ La respuesta de la IA es una ayuda para el abogado y siempre debe revisarse ante
 
 Se construye por módulos, en el orden en que dependen unos de otros: cada paso crea su migración Flyway, sus pantallas sobre la plantilla y sus pruebas antes de pasar al siguiente.
 
-1. **Base:** PostgreSQL (o H2 para desarrollo), Flyway, Spring Data JPA, conexión por variables de entorno.
-2. **Seguridad:** usuarios, roles, permisos, menú desde la base, ingreso con la pantalla de login de la plantilla, recuperación de clave y auditoría de ingresos.
+1. **Base:** SQL Server, Flyway, JDBC (`NamedParameterJdbcTemplate`, SQL explícito; se descartó JPA por los `DATETIMEOFFSET`, las vistas y los filtros dinámicos), conexión por variables de entorno. *Hecho: las migraciones `V1` a `V7` crean las 31 tablas, las 4 vistas y los datos iniciales.*
+2. **Seguridad:** usuarios, roles, permisos, menú desde la base, ingreso con la pantalla de login de la plantilla, recuperación de clave y auditoría de ingresos. *Hecho: ingreso, bloqueo por intentos, cambio de clave obligatorio, menú por permisos, auditoría de ingresos y ABM de usuarios. La recuperación de clave por email queda pendiente hasta definir el servidor de correo; mientras tanto, un administrador reinicia la clave. Roles y permisos se editan en la última etapa.*
 3. **Catálogos y parámetros:** materias, tipos de proceso, estados, juzgados, tipos de evento y de documento, departamentos y ciudades.
-4. **Clientes:** alta, edición, contactos e historial de casos.
+4. **Clientes:** alta, edición, contactos e historial de casos. *Hecho: lista con filtros, ABM, contactos (un solo principal) e historial desde la vista `v_historial_cliente`; la baja no se permite con casos activos.*
 5. **Expedientes:** registro, partes, actuaciones, cambios de estado y cierre.
 6. **Agenda:** calendario, vencimientos, recordatorios y notificaciones.
 7. **Documentos:** carga de archivos por expediente y buscador.
@@ -460,7 +464,7 @@ Se construye por módulos, en el orden en que dependen unos de otros: cada paso 
 
 Antes del paso 1 conviene confirmar:
 
-- [ ] ¿PostgreSQL desde el inicio, o H2 en desarrollo y PostgreSQL al desplegar?
+- [x] Motor de base de datos: SQL Server, en desarrollo y al desplegar (decidido el 2026-11-17).
 - [ ] ¿Dónde se guardan los archivos adjuntos: carpeta del servidor o almacenamiento en la nube?
 - [ ] ¿Los avisos van solo dentro del sistema, o también por email (hace falta un servidor de correo)?
 - [ ] ¿Un caso puede tener más de un cliente? (por ahora se supone uno solo)

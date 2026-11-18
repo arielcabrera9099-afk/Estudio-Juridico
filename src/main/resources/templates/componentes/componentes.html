@@ -33,6 +33,19 @@
   </div>
 </article>
 
+<!-- Error de validación de un campo, debajo del control (Errores del controlador):
+     <p th:replace="~{componentes/componentes :: error('email')}"></p> -->
+<p th:fragment="error(campo)" class="gx-campo__error" role="alert"
+   th:if="${errores != null and errores.tiene(campo)}" th:text="${errores.de(campo)}">Error</p>
+
+<!-- Resumen de errores arriba del formulario (también sale como mensaje flotante). -->
+<p th:fragment="erroresResumen" class="gx-aviso gx-aviso--error" th:if="${errores != null and errores.hay()}">
+  <svg class="lucide" width="16" height="16"><use href="#i-alert-triangle"/></svg><span th:text="${errores.resumen}">Revise los datos.</span>
+</p>
+
+<!-- Mensaje de la acción anterior (?ok=) -->
+<p th:fragment="ok" class="gx-aviso gx-aviso--exito" th:if="${param.ok}" th:text="${param.ok[0]}">Listo.</p>
+
 <!-- Indicador de carga compacto -->
 <div th:fragment="loader(texto)" class="app-loader app-loader--compacto" role="status">
   <div class="app-loader__texto"><span th:text="${texto}">Cargando</span><span class="app-loader__puntos"><i>.</i><i>.</i><i>.</i></span></div>

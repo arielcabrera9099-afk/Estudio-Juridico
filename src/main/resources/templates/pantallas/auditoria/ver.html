@@ -1,0 +1,59 @@
+<!doctype html>
+<!-- Registro de auditoría: datos del evento y comparación campo por campo de los datos anteriores y nuevos. -->
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/layout :: layout(~{::title}, ~{::#contenido}, ~{::estilos})}">
+<head>
+  <title>Registro de auditoría</title>
+  <th:block th:fragment="estilos"></th:block>
+</head>
+<body>
+<div id="contenido" class="gx-pantalla">
+  <header class="gx-encabezado">
+    <h1><svg class="lucide" width="20" height="20"><use href="#i-history"/></svg><span th:text="${paginaTitulo}">Registro</span></h1>
+    <p th:text="|${accionTexto} · ${tablaTexto} · ${#temporals.format(ficha.fecha, 'dd/MM/yyyy HH:mm:ss')}|">Detalle</p>
+  </header>
+
+  <section class="gx-panel">
+    <h2 class="gx-panel__titulo">Evento</h2>
+    <div class="gx-panel__cuerpo">
+      <div class="gx-campos gx-campos--3">
+        <div class="gx-campo"><label>Fecha y hora</label><input disabled th:value="${#temporals.format(ficha.fecha, 'dd/MM/yyyy HH:mm:ss')}"></div>
+        <div class="gx-campo"><label>Usuario</label>
+          <input disabled th:value="${ficha.nombre_usuario != null} ? |${ficha.nombre_usuario} (${ficha.usuario_nombre})| : '—'"></div>
+        <div class="gx-campo"><label>IP</label><input disabled th:value="${ficha.ip}"></div>
+        <div class="gx-campo"><label>Acción</label><input disabled th:value="${accionTexto}"></div>
+        <div class="gx-campo"><label>Pantalla</label><input disabled th:value="${tablaTexto}"></div>
+        <div class="gx-campo"><label>N.º de registro</label><input disabled th:value="${ficha.registro_id}"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="gx-panel">
+    <h2 class="gx-panel__titulo">Datos</h2>
+    <div class="gx-panel__cuerpo">
+      <div class="gx-grilla-wrap">
+        <table class="gx-grilla" id="grilla-cambios">
+          <thead><tr><th>Campo</th><th>Antes</th><th>Después</th></tr></thead>
+          <tbody>
+            <tr th:if="${#lists.isEmpty(cambios)}"><td colspan="3" class="gx-grilla__vacio">Esta acción no guarda datos (por ejemplo, un ingreso o una salida).</td></tr>
+            <tr th:each="c : ${cambios}">
+              <td th:text="${c.campo}">campo</td>
+              <td th:text="${c.anterior ?: ''}">antes</td>
+              <td><strong th:if="${c.cambio}" th:text="${c.nuevo ?: ''}">después</strong><span th:unless="${c.cambio}" th:text="${c.nuevo ?: ''}">igual</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="gx-panel__nota">En negrita, los valores que cambiaron. Las contraseñas nunca se guardan en la auditoría.</p>
+    </div>
+  </section>
+
+  <div class="gx-acciones-pie">
+    <a th:if="${enlace != null}" class="gx-btn gx-btn--icono" th:href="@{${enlace}}"><svg class="lucide" width="16" height="16"><use href="#i-external-link"/></svg>Ver el registro</a>
+    <a th:if="${ficha.registro_id != null}" class="gx-btn gx-btn--secundario"
+       th:href="@{/admin/auditoria(tabla=${ficha.tabla},registro=${ficha.registro_id},desde='',hasta='')}">Historial del registro</a>
+    <a class="gx-btn gx-btn--secundario" th:href="@{/admin/auditoria}">Volver</a>
+  </div>
+</div>
+</body>
+</html>

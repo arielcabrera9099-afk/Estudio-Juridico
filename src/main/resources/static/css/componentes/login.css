@@ -49,3 +49,43 @@
   background: var(--ui-error-bg); border: 1px solid var(--ui-error-border); color: var(--ui-error-text);
 }
 .gx-login__pie { margin: 30px 15px 0; font-size: 12px; color: var(--wwp-gray07, #8c8d8e); }
+
+/* Mensajes y notas del ingreso y del cambio de contraseña. */
+.gx-login__mensaje--info { background: #e7f1fb; border-color: #b9d6f2; color: #255a85; }
+.gx-login__nota { margin: 12px 15px 0; font-size: 12px; color: var(--wwp-gray08, #575b5d); }
+.gx-login__error { margin: 4px 0 0; font-size: 12px; text-align: left; color: var(--wwp-required, #ea0101); }
+.gx-login__pie a { color: var(--wwp-base, #001d7e); }
+.gx-login__salir { display: inline; margin: 0; }
+/* Botón con aspecto de enlace ("ghost" en el nombre: tema.css no le pone el estilo de botón primario). */
+.gx-login__ghost { padding: 0; border: 0; background: none; color: var(--wwp-base, #001d7e); text-decoration: underline;
+  font-size: 12px; cursor: pointer; }
+
+/* ============================================================================
+   LEX NOVA: la imagen institucional de fondo y la tarjeta de acceso a la izquierda (el lado oscuro libre de la
+   imagen), blanca y rectangular, con el filo dorado arriba. En pantallas angostas la tarjeta va centrada.
+   ============================================================================ */
+.login-page {
+  justify-content: flex-start; padding: 24px 24px 24px 9vw;
+  background: var(--lx-grafito, #20242B) url('../../img/fondo-lex-nova.jpg') center center / cover no-repeat;
+}
+@media (max-width: 900px) { .login-page { justify-content: center; padding: 24px; } }
+.gx-login {
+  width: 380px; padding: 28px 0 24px; background: #fff; border: 0; border-top: 3px solid var(--lx-dorado, #B99A5B);
+  border-radius: 3px; box-shadow: 0 16px 40px rgba(0, 0, 0, .5);
+}
+.gx-login__marca { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 0 15px; }
+.gx-login .gx-login__logo { width: 52px; height: 52px; max-height: none; margin: 0; }
+.gx-login__marca-texto { text-align: left; line-height: 1.2; }
+.gx-login__marca-texto strong { display: block; color: var(--lx-grafito, #20242B); font-size: 1.35rem; letter-spacing: .18em; }
+.gx-login__marca-texto span { display: block; color: var(--lx-dorado-oscuro, #8C733F); font-size: 12px; letter-spacing: .06em; }
+.gx-login__titulo {
+  margin: 22px 15px 4px; padding-top: 16px; border-top: 1px solid var(--lx-borde, #D9DDE3);
+  font-family: var(--wwp-font); font-style: normal; font-weight: 600; font-size: 14px; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--lx-texto-secundario, #747B85);
+}
+.gx-login__input { border-bottom-color: var(--lx-borde, #D9DDE3); }
+.gx-login__input:focus { border-bottom-color: var(--lx-dorado-oscuro, #8C733F); box-shadow: 0 1px 0 var(--lx-dorado-oscuro, #8C733F); }
+.gx-login__ver:hover, .gx-login__ver:focus-visible { color: var(--lx-dorado-oscuro, #8C733F); }
+.gx-login .gx-login__boton { width: calc(100% - 0px); min-width: 0; padding: 9px 12px; border-radius: 3px; font-weight: 600; letter-spacing: .04em; }
+.gx-login__pie { margin-top: 22px; color: var(--lx-texto-secundario, #747B85); letter-spacing: .12em; }
+.gx-login__pie a, .gx-login__ghost { color: var(--lx-enlace, #7A6434); }
