@@ -48,8 +48,7 @@ class ExpedientesTest {
     void preparar() {
         abogadoId = Sesiones.crearUsuario(jdbc, "prueba_abogado", "ABOGADO", false);
         abogado = Sesiones.como(abogadoId, "prueba_abogado", Sesiones.TODOS);
-        clienteId = jdbc.queryForObject("INSERT INTO cliente (tipo_persona, nombres, apellidos, telefono) OUTPUT inserted.id "
-                + "VALUES ('F', N'Juana', N'Prueba', '0981000000')", Map.of(), Long.class);
+        clienteId = Sesiones.crearCliente(jdbc, "Juana", "99900003");
         jdbc.update("UPDATE parametro SET valor = 'AAAA-NNNN' WHERE clave = 'expediente.formato_numero'", Map.of());
     }
 
@@ -140,7 +139,7 @@ class ExpedientesTest {
                 .andExpect(redirectedUrlPattern("/expedientes/" + id + "?ok=*"));
         Map<String, Object> a = jdbc.queryForMap("SELECT * FROM actuacion WHERE expediente_id = :id", Map.of("id", id));
         assertThat(a.get("usuario_id")).isEqualTo(abogadoId);
-        assertThat(a.get("descripcion")).isEqualTo("Se presentó la demanda.\nCon documentos.");
+        assertThat(a.get("descripcion")).isEqualTo("SE PRESENTÓ LA DEMANDA.\nCON DOCUMENTOS.");
     }
 
     @Test
@@ -154,7 +153,7 @@ class ExpedientesTest {
                         .param("fechaCierre", hoy).param("motivoCierre", "Acuerdo homologado"))
                 .andExpect(redirectedUrlPattern("/expedientes?ok=*"));
         Map<String, Object> x = jdbc.queryForMap("SELECT * FROM expediente WHERE id = :id", Map.of("id", id));
-        assertThat(x.get("motivo_cierre")).isEqualTo("Acuerdo homologado");
+        assertThat(x.get("motivo_cierre")).isEqualTo("ACUERDO HOMOLOGADO");
         assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM expediente_estado_historial WHERE expediente_id = :id", Map.of("id", id), Integer.class)).isEqualTo(2);
 
         // Cerrado: no se modifica ni se le agregan partes.

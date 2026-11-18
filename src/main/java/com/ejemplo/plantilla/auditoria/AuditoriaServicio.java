@@ -150,6 +150,7 @@ public class AuditoriaServicio {
             case "cliente": return Optional.of("/clientes/" + registroId);
             case "expediente": return Optional.of("/expedientes/" + registroId);
             case "evento_agenda": return Optional.of("/agenda/" + registroId);
+            case "documento": return Optional.of("/documentos/" + registroId);
             default:
                 return secciones.seccionDe(tabla).map(s -> "/admin/" + s + "/" + tabla + "/" + registroId);
         }

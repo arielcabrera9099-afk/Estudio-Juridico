@@ -87,14 +87,16 @@
       <div class="gx-panel__cuerpo">
         <div class="gx-campos gx-campos--3">
           <div class="gx-campo" th:classappend="${errores.tiene('telefono')} ? 'is-error'">
-            <label for="telefono">Teléfono</label>
-            <input th:field="*{telefono}" maxlength="30" inputmode="tel" autocomplete="off" th:disabled="${ver}">
+            <label for="telefono" class="requerido" th:text="${ver} ? 'Teléfono principal' : 'Teléfono'">Teléfono</label>
+            <div class="lx-telefono">
+              <select th:field="*{telefonoPaisId}" th:disabled="${ver}" aria-label="Prefijo">
+                <option th:each="p : ${prefijos}" th:value="${p.id}" th:text="${p.texto}">+595 (Paraguay)</option>
+              </select>
+              <input th:field="*{telefono}" maxlength="20" inputmode="tel" autocomplete="off" th:disabled="${ver}"
+                     placeholder="0981 123 456" aria-label="Número">
+            </div>
             <p th:replace="~{componentes/componentes :: error('telefono')}"></p>
-          </div>
-          <div class="gx-campo" th:classappend="${errores.tiene('celular')} ? 'is-error'">
-            <label for="celular">Celular</label>
-            <input th:field="*{celular}" maxlength="30" inputmode="tel" autocomplete="off" th:disabled="${ver}">
-            <p th:replace="~{componentes/componentes :: error('celular')}"></p>
+            <span class="gx-ayuda" th:unless="${ver}">Fijo o celular, sin el prefijo. Otros teléfonos se agregan en la ficha del cliente.</span>
           </div>
           <div class="gx-campo" th:classappend="${errores.tiene('email')} ? 'is-error'">
             <label for="email">Email</label>
@@ -106,11 +108,25 @@
             <input th:field="*{direccion}" maxlength="200" autocomplete="off" th:disabled="${ver}">
             <p th:replace="~{componentes/componentes :: error('direccion')}"></p>
           </div>
+          <div class="gx-campo">
+            <label for="paisId">País</label>
+            <select th:field="*{paisId}" th:disabled="${ver}">
+              <option value="">Seleccione…</option>
+              <option th:each="p : ${paises}" th:value="${p.id}" th:text="${p.texto}">Paraguay (+595)</option>
+            </select>
+          </div>
+          <div class="gx-campo">
+            <label for="departamentoId">Departamento</label>
+            <select th:field="*{departamentoId}" th:disabled="${ver}" data-depende="paisId">
+              <option value="">Seleccione…</option>
+              <option th:each="d : ${departamentos}" th:value="${d.id}" th:text="${d.texto}" th:attr="data-padre=${d.codigo}">Central</option>
+            </select>
+          </div>
           <div class="gx-campo" th:classappend="${errores.tiene('ciudadId')} ? 'is-error'">
             <label for="ciudadId">Ciudad</label>
-            <select th:field="*{ciudadId}" th:disabled="${ver}">
+            <select th:field="*{ciudadId}" th:disabled="${ver}" data-depende="departamentoId">
               <option value="">SIN ESPECIFICAR</option>
-              <option th:each="c : ${ciudades}" th:value="${c.id}" th:text="${c.texto}">Ciudad</option>
+              <option th:each="c : ${ciudades}" th:value="${c.id}" th:text="${c.texto}" th:attr="data-padre=${c.codigo}">Ciudad</option>
             </select>
             <p th:replace="~{componentes/componentes :: error('ciudadId')}"></p>
           </div>
@@ -124,7 +140,7 @@
             <p th:replace="~{componentes/componentes :: error('activo')}"></p>
           </div>
         </div>
-        <p class="gx-panel__nota">Se requiere al menos un teléfono o un celular.</p>
+        <p class="gx-panel__nota">La ciudad se elige por país y departamento; si falta alguna, se agrega en Administración → Países, departamentos y ciudades.</p>
       </div>
     </section>
 
@@ -140,6 +156,47 @@
       <a th:if="${puedeEditar}" class="gx-btn gx-btn--icono" th:href="@{/clientes/{id}/editar(id=${form.id})}"><svg class="lucide" width="16" height="16"><use href="#i-pencil"/></svg>Modificar</a>
       <a class="gx-btn gx-btn--secundario" th:href="@{/clientes}">Volver</a>
     </div>
+
+    <section class="gx-panel" id="telefonos">
+      <h2 class="gx-panel__titulo" th:text="|Teléfonos (${#lists.size(telefonos)})|">Teléfonos</h2>
+      <div class="gx-panel__cuerpo">
+        <div class="gx-barra-resumen">
+          <a th:if="${puedeEditar and form.numeroDocumento != null}" class="gx-btn gx-btn--icono" th:href="@{/clientes/{id}/telefonos/nuevo(id=${form.id})}"><svg class="lucide" width="16" height="16"><use href="#i-plus"/></svg>Agregar teléfono</a>
+          <span th:unless="${puedeEditar and form.numeroDocumento != null}"></span>
+          <span class="gx-panel__nota" th:text="${form.numeroDocumento != null} ? 'Fijos y celulares del cliente; el principal se muestra en la grilla' : 'Complete el documento del cliente (Modificar) para cargar sus teléfonos'">Teléfonos</span>
+        </div>
+        <div class="gx-grilla-wrap">
+          <table class="gx-grilla">
+            <thead><tr><th class="gx-col-acciones" th:if="${puedeEditar}"></th><th>Prefijo</th><th>Número</th><th>País</th></tr></thead>
+            <tbody>
+              <tr th:if="${#lists.isEmpty(telefonos)}"><td colspan="4" class="gx-grilla__vacio">El cliente no tiene teléfonos cargados.</td></tr>
+              <tr th:each="t : ${telefonos}">
+                <td class="gx-col-acciones" th:if="${puedeEditar}">
+                  <div class="gx-accion-grupo">
+                    <button type="button" class="gx-accion-grupo__boton" aria-haspopup="true" aria-label="Acciones">
+                      <svg class="lucide" width="16" height="16"><use href="#i-menu"/></svg></button>
+                    <ul class="gx-accion-grupo__menu" hidden>
+                      <li><a th:href="@{/clientes/{id}/telefonos/{t}/editar(id=${form.id},t=${t.id})}"><svg class="lucide" width="15" height="15"><use href="#i-pencil"/></svg>Modificar</a></li>
+                      <li>
+                        <form method="post" th:action="@{/clientes/{id}/telefonos/{t}/eliminar(id=${form.id},t=${t.id})}"
+                              data-confirmar-tipo="error" data-confirmar-boton="Quitar"
+                              th:attr="data-confirmar=|¿Quitar el teléfono ${t.prefijo_telefonico} ${t.numero}?|">
+                          <button><svg class="lucide" width="15" height="15"><use href="#i-trash2"/></svg>Quitar</button>
+                        </form>
+                      </li>
+                    </ul>
+                  </div>
+                </td>
+                <td th:text="${t.prefijo_telefonico}">+595</td>
+                <td><span th:text="${t.numero}">0981 123 456</span>
+                  <span th:if="${t.es_principal}" class="gx-etiqueta gx-etiqueta--info">PRINCIPAL</span></td>
+                <td th:text="${t.pais}">Paraguay</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
 
     <section class="gx-panel" id="contactos">
       <h2 class="gx-panel__titulo">Contactos</h2>

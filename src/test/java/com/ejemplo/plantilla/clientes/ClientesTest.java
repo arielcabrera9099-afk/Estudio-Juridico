@@ -47,6 +47,10 @@ class ClientesTest {
         asistente = Sesiones.como(usuarioId, "prueba_asis", Sesiones.ASISTENTE);
     }
 
+    private String py() {
+        return String.valueOf(jdbc.queryForObject("SELECT id FROM pais WHERE codigo = 'PY'", Map.of(), Long.class));
+    }
+
     private long tipoDoc(String codigo) {
         return jdbc.queryForObject("SELECT id FROM tipo_documento_identidad WHERE codigo = :c", Map.of("c", codigo), Long.class);
     }
@@ -55,7 +59,7 @@ class ClientesTest {
         return post("/clientes").with(asistente).with(csrf())
                 .param("tipoPersona", "F").param("nombres", " Juan  Carlos ").param("apellidos", "Pérez Gómez")
                 .param("tipoDocumentoIdentidadId", String.valueOf(tipoDoc("CI"))).param("numeroDocumento", "4.123.456")
-                .param("fechaNacimiento", "1980-05-10").param("celular", "0981 123456").param("email", "JUAN@correo.py")
+                .param("fechaNacimiento", "1980-05-10").param("telefono", "0981 123456").param("telefonoPaisId", py()).param("email", "JUAN@correo.py")
                 .param("razonSocial", "no debe guardarse");
     }
 
@@ -67,7 +71,7 @@ class ClientesTest {
     void altaDePersonaFisicaNormalizaYVuelveALaLista() throws Exception {
         mvc.perform(altaFisica()).andExpect(redirectedUrlPattern("/clientes?ok=*"));
         Map<String, Object> c = cliente("4123456");
-        assertThat(c.get("nombres")).isEqualTo("Juan Carlos");
+        assertThat(c.get("nombres")).isEqualTo("JUAN CARLOS");
         assertThat(c.get("razon_social")).isNull();
         assertThat(c.get("email")).isEqualTo("juan@correo.py");
         assertThat(c.get("creado_por")).isEqualTo(usuarioId);
@@ -75,7 +79,7 @@ class ClientesTest {
                 + "AND registro_id = :id", Map.of("id", c.get("id")), Integer.class)).isEqualTo(1);
 
         mvc.perform(get("/clientes/" + c.get("id")).with(asistente)).andExpect(status().isOk())
-                .andExpect(content().string(Matchers.containsString("Pérez Gómez, Juan Carlos")))
+                .andExpect(content().string(Matchers.containsString("PÉREZ GÓMEZ, JUAN CARLOS")))
                 .andExpect(content().string(Matchers.containsString("El cliente no tiene contactos cargados.")))
                 .andExpect(content().string(Matchers.containsString("todavía no tiene casos registrados")));
         mvc.perform(get("/clientes").param("texto", "4.123.456").with(asistente))
@@ -87,10 +91,10 @@ class ClientesTest {
         mvc.perform(post("/clientes").with(asistente).with(csrf()).param("tipoPersona", "J")
                         .param("razonSocial", "Comercial Asunción S.A.").param("nombres", "x").param("fechaNacimiento", "1990-01-01")
                         .param("tipoDocumentoIdentidadId", String.valueOf(tipoDoc("RUC"))).param("numeroDocumento", "80012345-6")
-                        .param("telefono", "021 600 000"))
+                        .param("telefono", "021 600 000").param("telefonoPaisId", py()))
                 .andExpect(redirectedUrlPattern("/clientes?ok=*"));
         Map<String, Object> c = cliente("80012345-6");
-        assertThat(c.get("razon_social")).isEqualTo("Comercial Asunción S.A.");
+        assertThat(c.get("razon_social")).isEqualTo("COMERCIAL ASUNCIÓN S.A.");
         assertThat(c.get("nombres")).isNull();
         assertThat(c.get("fecha_nacimiento")).isNull();
     }
@@ -106,7 +110,7 @@ class ClientesTest {
                 .andExpect(content().string(Matchers.containsString("La fecha de nacimiento no puede ser futura.")))
                 .andExpect(content().string(Matchers.containsString("El RUC debe tener el número, un guion")))
                 .andExpect(content().string(Matchers.containsString("El email no es válido.")))
-                .andExpect(content().string(Matchers.containsString("Ingrese al menos un teléfono o un celular.")));
+                .andExpect(content().string(Matchers.containsString("Teléfono es requerido.")));
         mvc.perform(post("/clientes").with(asistente).with(csrf()).param("tipoPersona", "J").param("telefono", "021 600 000")
                         .param("numeroDocumento", "123"))
                 .andExpect(content().string(Matchers.containsString("Razón social es requerido.")))
@@ -140,7 +144,7 @@ class ClientesTest {
         long id = ((Number) cliente("4123456").get("id")).longValue();
         mvc.perform(get("/clientes/" + id + "/editar").with(asistente)).andExpect(status().isOk());
         mvc.perform(post("/clientes/" + id).with(asistente).with(csrf()).param("tipoPersona", "J")
-                        .param("razonSocial", "Pérez Hermanos S.R.L.").param("nombres", "Juan").param("telefono", "021 444 555")
+                        .param("razonSocial", "Pérez Hermanos S.R.L.").param("nombres", "Juan").param("telefono", "021 444 555").param("telefonoPaisId", py())
                         .param("tipoDocumentoIdentidadId", String.valueOf(tipoDoc("RUC"))).param("numeroDocumento", "80012345-6")
                         .param("_activo", "on").param("activo", "true"))
                 .andExpect(redirectedUrlPattern("/clientes?ok=*"));
@@ -150,6 +154,49 @@ class ClientesTest {
         assertThat(c.get("fecha_nacimiento")).isNull();
         assertThat(c.get("numero_documento")).isEqualTo("80012345-6");
         assertThat(c.get("modificado_por")).isEqualTo(usuarioId);
+    }
+
+    private java.util.List<Map<String, Object>> telefonos(String numeroDocumento) {
+        return jdbc.queryForList("SELECT * FROM cliente_telefono WHERE numero_documento = :n ORDER BY es_principal DESC, id",
+                Map.of("n", numeroDocumento));
+    }
+
+    @Test
+    void losTelefonosVanASuTablaPorElDocumentoDelCliente() throws Exception {
+        mvc.perform(altaFisica());
+        long id = ((Number) cliente("4123456").get("id")).longValue();
+        assertThat(telefonos("4123456")).hasSize(1);
+        assertThat(telefonos("4123456").get(0).get("numero")).isEqualTo("0981 123456");
+        assertThat(telefonos("4123456").get(0).get("es_principal")).isEqualTo(true);
+        mvc.perform(get("/clientes").param("texto", "4123456").with(asistente))
+                .andExpect(content().string(Matchers.containsString("+595 0981 123456")));
+
+        // Otro teléfono desde la ficha; el mismo número no se repite; el único no se puede quitar.
+        mvc.perform(post("/clientes/" + id + "/telefonos").with(asistente).with(csrf()).param("paisId", py()).param("numero", "021 600 000"))
+                .andExpect(redirectedUrlPattern("/clientes/" + id + "?ok=*"));
+        mvc.perform(post("/clientes/" + id + "/telefonos").with(asistente).with(csrf()).param("paisId", py()).param("numero", "021 600 000"))
+                .andExpect(content().string(Matchers.containsString("El cliente ya tiene ese teléfono.")));
+        mvc.perform(post("/clientes/" + id + "/telefonos").with(asistente).with(csrf()).param("paisId", py()).param("numero", "+595 981"))
+                .andExpect(content().string(Matchers.containsString("El número va sin prefijo")));
+        assertThat(telefonos("4123456")).hasSize(2);
+
+        // Si cambia el documento del cliente, sus teléfonos lo siguen.
+        mvc.perform(post("/clientes/" + id).with(asistente).with(csrf()).param("tipoPersona", "F").param("nombres", "Juan")
+                        .param("apellidos", "Pérez").param("tipoDocumentoIdentidadId", String.valueOf(tipoDoc("CI")))
+                        .param("numeroDocumento", "4123457").param("telefono", "0981 123456").param("telefonoPaisId", py())
+                        .param("_activo", "on").param("activo", "true"))
+                .andExpect(redirectedUrlPattern("/clientes?ok=*"));
+        assertThat(telefonos("4123456")).isEmpty();
+        assertThat(telefonos("4123457")).hasSize(2);
+
+        long segundo = ((Number) telefonos("4123457").get(1).get("id")).longValue();
+        mvc.perform(post("/clientes/" + id + "/telefonos/" + segundo + "/eliminar").with(asistente).with(csrf()));
+        long principal = ((Number) telefonos("4123457").get(0).get("id")).longValue();
+        mvc.perform(post("/clientes/" + id + "/telefonos/" + principal + "/eliminar").with(asistente).with(csrf()))
+                .andExpect(redirectedUrlPattern("/clientes/" + id + "?error=*"));
+        assertThat(telefonos("4123457")).hasSize(1);
+        mvc.perform(get("/clientes/" + id).with(asistente)).andExpect(content().string(Matchers.containsString("PRINCIPAL")));
+        mvc.perform(get("/clientes/" + id + "/telefonos/nuevo").with(asistente)).andExpect(status().isOk());
     }
 
     @Test
@@ -188,15 +235,15 @@ class ClientesTest {
         mvc.perform(post("/clientes/" + id + "/contactos").with(asistente).with(csrf())
                 .param("nombre", "Luis Benítez").param("email", "luis@empresa.py").param("esPrincipal", "true"));
         assertThat(jdbc.queryForList("SELECT nombre FROM cliente_contacto WHERE cliente_id = :id AND es_principal = 1",
-                Map.of("id", id), String.class)).containsExactly("Luis Benítez");
+                Map.of("id", id), String.class)).containsExactly("LUIS BENÍTEZ");
 
         long luis = jdbc.queryForObject("SELECT id FROM cliente_contacto WHERE nombre = N'Luis Benítez'", Map.of(), Long.class);
         mvc.perform(post("/clientes/" + id + "/contactos/" + luis + "/eliminar").with(asistente).with(csrf()))
                 .andExpect(redirectedUrlPattern("/clientes/" + id + "?ok=*"));
         assertThat(jdbc.queryForList("SELECT nombre FROM cliente_contacto WHERE cliente_id = :id AND es_principal = 1",
-                Map.of("id", id), String.class)).containsExactly("Ana López");
+                Map.of("id", id), String.class)).containsExactly("ANA LÓPEZ");
         mvc.perform(get("/clientes/" + id).with(asistente))
-                .andExpect(content().string(Matchers.containsString("Ana López")))
+                .andExpect(content().string(Matchers.containsString("ANA LÓPEZ")))
                 .andExpect(content().string(Matchers.containsString("PRINCIPAL")));
     }
 

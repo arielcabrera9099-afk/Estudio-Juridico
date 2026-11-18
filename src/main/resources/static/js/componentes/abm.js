@@ -64,15 +64,31 @@
     var padre = form && form.elements[s.getAttribute('data-depende')];
     if (!padre) return;
     function aplicar(limpiar) {
+      var limpiado = false;
       Array.prototype.forEach.call(s.options, function (o) {
         if (!o.hasAttribute('data-padre')) return;
         var corresponde = o.getAttribute('data-padre') === padre.value;
         o.hidden = !corresponde;
-        if (!corresponde && o.selected && limpiar) s.value = '';
+        if (!corresponde && o.selected && limpiar) { s.value = ''; limpiado = true; }
       });
+      // En cadena (país → departamento → ciudad): avisa al combo que depende de este.
+      if (limpiado) s.dispatchEvent(new Event('change', { bubbles: true }));
     }
     padre.addEventListener('change', function () { aplicar(true); });
     aplicar(false);
+  });
+
+  // Todo texto se guarda en MAYÚSCULAS (también lo hace el servidor): mientras se escribe queda como se tipea y, al
+  // salir del campo, se ve en mayúsculas. No se tocan emails, contraseñas, fechas, números ni los campos marcados con
+  // data-sin-mayusculas (usuario de ingreso, valores de parámetros).
+  var TIPOS_TEXTO = ['text', 'search', 'tel', ''];
+  document.addEventListener('focusout', function (e) {
+    var c = e.target;
+    if (!c || c.readOnly || c.disabled || c.hasAttribute('data-sin-mayusculas')) return;
+    var esTexto = c.tagName === 'TEXTAREA' || (c.tagName === 'INPUT' && TIPOS_TEXTO.indexOf((c.getAttribute('type') || '').toLowerCase()) >= 0);
+    if (!esTexto || !c.value) return;
+    var mayus = c.value.toLocaleUpperCase('es');
+    if (mayus !== c.value) c.value = mayus;
   });
 
   document.querySelectorAll('form[data-filtros] select').forEach(function (s) {

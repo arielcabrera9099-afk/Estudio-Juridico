@@ -35,6 +35,13 @@ public final class Sesiones {
         return id;
     }
 
+    /** Inserta un cliente de prueba (persona física con cédula) y devuelve su id. */
+    public static long crearCliente(NamedParameterJdbcTemplate jdbc, String nombres, String cedula) {
+        return jdbc.queryForObject("INSERT INTO cliente (tipo_persona, nombres, apellidos, tipo_documento_identidad_id, numero_documento) "
+                + "OUTPUT inserted.id SELECT 'F', :n, N'Prueba', id, :ci FROM tipo_documento_identidad WHERE codigo = 'CI'",
+                Map.of("n", nombres, "ci", cedula), Long.class);
+    }
+
     /** La sesión de un usuario ya insertado, con los permisos dados. */
     public static RequestPostProcessor como(long id, String usuario, Set<String> permisos) {
         return SecurityMockMvcRequestPostProcessors.user(

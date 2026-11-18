@@ -352,3 +352,13 @@ html:has(#contenido.lx-inicio) .admin-shell .admin-content {
   .lx-chip b { display: none; }
 }
 .lx-calendario + .gx-panel__nota, .gx-grilla-wrap + .gx-panel__nota, .lx-semana + .gx-panel__nota { margin-top: 10px; }
+
+/* Documentos: nombre del archivo bajo el título y huella SHA-256. */
+.lx-archivo { color: var(--lx-texto-secundario, #747B85); font-size: 11.5px; }
+.lx-hash { font-family: Consolas, "Courier New", monospace; font-size: 12px; }
+.lx-archivo-input { padding: 6px 0; }
+
+/* Teléfono: prefijo (combo angosto) y número en la misma línea. */
+.lx-telefono { display: flex; gap: 8px; align-items: flex-end; }
+.lx-telefono select { flex: 0 0 auto; width: 9.5em; }
+.lx-telefono input { flex: 1 1 auto; min-width: 0; }

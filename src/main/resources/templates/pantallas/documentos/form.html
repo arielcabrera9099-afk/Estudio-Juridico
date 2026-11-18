@@ -1,0 +1,134 @@
+<!doctype html>
+<!--
+  Documento: carga ("alta", con el archivo), ficha ("ver") y modificación de sus datos ("editar"). El archivo no se
+  reemplaza: para otra versión se carga otro documento. El expediente no cambia después de la carga.
+-->
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/layout :: layout(~{::title}, ~{::#contenido}, ~{::estilos})}">
+<head>
+  <title>Documento</title>
+  <th:block th:fragment="estilos"></th:block>
+</head>
+<body>
+<div id="contenido" class="gx-pantalla">
+  <p th:replace="~{componentes/componentes :: ok}"></p>
+
+  <header class="gx-encabezado">
+    <h1><svg class="lucide" width="20" height="20"><use th:attr="href=${modo == 'alta'} ? '#i-file-plus' : '#i-file-text'"/></svg>
+      <span th:text="${paginaTitulo}">Documento</span></h1>
+    <p th:text="${modo == 'alta'} ? 'Adjunte un archivo a un expediente' : ${form.nombre}">Documento</p>
+  </header>
+
+  <p class="gx-aviso gx-aviso--error" th:if="${ficha != null and ficha.eliminado_en != null}">
+    <svg class="lucide" width="16" height="16"><use href="#i-trash2"/></svg>
+    <span th:text="|Documento eliminado el ${#temporals.format(ficha.eliminado_en, 'dd/MM/yyyy HH:mm')}. El archivo se conserva.|">Eliminado.</span>
+  </p>
+
+  <p th:replace="~{componentes/componentes :: erroresResumen}"></p>
+
+  <form id="form-documento" method="post" th:object="${form}" novalidate
+        th:action="${modo == 'alta'} ? @{/documentos} : @{/documentos/{id}(id=${form.id})}"
+        th:attr="enctype=${modo == 'alta'} ? 'multipart/form-data' : null,data-confirmar=${modo == 'alta'} ? '¿Confirma la carga del documento?' : '¿Confirma los cambios del documento?'">
+    <input type="hidden" name="volver" th:if="${modo == 'alta'}"
+           th:value="${volver}">
+
+    <section class="gx-panel" th:if="${modo == 'alta'}">
+      <h2 class="gx-panel__titulo">Archivo</h2>
+      <div class="gx-panel__cuerpo">
+        <div class="gx-campos">
+          <div class="gx-campo gx-campo--completo" th:classappend="${errores.tiene('archivo')} ? 'is-error'">
+            <label for="archivo" class="requerido">Archivo</label>
+            <input id="archivo" name="archivo" type="file" class="lx-archivo-input"
+                   th:attr="accept=${'.' + #strings.listJoin(extensiones, ',.')}">
+            <p th:replace="~{componentes/componentes :: error('archivo')}"></p>
+            <span class="gx-ayuda" th:text="|Tipos permitidos: ${#strings.listJoin(extensiones, ', ')}. Máximo ${maximoMb} MB.${errores.hay() ? ' Vuelva a elegir el archivo: por seguridad, el navegador no lo conserva.' : ''}|">Tipos permitidos.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="gx-panel">
+      <h2 class="gx-panel__titulo">Datos del documento</h2>
+      <div class="gx-panel__cuerpo">
+        <div class="gx-campos gx-campos--3">
+          <div class="gx-campo gx-campo--doble" th:classappend="${errores.tiene('expedienteId')} ? 'is-error'">
+            <label for="expedienteId" class="requerido">Expediente</label>
+            <select th:field="*{expedienteId}" th:disabled="${modo != 'alta'}">
+              <option value="">Seleccione…</option>
+              <option th:each="o : ${expedientes}" th:value="${o.id}" th:text="${o.texto}">2026-0001 · Carátula</option>
+            </select>
+            <p th:replace="~{componentes/componentes :: error('expedienteId')}"></p>
+          </div>
+          <div class="gx-campo" th:classappend="${errores.tiene('tipoDocumentoId')} ? 'is-error'">
+            <label for="tipoDocumentoId" class="requerido">Tipo</label>
+            <select th:field="*{tipoDocumentoId}" th:disabled="${ver}">
+              <option value="">Seleccione…</option>
+              <option th:each="o : ${tipos}" th:value="${o.id}" th:text="${o.texto}">Escrito</option>
+            </select>
+            <p th:replace="~{componentes/componentes :: error('tipoDocumentoId')}"></p>
+          </div>
+          <div class="gx-campo gx-campo--doble" th:classappend="${errores.tiene('nombre')} ? 'is-error'">
+            <label for="nombre" th:classappend="${modo != 'alta'} ? 'requerido'">Nombre</label>
+            <input th:field="*{nombre}" maxlength="200" autocomplete="off" th:disabled="${ver}"
+                   th:placeholder="${modo == 'alta'} ? 'Si queda vacío, el nombre del archivo' : null">
+            <p th:replace="~{componentes/componentes :: error('nombre')}"></p>
+          </div>
+          <div class="gx-campo" th:classappend="${errores.tiene('fechaDocumento')} ? 'is-error'">
+            <label for="fechaDocumento">Fecha del documento</label>
+            <input th:field="*{fechaDocumento}" type="date" th:disabled="${ver}">
+            <p th:replace="~{componentes/componentes :: error('fechaDocumento')}"></p>
+          </div>
+          <div class="gx-campo gx-campo--completo" th:classappend="${errores.tiene('actuacionId')} ? 'is-error'">
+            <label for="actuacionId">Actuación relacionada</label>
+            <select th:field="*{actuacionId}" th:disabled="${ver}" data-depende="expedienteId">
+              <option value="">Ninguna</option>
+              <option th:each="o : ${actuaciones}" th:value="${o.id}" th:text="${o.texto}" th:attr="data-padre=${o.codigo}">Actuación</option>
+            </select>
+            <p th:replace="~{componentes/componentes :: error('actuacionId')}"></p>
+            <span class="gx-ayuda" th:unless="${ver}">Opcional: el escrito o la notificación de la bitácora con la que llegó este documento.</span>
+          </div>
+          <div class="gx-campo gx-campo--completo" th:classappend="${errores.tiene('descripcion')} ? 'is-error'">
+            <label for="descripcion">Descripción</label>
+            <textarea th:field="*{descripcion}" rows="3" maxlength="4000" th:disabled="${ver}"></textarea>
+            <p th:replace="~{componentes/componentes :: error('descripcion')}"></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="gx-panel" th:if="${ficha != null}">
+      <h2 class="gx-panel__titulo">Archivo</h2>
+      <div class="gx-panel__cuerpo">
+        <div class="gx-campos gx-campos--3">
+          <div class="gx-campo"><label>Nombre del archivo</label><input disabled th:value="${ficha.nombre_archivo}"></div>
+          <div class="gx-campo"><label>Tipo de archivo</label><input disabled th:value="${ficha.tipo_mime}"></div>
+          <div class="gx-campo"><label>Tamaño</label>
+            <input disabled th:value="${ficha.tamano_bytes >= 1048576} ? ${#numbers.formatDecimal(ficha.tamano_bytes / 1048576.0, 1, 'POINT', 1, 'COMMA')} + ' MB' : ${#numbers.formatInteger((ficha.tamano_bytes + 1023) / 1024, 1, 'POINT')} + ' KB'"></div>
+          <div class="gx-campo gx-campo--doble"><label>Huella SHA-256</label><input disabled class="lx-hash" th:value="${ficha.hash_sha256}"></div>
+          <div class="gx-campo"><label>Cliente</label><input disabled th:value="${ficha.cliente}"></div>
+          <div class="gx-campo"><label>Cargado</label>
+            <input disabled th:value="|${#temporals.format(ficha.creado_en, 'dd/MM/yyyy HH:mm')}${ficha.creado_por_usuario != null ? ' · ' + ficha.creado_por_usuario : ''}|"></div>
+          <div class="gx-campo"><label>Última modificación</label>
+            <input disabled th:value="${ficha.modificado_en != null} ? |${#temporals.format(ficha.modificado_en, 'dd/MM/yyyy HH:mm')} · ${ficha.modificado_por_usuario}| : 'Sin cambios'"></div>
+        </div>
+        <p class="gx-panel__nota">La huella identifica el contenido exacto del archivo: sirve para comprobar que no fue alterado.</p>
+      </div>
+    </section>
+
+    <div class="gx-acciones-pie" th:unless="${ver}">
+      <button type="submit" class="gx-btn gx-btn--icono"><svg class="lucide" width="16" height="16"><use th:attr="href=${modo == 'alta'} ? '#i-arrow-up-from-line' : '#i-save'"/></svg><span th:text="${modo == 'alta'} ? 'Cargar' : 'Confirmar'">Cargar</span></button>
+      <a class="gx-btn gx-btn--secundario" th:href="${volver == 'expediente' and form.expedienteId != null} ? @{/expedientes/{id}(id=${form.expedienteId})} + '#documentos' : @{/documentos}">Cancelar</a>
+    </div>
+  </form>
+
+  <div class="gx-acciones-pie" th:if="${ver}">
+    <a th:if="${ficha.eliminado_en == null}" class="gx-btn gx-btn--icono" th:href="@{/documentos/{id}/ver(id=${form.id})}" target="_blank" rel="noopener">
+      <svg class="lucide" width="16" height="16"><use href="#i-external-link"/></svg>Abrir</a>
+    <a th:if="${ficha.eliminado_en == null or puedeEliminar}" class="gx-btn gx-btn--secundario" th:href="@{/documentos/{id}/descargar(id=${form.id})}">Descargar</a>
+    <a th:if="${puedeSubir and ficha.eliminado_en == null}" class="gx-btn gx-btn--secundario" th:href="@{/documentos/{id}/editar(id=${form.id})}">Modificar</a>
+    <a class="gx-btn gx-btn--secundario" th:href="@{/expedientes/{id}(id=${form.expedienteId})} + '#documentos'">Ir al expediente</a>
+    <a class="gx-btn gx-btn--secundario" th:href="@{/documentos}">Volver</a>
+  </div>
+</div>
+</body>
+</html>

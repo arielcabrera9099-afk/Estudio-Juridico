@@ -131,13 +131,12 @@ class AgendaTest {
         long ayer = id("Audiencia de ayer");
         mvc.perform(post("/agenda/" + ayer + "/estado").with(sesion).with(csrf()).param("estado", "REALIZADO").param("resultado", "Se fijó nueva fecha"))
                 .andExpect(redirectedUrlPattern("/agenda?ok=*"));
-        assertThat(jdbc.queryForObject("SELECT resultado FROM evento_agenda WHERE id = :id", Map.of("id", ayer), String.class)).isEqualTo("Se fijó nueva fecha");
+        assertThat(jdbc.queryForObject("SELECT resultado FROM evento_agenda WHERE id = :id", Map.of("id", ayer), String.class)).isEqualTo("SE FIJÓ NUEVA FECHA");
     }
 
     @Test
     void listaCalendarioYExpediente() throws Exception {
-        long cliente = jdbc.queryForObject("INSERT INTO cliente (tipo_persona, nombres, apellidos, telefono) OUTPUT inserted.id "
-                + "VALUES ('F', N'Ana', N'Agenda', '0981000000')", Map.of(), Long.class);
+        long cliente = Sesiones.crearCliente(jdbc, "Ana", "99900001");
         mvc.perform(post("/expedientes").with(sesion).with(csrf()).param("caratula", "Agenda c/ Prueba").param("clienteId", String.valueOf(cliente))
                 .param("abogadoId", String.valueOf(yo)).param("materiaId", String.valueOf(jdbc.queryForObject("SELECT id FROM materia WHERE codigo = 'CIVIL'", Map.of(), Long.class)))
                 .param("tipoProcesoId", String.valueOf(jdbc.queryForObject("SELECT id FROM tipo_proceso WHERE codigo = 'CIVIL_ORDINARIO'", Map.of(), Long.class)))
@@ -151,7 +150,7 @@ class AgendaTest {
         long id = id("Audiencia preliminar");
 
         mvc.perform(get("/agenda").with(sesion)).andExpect(status().isOk())
-                .andExpect(content().string(Matchers.containsString("Audiencia preliminar")));
+                .andExpect(content().string(Matchers.containsString("AUDIENCIA PRELIMINAR")));
         mvc.perform(get("/agenda").param("vista", "MES").param("mes", hoy.plusDays(1).toString().substring(0, 7)).with(sesion))
                 .andExpect(status().isOk()).andExpect(content().string(Matchers.containsString("/agenda/" + id)));
         mvc.perform(get("/agenda").param("vista", "SEMANA").param("dia", hoy.plusDays(1).toString()).with(sesion))

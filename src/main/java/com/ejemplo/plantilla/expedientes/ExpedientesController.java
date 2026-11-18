@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.ejemplo.plantilla.datos.Filas;
+import com.ejemplo.plantilla.documentos.DocumentosServicio;
 import com.ejemplo.plantilla.seguridad.UsuarioActual;
 import com.ejemplo.plantilla.web.Errores;
 import com.ejemplo.plantilla.web.ModeloComun;
@@ -36,9 +37,11 @@ public class ExpedientesController {
     private static final String EDITAR = "EXPEDIENTES_EDITAR";
 
     private final ExpedientesServicio servicio;
+    private final DocumentosServicio documentos;
     private final ModeloComun modelo;
 
-    public ExpedientesController(ExpedientesServicio servicio, ModeloComun modelo) {
+    public ExpedientesController(ExpedientesServicio servicio, DocumentosServicio documentos, ModeloComun modelo) {
+        this.documentos = documentos;
         this.servicio = servicio;
         this.modelo = modelo;
     }
@@ -363,6 +366,8 @@ public class ExpedientesController {
                 model.addAttribute("actuaciones", servicio.actuaciones(form.getId()));
                 model.addAttribute("historial", servicio.historial(form.getId()));
                 model.addAttribute("agenda", servicio.agenda(form.getId()));
+                model.addAttribute("documentos", documentos.deExpediente(form.getId()));
+                model.addAttribute("puedeSubir", UsuarioActual.tiene(DocumentosServicio.SUBIR));
                 model.addAttribute("puedeAgendar", UsuarioActual.tiene("AGENDA_EDITAR"));
                 model.addAttribute("hoy", LocalDate.now(Filas.ZONA));
             }

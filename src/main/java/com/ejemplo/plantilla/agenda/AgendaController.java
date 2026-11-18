@@ -142,7 +142,7 @@ public class AgendaController {
         model.addAttribute("puedeEditar", UsuarioActual.tiene(AgendaServicio.EDITAR));
         if (calendario) {
             model.addAttribute("mes", ym.toString());
-            model.addAttribute("mesTitulo", Textos.limpio(ym.atDay(1).format(DateTimeFormatter.ofPattern("MMMM 'de' yyyy", ES))));
+            model.addAttribute("mesTitulo", Textos.recortado(ym.atDay(1).format(DateTimeFormatter.ofPattern("MMMM 'de' yyyy", ES))));
             model.addAttribute("mesAnterior", ym.minusMonths(1).toString());
             model.addAttribute("mesSiguiente", ym.plusMonths(1).toString());
             model.addAttribute("semanas", semanas(ym, f.desde, f.hasta, filas, hoy));

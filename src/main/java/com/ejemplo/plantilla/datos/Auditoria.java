@@ -29,6 +29,7 @@ public class Auditoria {
     public static final String ALTA = "ALTA";
     public static final String MODIFICACION = "MODIFICACION";
     public static final String BAJA = "BAJA";
+    public static final String DESCARGA = "DESCARGA";
 
     private final NamedParameterJdbcTemplate jdbc;
     private final ObjectMapper json = new ObjectMapper().registerModule(new JavaTimeModule())

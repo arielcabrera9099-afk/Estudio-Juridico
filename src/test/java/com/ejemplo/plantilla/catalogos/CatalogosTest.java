@@ -55,7 +55,7 @@ class CatalogosTest {
                 .andExpect(content().string(Matchers.containsString("NINEZ")));
         mvc.perform(get("/admin/materias").param("catalogo", "tipo_proceso")
                         .param("f_materia_id", String.valueOf(id("materia", "PENAL"))).with(admin))
-                .andExpect(content().string(Matchers.containsString("Acción penal pública")))
+                .andExpect(content().string(Matchers.containsString("ACCIÓN PENAL PÚBLICA")))
                 .andExpect(content().string(Matchers.not(Matchers.containsString("Divorcio"))));
         mvc.perform(get("/admin/tipos").param("catalogo", "tipo_evento").with(admin))
                 .andExpect(content().string(Matchers.containsString("var(--wwp-danger)")));
@@ -69,7 +69,7 @@ class CatalogosTest {
                 .andExpect(redirectedUrlPattern("/admin/materias?catalogo=materia&ok=*"));
         long id = id("materia", "DERECHO_TRIBUTARIO");
         assertThat(jdbc.queryForObject("SELECT nombre FROM materia WHERE id = :id", Map.of("id", id), String.class))
-                .isEqualTo("Derecho Tributario");
+                .isEqualTo("DERECHO TRIBUTARIO");
         assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM auditoria WHERE tabla = 'materia' AND accion = 'ALTA' AND registro_id = :id",
                 Map.of("id", id), Integer.class)).isEqualTo(1);
         // Con el mismo nombre en mayúsculas el código ya existe: se rechaza el nombre repetido.
@@ -112,7 +112,7 @@ class CatalogosTest {
                         .param("nombre", "Divorcio vincular").param("materia_id", String.valueOf(id("materia", "PENAL"))))
                 .andExpect(redirectedUrlPattern("/admin/materias?*ok=*"));
         Map<String, Object> t = jdbc.queryForMap("SELECT * FROM tipo_proceso WHERE id = :id", Map.of("id", tipo));
-        assertThat(t.get("nombre")).isEqualTo("Divorcio vincular");
+        assertThat(t.get("nombre")).isEqualTo("DIVORCIO VINCULAR");
         assertThat(t.get("materia_id")).isEqualTo(familia);
 
         mvc.perform(post("/admin/materias/tipo_proceso/" + tipo + "/baja").with(admin).with(csrf()));
@@ -156,6 +156,29 @@ class CatalogosTest {
         Map<String, Object> t = jdbc.queryForMap("SELECT * FROM tipo_evento WHERE codigo = 'MEDIACION'", Map.of());
         assertThat(t.get("es_plazo")).isEqualTo(true);
         assertThat(((Number) t.get("aviso_dias_defecto")).intValue()).isEqualTo(2);
+    }
+
+    @Test
+    void paisesDepartamentosYCiudades() throws Exception {
+        mvc.perform(get("/admin/ubicaciones").with(admin)).andExpect(status().isOk())
+                .andExpect(content().string(Matchers.containsString("+595")));
+        mvc.perform(post("/admin/ubicaciones/pais").with(admin).with(csrf()).param("codigo", "fr").param("nombre", "Francia")
+                        .param("prefijo_telefonico", "33"))
+                .andExpect(content().string(Matchers.containsString("El prefijo es + y de 1 a 4 dígitos")));
+        mvc.perform(post("/admin/ubicaciones/pais").with(admin).with(csrf()).param("codigo", "fr").param("nombre", "Francia")
+                        .param("prefijo_telefonico", "+33"))
+                .andExpect(redirectedUrlPattern("/admin/ubicaciones?catalogo=pais&ok=*"));
+        String francia = String.valueOf(id("pais", "FR"));
+        mvc.perform(post("/admin/ubicaciones/departamento").with(admin).with(csrf()).param("nombre", "Île-de-France").param("pais_id", francia))
+                .andExpect(redirectedUrlPattern("/admin/ubicaciones?catalogo=departamento&ok=*"));
+        long depto = jdbc.queryForObject("SELECT id FROM departamento WHERE nombre = N'Île-de-France'", Map.of(), Long.class);
+        mvc.perform(post("/admin/ubicaciones/ciudad").with(admin).with(csrf()).param("nombre", "París").param("departamento_id", String.valueOf(depto)))
+                .andExpect(redirectedUrlPattern("/admin/ubicaciones?catalogo=ciudad&ok=*"));
+        mvc.perform(post("/admin/ubicaciones/ciudad").with(admin).with(csrf()).param("nombre", "París").param("departamento_id", String.valueOf(depto)))
+                .andExpect(content().string(Matchers.containsString("Ya existe una ciudad con ese nombre en el departamento.")));
+        // Los departamentos cargados de Paraguay quedaron en su país.
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM departamento d JOIN pais p ON p.id = d.pais_id WHERE p.codigo = 'PY'",
+                Map.of(), Integer.class)).isGreaterThanOrEqualTo(17);
     }
 
     @Test

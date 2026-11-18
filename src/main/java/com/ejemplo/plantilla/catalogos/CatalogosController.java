@@ -24,7 +24,7 @@ import com.ejemplo.plantilla.web.NoEncontrado;
  * Rutas: /admin/{seccion}?catalogo=…, /admin/{seccion}/{catalogo}/nuevo, /{id}, /{id}/editar, /{id}/baja, /{id}/reactivar.
  */
 @Controller
-@RequestMapping("/admin/{seccion:materias|juzgados|estados|tipos}")
+@RequestMapping("/admin/{seccion:materias|juzgados|ubicaciones|estados|tipos}")
 public class CatalogosController {
 
     private final Secciones secciones;

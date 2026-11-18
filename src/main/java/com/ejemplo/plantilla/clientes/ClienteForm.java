@@ -19,7 +19,11 @@ public class ClienteForm {
     private LocalDate fechaNacimiento;
     private String email;
     private String telefono;
-    private String celular;
+    /** País y departamento: solo para elegir la ciudad en cascada; se guarda la ciudad. */
+    /** País del prefijo del teléfono principal (+595…). */
+    private Long telefonoPaisId;
+    private Long paisId;
+    private Long departamentoId;
     private String direccion;
     private Long ciudadId;
     private String observaciones;
@@ -40,7 +44,6 @@ public class ClienteForm {
         if (numeroDocumento != null && numeroDocumento.isEmpty()) numeroDocumento = null;
         email = Textos.minusculas(email);
         telefono = Textos.limpio(telefono);
-        celular = Textos.limpio(celular);
         direccion = Textos.limpio(direccion);
         observaciones = Textos.multilinea(observaciones);
         if ("J".equals(tipoPersona)) {
@@ -67,8 +70,8 @@ public class ClienteForm {
         m.put("numero_documento", numeroDocumento);
         m.put("fecha_nacimiento", fechaNacimiento);
         m.put("email", email);
+        m.put("telefono_pais_id", telefonoPaisId);
         m.put("telefono", telefono);
-        m.put("celular", celular);
         m.put("direccion", direccion);
         m.put("ciudad_id", ciudadId);
         m.put("observaciones", observaciones);
@@ -96,8 +99,12 @@ public class ClienteForm {
     public void setEmail(String email) { this.email = email; }
     public String getTelefono() { return telefono; }
     public void setTelefono(String telefono) { this.telefono = telefono; }
-    public String getCelular() { return celular; }
-    public void setCelular(String celular) { this.celular = celular; }
+    public Long getTelefonoPaisId() { return telefonoPaisId; }
+    public void setTelefonoPaisId(Long telefonoPaisId) { this.telefonoPaisId = telefonoPaisId; }
+    public Long getPaisId() { return paisId; }
+    public void setPaisId(Long paisId) { this.paisId = paisId; }
+    public Long getDepartamentoId() { return departamentoId; }
+    public void setDepartamentoId(Long departamentoId) { this.departamentoId = departamentoId; }
     public String getDireccion() { return direccion; }
     public void setDireccion(String direccion) { this.direccion = direccion; }
     public Long getCiudadId() { return ciudadId; }

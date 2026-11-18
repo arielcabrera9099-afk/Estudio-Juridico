@@ -1,0 +1,117 @@
+<!doctype html>
+<!-- Buscar documentos: filtros y grilla; desde ella, cargar, ver, descargar, modificar y eliminar (DocumentosController). -->
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/layout :: layout(~{::title}, ~{::#contenido}, ~{::estilos})}">
+<head>
+  <title>Documentos</title>
+  <th:block th:fragment="estilos"></th:block>
+</head>
+<body>
+<div id="contenido" class="gx-pantalla">
+  <p th:replace="~{componentes/componentes :: ok}"></p>
+
+  <header class="gx-encabezado">
+    <h1><svg class="lucide" width="20" height="20"><use href="#i-file-text"/></svg>Documentos</h1>
+    <p>Escritos, resoluciones, pruebas y demás archivos de los expedientes</p>
+  </header>
+
+  <section class="gx-panel">
+    <h2 class="gx-panel__titulo">Filtros</h2>
+    <div class="gx-panel__cuerpo">
+      <div class="gx-barra-resumen">
+        <a th:if="${puedeSubir}" class="gx-btn gx-btn--icono" th:href="@{/documentos/nuevo}"><svg class="lucide" width="16" height="16"><use href="#i-file-plus"/></svg>Agregar</a>
+        <span th:unless="${puedeSubir}"></span>
+        <span class="gx-panel__nota" th:text="${#lists.size(filas)} == 1 ? '1 documento' : |${#lists.size(filas)} documentos|">0 documentos</span>
+      </div>
+      <form class="gx-campos gx-campos--filtros" method="get" th:action="@{/documentos}" data-filtros>
+        <div class="gx-campo"><label for="f-texto">Documento</label>
+          <input id="f-texto" name="texto" th:value="${f.texto}" maxlength="80" autocomplete="off" placeholder="Nombre, archivo o descripción"></div>
+        <div class="gx-campo"><label for="f-expediente">Expediente o cliente</label>
+          <input id="f-expediente" name="expediente" th:value="${f.expediente}" maxlength="80" autocomplete="off" placeholder="Número, carátula, cliente o documento"></div>
+        <div class="gx-campo"><label for="f-tipo">Tipo</label>
+          <select id="f-tipo" name="tipo">
+            <option value="">TODOS</option>
+            <option th:each="o : ${tipos}" th:value="${o.id}" th:text="${#strings.toUpperCase(o.texto)}" th:selected="${o.id == f.tipo}">Tipo</option>
+          </select></div>
+        <div class="gx-campo" th:classappend="${errorFiltro != null} ? 'is-error'"><label for="f-desde">Fecha desde</label>
+          <input id="f-desde" name="desde" type="date" th:value="${f.desde}"></div>
+        <div class="gx-campo" th:classappend="${errorFiltro != null} ? 'is-error'"><label for="f-hasta">Fecha hasta</label>
+          <input id="f-hasta" name="hasta" type="date" th:value="${f.hasta}"></div>
+        <div class="gx-campo" th:if="${puedeEliminar}"><label for="f-estado">Estado</label>
+          <select id="f-estado" name="estado">
+            <option value="VIGENTES" th:selected="${f.estado == 'VIGENTES'}">VIGENTES</option>
+            <option value="ELIMINADOS" th:selected="${f.estado == 'ELIMINADOS'}">ELIMINADOS</option>
+            <option value="TODOS" th:selected="${f.estado == 'TODOS'}">TODOS</option>
+          </select></div>
+        <div class="gx-campo gx-campo--boton">
+          <div class="gx-botonera">
+            <button type="submit" class="gx-btn gx-btn--icono"><svg class="lucide" width="16" height="16"><use href="#i-search"/></svg>Buscar</button>
+            <a class="gx-btn gx-btn--secundario" th:href="@{/documentos}">Limpiar</a>
+          </div>
+        </div>
+      </form>
+      <p class="gx-ayuda gx-ayuda--error" th:if="${errorFiltro != null}" th:text="${errorFiltro}">Error</p>
+      <p class="gx-panel__nota">Las fechas filtran por la fecha del documento (de la resolución, del escrito), no por la de carga.</p>
+    </div>
+  </section>
+
+  <p class="gx-aviso gx-aviso--alerta" th:if="${recortada}">
+    <svg class="lucide" width="16" height="16"><use href="#i-alert-triangle"/></svg>
+    <span th:text="|Se muestran los primeros ${maximo} documentos. Ajuste los filtros para ver el resto.|">Se muestran los primeros.</span>
+  </p>
+
+  <section class="gx-panel gx-panel--grilla">
+    <div class="gx-panel__cuerpo">
+      <div class="gx-grilla-wrap">
+        <table class="gx-grilla" id="grilla-documentos" data-paginar="10">
+          <thead><tr>
+            <th class="gx-col-acciones"></th><th>Documento</th><th>Tipo</th><th>Expediente</th><th>Cliente</th>
+            <th>Fecha</th><th class="gx-num">Tamaño</th><th>Cargado</th>
+          </tr></thead>
+          <tbody>
+            <tr th:if="${#lists.isEmpty(filas)}"><td colspan="8" class="gx-grilla__vacio">No hay documentos con esos filtros.</td></tr>
+            <tr th:each="d : ${filas}" th:classappend="${d.eliminado_en != null} ? 'gx-fila--peligro'"
+>
+              <td class="gx-col-acciones">
+                <div class="gx-accion-grupo">
+                  <button type="button" class="gx-accion-grupo__boton" aria-haspopup="true" aria-label="Acciones">
+                    <svg class="lucide" width="16" height="16"><use href="#i-menu"/></svg></button>
+                  <ul class="gx-accion-grupo__menu" hidden>
+                    <li><a th:href="@{/documentos/{id}(id=${d.id})}"><svg class="lucide" width="15" height="15"><use href="#i-search"/></svg>Visualizar</a></li>
+                    <li th:if="${d.eliminado_en == null}"><a th:href="@{/documentos/{id}/ver(id=${d.id})}" target="_blank" rel="noopener"><svg class="lucide" width="15" height="15"><use href="#i-external-link"/></svg>Abrir</a></li>
+                    <li th:if="${d.eliminado_en == null or puedeEliminar}"><a th:href="@{/documentos/{id}/descargar(id=${d.id})}"><svg class="lucide" width="15" height="15"><use href="#i-download"/></svg>Descargar</a></li>
+                    <li th:if="${puedeSubir and d.eliminado_en == null}"><a th:href="@{/documentos/{id}/editar(id=${d.id})}"><svg class="lucide" width="15" height="15"><use href="#i-pencil"/></svg>Modificar</a></li>
+                    <li th:if="${puedeEliminar and d.eliminado_en == null}">
+                      <form method="post" th:action="@{/documentos/{id}/eliminar(id=${d.id})}" data-confirmar-tipo="error" data-confirmar-boton="Eliminar"
+                            th:attr="data-confirmar=|¿Eliminar el documento «${d.nombre}»? El archivo se conserva y puede restaurarse.|">
+                        <button><svg class="lucide" width="15" height="15"><use href="#i-trash2"/></svg>Eliminar</button>
+                      </form>
+                    </li>
+                    <li th:if="${puedeEliminar and d.eliminado_en != null}">
+                      <form method="post" th:action="@{/documentos/{id}/restaurar(id=${d.id})}" th:attr="data-confirmar=|¿Restaurar el documento «${d.nombre}»?|">
+                        <button><svg class="lucide" width="15" height="15"><use href="#i-rotate-ccw"/></svg>Restaurar</button>
+                      </form>
+                    </li>
+                  </ul>
+                </div>
+              </td>
+              <td>
+                <a class="gx-enlace" th:href="@{/documentos/{id}(id=${d.id})}" th:text="${d.nombre}">Nombre</a>
+                <br><small class="lx-archivo" th:text="${d.nombre_archivo}">archivo.pdf</small>
+                <span th:if="${d.eliminado_en != null}" class="gx-etiqueta gx-etiqueta--peligro">ELIMINADO</span>
+              </td>
+              <td th:text="${d.tipo}">Escrito</td>
+              <td><a class="gx-enlace" th:href="@{/expedientes/{id}(id=${d.expediente_id})} + '#documentos'" th:text="${d.numero_interno}" th:title="${d.caratula}">2026-0001</a></td>
+              <td th:text="${d.cliente}">Cliente</td>
+              <td th:text="${d.fecha_documento != null} ? ${#temporals.format(d.fecha_documento, 'dd/MM/yyyy')} : '—'">—</td>
+              <td class="gx-num" th:text="${d.tamano_bytes >= 1048576} ? ${#numbers.formatDecimal(d.tamano_bytes / 1048576.0, 1, 'POINT', 1, 'COMMA')} + ' MB' : ${#numbers.formatInteger((d.tamano_bytes + 1023) / 1024, 1, 'POINT')} + ' KB'">120 KB</td>
+              <td th:text="|${#temporals.format(d.creado_en, 'dd/MM/yyyy')} · ${d.creado_por_usuario}|">18/11/2026 · usuario</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</div>
+</body>
+</html>

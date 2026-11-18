@@ -277,6 +277,34 @@
       </div>
     </section>
 
+    <section class="gx-panel" id="documentos">
+      <h2 class="gx-panel__titulo" th:text="|Documentos (${#lists.size(documentos)})|">Documentos</h2>
+      <div class="gx-panel__cuerpo">
+        <div class="gx-barra-resumen">
+          <a th:if="${puedeSubir and !cerrado}" class="gx-btn gx-btn--icono" th:href="@{/documentos/nuevo(expediente=${form.id})}"><svg class="lucide" width="16" height="16"><use href="#i-file-plus"/></svg>Adjuntar documento</a>
+          <span th:unless="${puedeSubir and !cerrado}"></span>
+          <span class="gx-panel__nota">Escritos, resoluciones, pruebas y demás archivos del caso</span>
+        </div>
+        <div class="gx-grilla-wrap">
+          <table class="gx-grilla" data-paginar="10">
+            <thead><tr><th>Documento</th><th>Tipo</th><th>Fecha</th><th>Cargado</th><th></th></tr></thead>
+            <tbody>
+              <tr th:if="${#lists.isEmpty(documentos)}"><td colspan="5" class="gx-grilla__vacio">El expediente no tiene documentos.</td></tr>
+              <tr th:each="d : ${documentos}">
+                <td><a class="gx-enlace" th:href="@{/documentos/{id}(id=${d.id})}" th:text="${d.nombre}">Nombre</a>
+                  <br><small class="lx-archivo" th:text="${d.nombre_archivo}">archivo.pdf</small></td>
+                <td th:text="${d.tipo}">Escrito</td>
+                <td th:text="${d.fecha_documento != null} ? ${#temporals.format(d.fecha_documento, 'dd/MM/yyyy')} : '—'">—</td>
+                <td th:text="|${#temporals.format(d.creado_en, 'dd/MM/yyyy')} · ${d.creado_por_usuario}|">fecha</td>
+                <td><a class="gx-enlace" th:href="@{/documentos/{id}/ver(id=${d.id})}" target="_blank" rel="noopener">Abrir</a> ·
+                  <a class="gx-enlace" th:href="@{/documentos/{id}/descargar(id=${d.id})}">Descargar</a></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
     <section class="gx-panel" id="historial">
       <h2 class="gx-panel__titulo">Historial de estados</h2>
       <div class="gx-panel__cuerpo">

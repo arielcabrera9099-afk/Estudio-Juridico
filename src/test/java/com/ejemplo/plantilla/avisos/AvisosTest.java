@@ -81,7 +81,7 @@ class AvisosTest {
         assertThat(estado(r1)).isEqualTo("ENVIADO");
         assertThat(estado(r2)).isEqualTo("ANULADO");
         Map<String, Object> n = jdbc.queryForMap("SELECT * FROM notificacion WHERE usuario_id = :yo", Map.of("yo", yo));
-        assertThat(n.get("titulo")).isEqualTo("Vencimiento en 2 días: Contestar demanda");
+        assertThat(n.get("titulo")).isEqualTo("VENCIMIENTO EN 2 DÍAS: CONTESTAR DEMANDA");
         assertThat(n.get("tipo")).isEqualTo("VENCIMIENTO");
         assertThat(n.get("referencia_id")).isEqualTo(vence);
         // Una segunda pasada no vuelve a avisar.
@@ -110,7 +110,7 @@ class AvisosTest {
                 .andExpect(content().string(Matchers.containsString("Avisos: 1 sin leer")));
         mvc.perform(get("/notificaciones/contador").with(sesion)).andExpect(jsonPath("$.noLeidas").value(1));
         mvc.perform(get("/notificaciones/panel").with(sesion)).andExpect(status().isOk())
-                .andExpect(content().string(Matchers.containsString("Audiencia mañana: Audiencia de prueba")));
+                .andExpect(content().string(Matchers.containsString("AUDIENCIA MAÑANA: AUDIENCIA DE PRUEBA")));
         mvc.perform(get("/notificaciones").with(sesion)).andExpect(content().string(Matchers.containsString("1 aviso")));
 
         // Otro usuario no puede abrir un aviso ajeno.

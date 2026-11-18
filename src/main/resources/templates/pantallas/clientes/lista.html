@@ -93,7 +93,7 @@
               <td><a class="gx-enlace" th:href="@{/clientes/{id}(id=${f.id})}" th:text="${f.nombre}">Cliente</a></td>
               <td th:text="${f.tipo_persona == 'J'} ? 'Jurídica' : 'Física'">Física</td>
               <td th:text="${f.numero_documento != null} ? |${f.documento_tipo} ${f.numero_documento}| : '—'">CI 1234567</td>
-              <td th:text="${f.celular ?: f.telefono}">0981 000 000</td>
+              <td th:text="${f.telefono}">0981 000 000</td>
               <td th:text="${f.email ?: '—'}">email</td>
               <td th:text="${f.ciudad ?: '—'}">Ciudad</td>
               <td class="gx-num" th:text="${f.casos == 0} ? '—' : |${f.casos_activos} / ${f.casos}|"

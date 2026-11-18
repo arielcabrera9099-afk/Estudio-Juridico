@@ -11,6 +11,12 @@ spring:
   flyway:
     locations: classpath:db/migration
   # Fechas de los formularios: <input type="date"> y <input type="datetime-local"> envían ISO (2026-11-17, 2026-11-17T09:30).
+  # Carga de documentos: el tope del servidor. El máximo de cada archivo lo fija el parámetro documentos.tamano_max_mb
+  # (1 a 100 MB).
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 105MB
   mvc:
     format:
       date: iso
@@ -40,6 +46,9 @@ server:
   servlet:
     session:
       timeout: 30m
+  # Un archivo de más de 100 MB recibe el mensaje de "demasiado grande" en lugar de un corte de conexión.
+  tomcat:
+    max-swallow-size: 110MB
   compression:
     enabled: true
     mime-types: text/html,text/css,application/javascript,application/json,image/svg+xml
@@ -57,3 +66,7 @@ app:
     usuario: admin
     email: admin@estudio.local
     clave-inicial: ${APP_ADMIN_CLAVE:}
+  # Carpeta de los archivos de documentos: fuera del proyecto (nunca al repositorio) y respaldada junto con la base.
+  # Se configura con la variable de entorno APP_DOCUMENTOS_DIR.
+  documentos:
+    carpeta: ${APP_DOCUMENTOS_DIR:${user.home}/LexNova/documentos}

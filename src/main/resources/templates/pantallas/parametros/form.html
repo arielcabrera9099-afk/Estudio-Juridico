@@ -26,7 +26,7 @@
           <div class="gx-campo gx-campo--ancho"><label>Descripción</label><input disabled th:value="${ficha.descripcion}"></div>
           <div class="gx-campo gx-campo--ancho" th:classappend="${errores.tiene('valor')} ? 'is-error'">
             <label for="valor" class="requerido">Valor</label>
-            <input id="valor" name="valor" th:value="${valor}" maxlength="500" autocomplete="off" th:disabled="${ver}"
+            <input id="valor" name="valor" th:value="${valor}" maxlength="500" autocomplete="off" data-sin-mayusculas th:disabled="${ver}"
                    th:autofocus="${!ver}" th:attr="inputmode=${ficha.tipo == 'NUMERO'} ? 'numeric' : null">
             <p th:replace="~{componentes/componentes :: error('valor')}"></p>
             <span class="gx-ayuda" th:text="${ayuda}">Ayuda</span>

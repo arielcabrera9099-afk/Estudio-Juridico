@@ -136,7 +136,7 @@ Un cliente puede ser una persona física o una empresa. Una empresa puede tener 
 | `numero_documento` | VARCHAR(20) | Único junto con el tipo de documento |
 | `fecha_nacimiento` | DATE | Opcional, solo persona física |
 | `email` | VARCHAR(120) | Opcional |
-| `telefono`, `celular` | VARCHAR(30) | Al menos uno obligatorio |
+| (teléfonos) | | En la tabla `cliente_telefono` (`V10`): tipo y número de documento del cliente, país (el prefijo), número sin prefijo y `es_principal`. Al menos uno; uno solo principal |
 | `direccion` | VARCHAR(200) | Opcional |
 | `ciudad_id` | BIGINT | Opcional, catálogo de ciudades de Paraguay |
 | `observaciones` | NVARCHAR(MAX) | Notas internas del estudio |
@@ -378,7 +378,8 @@ Campos: `clave` (única), `valor`, `tipo` (`NUMERO`, `TEXTO`, `LISTA`, `BOOLEANO
 
 | Tabla | Campos | Contenido inicial |
 | --- | --- | --- |
-| `departamento` | `codigo`, `nombre` | Los 17 departamentos de Paraguay y Asunción |
+| `pais` | `codigo` (ISO de dos letras), `nombre`, `prefijo_telefonico` | Paraguay (+595) y los países de la región; se agregan en Administración (`V9`) |
+| `departamento` | `pais_id`, `codigo`, `nombre` | Los 17 departamentos de Paraguay y Asunción; en otros países, la provincia o el estado |
 | `ciudad` | `departamento_id`, `nombre` | Capitales departamentales y ciudades principales; el resto de los distritos se agrega cuando haga falta |
 | `tipo_documento_identidad` | `codigo`, `nombre` | Cédula de identidad, RUC, Pasaporte |
 
@@ -458,7 +459,7 @@ Se construye por módulos, en el orden en que dependen unos de otros: cada paso 
 4. **Clientes:** alta, edición, contactos e historial de casos. *Hecho: lista con filtros, ABM, contactos (un solo principal) e historial desde la vista `v_historial_cliente`; la baja no se permite con casos activos.*
 5. **Expedientes:** registro, partes, actuaciones, cambios de estado y cierre. *Hecho: número interno automático según `expediente.formato_numero` (correlativo por año, con bloqueo para altas simultáneas), partes, bitácora, historial de estados; cerrar y reabrir con `EXPEDIENTES_CERRAR`; un expediente cerrado es de solo lectura.*
 6. **Agenda:** calendario, vencimientos, recordatorios y notificaciones. *Hecho: lista y calendario mensual, ABM de eventos con estados (pendiente, realizado, suspendido, cancelado) y recordatorios generados al guardar (se recalculan o anulan). Después: tarea programada que los convierte en notificaciones (solo en el sistema, sin email), campana con contador y pantalla de vencimientos.*
-7. **Documentos:** carga de archivos por expediente y buscador.
+7. **Documentos:** carga de archivos por expediente y buscador. *Hecho: archivos en `APP_DOCUMENTOS_DIR` (`expedientes/<id>/<uuid>.<ext>`), extensión, tamaño y firma del contenido validados, sin duplicados por hash en un expediente, descarga auditada (`DESCARGA`), baja lógica con restauración, panel en la ficha del expediente.*
 8. **Reportes:** casos activos y cerrados, agenda semanal y mensual, exportación.
 9. **Asistente con IA:** cuando el resto esté en uso.
 

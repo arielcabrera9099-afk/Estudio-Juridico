@@ -1,0 +1,52 @@
+<!doctype html>
+<!-- Teléfono de un cliente: alta y modificación. Vuelve a la ficha del cliente (TelefonosController). -->
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/layout :: layout(~{::title}, ~{::#contenido}, ~{::estilos})}">
+<head>
+  <title>Teléfono</title>
+  <th:block th:fragment="estilos"></th:block>
+</head>
+<body>
+<div id="contenido" class="gx-pantalla gx-pantalla--angosta">
+  <header class="gx-encabezado">
+    <h1><svg class="lucide" width="20" height="20"><use href="#i-phone"/></svg><span th:text="${paginaTitulo}">Teléfono</span></h1>
+    <p th:text="|Cliente: ${cliente.nombre}|">Cliente</p>
+  </header>
+
+  <p th:replace="~{componentes/componentes :: erroresResumen}"></p>
+
+  <form method="post" th:object="${telefono}" novalidate
+        th:action="${telefono.id == null} ? @{/clientes/{id}/telefonos(id=${cliente.id})} : @{/clientes/{id}/telefonos/{t}(id=${cliente.id},t=${telefono.id})}"
+        th:attr="data-confirmar=${telefono.id == null} ? '¿Confirma el alta del teléfono?' : '¿Confirma los cambios del teléfono?'">
+    <section class="gx-panel">
+      <h2 class="gx-panel__titulo">Datos del teléfono</h2>
+      <div class="gx-panel__cuerpo">
+        <div class="gx-campos">
+          <div class="gx-campo" th:classappend="${errores.tiene('paisId')} ? 'is-error'">
+            <label for="paisId" class="requerido">Prefijo</label>
+            <select th:field="*{paisId}">
+              <option th:each="p : ${prefijos}" th:value="${p.id}" th:text="${p.texto}">+595 (Paraguay)</option>
+            </select>
+            <p th:replace="~{componentes/componentes :: error('paisId')}"></p>
+          </div>
+          <div class="gx-campo" th:classappend="${errores.tiene('numero')} ? 'is-error'">
+            <label for="numero" class="requerido">Número</label>
+            <input th:field="*{numero}" maxlength="20" inputmode="tel" autocomplete="off" autofocus placeholder="0981 123 456">
+            <p th:replace="~{componentes/componentes :: error('numero')}"></p>
+          </div>
+          <div class="gx-campo gx-campo--ancho">
+            <label class="gx-check"><input type="checkbox" th:field="*{esPrincipal}"> Teléfono principal</label>
+          </div>
+        </div>
+        <p class="gx-panel__nota">El número va sin el prefijo. Hay un solo teléfono principal por cliente (el que se muestra en la
+          grilla): al marcar este, deja de serlo el anterior. El primero siempre es el principal.</p>
+        <div class="gx-acciones-pie">
+          <button type="submit" class="gx-btn gx-btn--icono"><svg class="lucide" width="16" height="16"><use href="#i-save"/></svg>Confirmar</button>
+          <a class="gx-btn gx-btn--secundario" th:href="@{/clientes/{id}(id=${cliente.id})} + '#telefonos'">Cancelar</a>
+        </div>
+      </div>
+    </section>
+  </form>
+</div>
+</body>
+</html>

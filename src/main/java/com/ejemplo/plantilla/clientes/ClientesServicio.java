@@ -22,7 +22,7 @@ import com.ejemplo.plantilla.web.Errores;
  *   <li>Persona física: nombres y apellidos; fecha de nacimiento opcional, no futura. Persona jurídica: razón social.</li>
  *   <li>Tipo y número de documento obligatorios; formato según el tipo (cédula: solo números; RUC: número,
  *       guion y dígito verificador; pasaporte: letras y números) y único por tipo.</li>
- *   <li>Al menos un teléfono o celular. Email con formato válido.</li>
+ *   <li>Teléfono obligatorio (con prefijo de país si no es de Paraguay). Email con formato válido.</li>
  *   <li>La baja es lógica (el cliente conserva su historial) y no se permite con casos activos.</li>
  *   <li>Un solo contacto principal por cliente; el primer contacto lo es siempre.</li>
  * </ul>
@@ -32,10 +32,19 @@ public class ClientesServicio {
 
     public static final int MAXIMO_FILAS = 500;
     static final String PATRON_EMAIL = "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$";
-    static final String PATRON_TELEFONO = "^[0-9+()\\s-]{6,30}$";
+    /** Números, espacios, +, guiones, barras y paréntesis: "+595 981 123 456", "021 600 000 / 0981 000 000". */
+    static final String PATRON_TELEFONO = "^[0-9+()/\\s-]{6,30}$";
 
     private static final String NOMBRE = "CASE WHEN c.tipo_persona = 'J' THEN c.razon_social "
             + "ELSE CONCAT(c.apellidos, N', ', c.nombres) END";
+
+    /** Teléfono principal del cliente (de cliente_telefono, por su documento): "+595 0981 123 456", su país y su número. */
+    static final String TELEFONO_PRINCIPAL = " OUTER APPLY (SELECT TOP 1 CONCAT(pt.prefijo_telefonico, ' ', t.numero) AS telefono, "
+            + "t.pais_id, t.numero FROM cliente_telefono t JOIN pais pt ON pt.id = t.pais_id "
+            + "WHERE t.tipo_documento_identidad_id = c.tipo_documento_identidad_id AND t.numero_documento = c.numero_documento "
+            + "ORDER BY t.es_principal DESC, t.id) tel";
+    /** Número sin el prefijo: empieza con un dígito; dígitos, espacios y guiones (6 a 20). */
+    static final String PATRON_NUMERO = "^[0-9][0-9 -]{5,19}$";
 
     private final NamedParameterJdbcTemplate jdbc;
     private final Catalogos catalogos;
@@ -68,22 +77,25 @@ public class ClientesServicio {
         if ("ACTIVOS".equals(estado)) w.append(" AND c.activo = 1");
         else if ("INACTIVOS".equals(estado)) w.append(" AND c.activo = 0");
         return Filas.lista(jdbc, "SELECT TOP " + (MAXIMO_FILAS + 1) + " c.id, c.tipo_persona, " + NOMBRE + " AS nombre, "
-                + "td.codigo AS documento_tipo, c.numero_documento, c.telefono, c.celular, c.email, ci.nombre AS ciudad, "
+                + "td.codigo AS documento_tipo, c.numero_documento, tel.telefono, c.email, ci.nombre AS ciudad, "
                 + "c.activo, "
                 + "(SELECT COUNT(*) FROM expediente e JOIN estado_expediente ee ON ee.id = e.estado_expediente_id "
                 + " WHERE e.cliente_id = c.id AND ee.es_activo = 1) AS casos_activos, "
                 + "(SELECT COUNT(*) FROM expediente e WHERE e.cliente_id = c.id) AS casos "
                 + "FROM cliente c LEFT JOIN tipo_documento_identidad td ON td.id = c.tipo_documento_identidad_id "
-                + "LEFT JOIN ciudad ci ON ci.id = c.ciudad_id" + w + " ORDER BY " + NOMBRE, p);
+                + "LEFT JOIN ciudad ci ON ci.id = c.ciudad_id" + TELEFONO_PRINCIPAL + w + " ORDER BY " + NOMBRE, p);
     }
 
     public Optional<Map<String, Object>> ficha(long id) {
         return Filas.una(jdbc, "SELECT c.*, " + NOMBRE + " AS nombre, td.nombre AS documento_tipo_nombre, "
-                + "CONCAT(ci.nombre, N' (', d.nombre, N')') AS ciudad, "
+                + "CONCAT(ci.nombre, N' (', d.nombre, N', ', pa.nombre, N')') AS ciudad, d.id AS departamento_ui, d.pais_id AS pais_ui, "
+                + "tel.telefono, tel.pais_id AS telefono_pais_id, tel.numero AS telefono_numero, "
                 + "uc.nombre_usuario AS creado_por_usuario, um.nombre_usuario AS modificado_por_usuario "
                 + "FROM cliente c LEFT JOIN tipo_documento_identidad td ON td.id = c.tipo_documento_identidad_id "
                 + "LEFT JOIN ciudad ci ON ci.id = c.ciudad_id LEFT JOIN departamento d ON d.id = ci.departamento_id "
-                + "LEFT JOIN usuario uc ON uc.id = c.creado_por LEFT JOIN usuario um ON um.id = c.modificado_por "
+                + "LEFT JOIN pais pa ON pa.id = d.pais_id "
+                + "LEFT JOIN usuario uc ON uc.id = c.creado_por LEFT JOIN usuario um ON um.id = c.modificado_por"
+                + TELEFONO_PRINCIPAL + " "
                 + "WHERE c.id = :id", Map.of("id", id));
     }
 
@@ -99,8 +111,10 @@ public class ClientesServicio {
             c.setNumeroDocumento((String) f.get("numero_documento"));
             c.setFechaNacimiento((LocalDate) f.get("fecha_nacimiento"));
             c.setEmail((String) f.get("email"));
-            c.setTelefono((String) f.get("telefono"));
-            c.setCelular((String) f.get("celular"));
+            c.setTelefono((String) f.get("telefono_numero"));
+            c.setTelefonoPaisId((Long) f.get("telefono_pais_id"));
+            c.setDepartamentoId((Long) f.get("departamento_ui"));
+            c.setPaisId((Long) f.get("pais_ui"));
             c.setDireccion((String) f.get("direccion"));
             c.setCiudadId((Long) f.get("ciudad_id"));
             c.setObservaciones((String) f.get("observaciones"));
@@ -170,13 +184,18 @@ public class ClientesServicio {
         if (f.getEmail() != null && (f.getEmail().length() > 120 || !f.getEmail().matches(PATRON_EMAIL))) {
             e.campo("email", "El email no es válido.");
         }
-        if (f.getTelefono() == null && f.getCelular() == null) {
-            e.campo("telefono", "Ingrese al menos un teléfono o un celular.");
+        if (f.getTelefono() == null) e.campo("telefono", "Teléfono es requerido.");
+        else if (!f.getTelefono().matches(PATRON_NUMERO)) {
+            e.campo("telefono", "El número va sin prefijo: dígitos, espacios y guiones (6 a 20).");
         }
-        telefono(e, "telefono", f.getTelefono());
-        telefono(e, "celular", f.getCelular());
+        if (f.getTelefonoPaisId() == null) e.campo("telefono", "Elija el prefijo del teléfono.");
+        else if (catalogos.prefijos(f.getTelefonoPaisId()).stream().noneMatch(o -> o.getId().equals(f.getTelefonoPaisId()))) {
+            e.campo("telefono", "Elija el prefijo de la lista.");
+        }
         if (f.getDireccion() != null && f.getDireccion().length() > 200) e.campo("direccion", "Dirección admite hasta 200 caracteres.");
-        if (f.getCiudadId() != null && !catalogos.existe("ciudad", f.getCiudadId())) e.campo("ciudadId", "La ciudad no existe.");
+        if (f.getCiudadId() != null && catalogos.ciudades(ciudadAnterior(f.getId())).stream().noneMatch(o -> o.getId().equals(f.getCiudadId()))) {
+            e.campo("ciudadId", "Elija la ciudad de la lista.");
+        }
         if (f.getObservaciones() != null && f.getObservaciones().length() > 4000) {
             e.campo("observaciones", "Observaciones admite hasta 4000 caracteres.");
         }
@@ -219,9 +238,16 @@ public class ClientesServicio {
         else if (valor.length() > maximo) e.campo(campo, nombre + " admite hasta " + maximo + " caracteres.");
     }
 
+    /** La ciudad guardada del cliente (se conserva aunque se haya dado de baja). */
+    private Long ciudadAnterior(Long clienteId) {
+        if (clienteId == null) return null;
+        return jdbc.query("SELECT ciudad_id FROM cliente WHERE id = :id", Map.of("id", clienteId),
+                rs -> rs.next() ? (Long) rs.getObject(1, Long.class) : null);
+    }
+
     private static void telefono(Errores e, String campo, String valor) {
         if (valor != null && !valor.matches(PATRON_TELEFONO)) {
-            e.campo(campo, "Solo números, espacios, +, guiones y paréntesis (6 a 30 caracteres).");
+            e.campo(campo, "Solo números, espacios, +, guiones, barras y paréntesis (6 a 30 caracteres).");
         }
     }
 
@@ -250,12 +276,32 @@ public class ClientesServicio {
     @Transactional
     public long crear(ClienteForm f) {
         Long id = jdbc.queryForObject("INSERT INTO cliente (tipo_persona, nombres, apellidos, razon_social, "
-                + "tipo_documento_identidad_id, numero_documento, fecha_nacimiento, email, telefono, celular, direccion, "
+                + "tipo_documento_identidad_id, numero_documento, fecha_nacimiento, email, direccion, "
                 + "ciudad_id, observaciones, activo, creado_por) OUTPUT inserted.id VALUES (:tipo, :nombres, :apellidos, "
-                + ":razon, :tipoDoc, :numero, :nacimiento, :email, :telefono, :celular, :direccion, :ciudad, :obs, 1, :yo)",
+                + ":razon, :tipoDoc, :numero, :nacimiento, :email, :direccion, :ciudad, :obs, 1, :yo)",
                 parametros(f), Long.class);
+        guardarTelefonoPrincipal(f);
         auditoria.registrar(Auditoria.ALTA, "cliente", id, null, f.paraAuditoria());
         return id;
+    }
+
+    /**
+     * El teléfono del formulario es el principal del cliente: si ya tiene uno, se modifica; si no, se agrega. Va
+     * después de guardar el cliente, con su documento ya actualizado (los teléfonos lo siguen por la clave foránea).
+     */
+    private void guardarTelefonoPrincipal(ClienteForm f) {
+        MapSqlParameterSource p = new MapSqlParameterSource("tipoDoc", f.getTipoDocumentoIdentidadId())
+                .addValue("numero", f.getNumeroDocumento()).addValue("pais", f.getTelefonoPaisId())
+                .addValue("tel", f.getTelefono()).addValue("yo", UsuarioActual.id().orElse(null));
+        // Si el número ya estaba como secundario, ese pasa a ser el principal.
+        jdbc.update("DELETE FROM cliente_telefono WHERE tipo_documento_identidad_id = :tipoDoc AND numero_documento = :numero "
+                + "AND pais_id = :pais AND numero = :tel AND es_principal = 0", p);
+        int n = jdbc.update("UPDATE cliente_telefono SET pais_id = :pais, numero = :tel, modificado_en = SYSUTCDATETIME(), "
+                + "modificado_por = :yo WHERE tipo_documento_identidad_id = :tipoDoc AND numero_documento = :numero AND es_principal = 1", p);
+        if (n == 0) {
+            jdbc.update("INSERT INTO cliente_telefono (tipo_documento_identidad_id, numero_documento, pais_id, numero, es_principal, "
+                    + "creado_por) VALUES (:tipoDoc, :numero, :pais, :tel, 1, :yo)", p);
+        }
     }
 
     @Transactional
@@ -263,10 +309,11 @@ public class ClientesServicio {
         ClienteForm antes = formulario(f.getId()).orElseThrow();
         jdbc.update("UPDATE cliente SET tipo_persona = :tipo, nombres = :nombres, apellidos = :apellidos, "
                 + "razon_social = :razon, tipo_documento_identidad_id = :tipoDoc, numero_documento = :numero, "
-                + "fecha_nacimiento = :nacimiento, email = :email, telefono = :telefono, celular = :celular, "
+                + "fecha_nacimiento = :nacimiento, email = :email, "
                 + "direccion = :direccion, ciudad_id = :ciudad, observaciones = :obs, activo = :activo, "
                 + "modificado_en = SYSUTCDATETIME(), modificado_por = :yo WHERE id = :id",
                 parametros(f).addValue("id", f.getId()).addValue("activo", f.isActivo()));
+        guardarTelefonoPrincipal(f);
         auditoria.registrar(Auditoria.MODIFICACION, "cliente", f.getId(), antes.paraAuditoria(), f.paraAuditoria());
     }
 
@@ -349,7 +396,6 @@ public class ClientesServicio {
                 .addValue("nacimiento", f.getFechaNacimiento())
                 .addValue("email", f.getEmail())
                 .addValue("telefono", f.getTelefono())
-                .addValue("celular", f.getCelular())
                 .addValue("direccion", f.getDireccion())
                 .addValue("ciudad", f.getCiudadId())
                 .addValue("obs", f.getObservaciones())

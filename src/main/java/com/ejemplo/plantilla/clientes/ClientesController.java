@@ -33,8 +33,10 @@ public class ClientesController {
     private final ClientesServicio servicio;
     private final Catalogos catalogos;
     private final ModeloComun modelo;
+    private final TelefonosServicio telefonos;
 
-    public ClientesController(ClientesServicio servicio, Catalogos catalogos, ModeloComun modelo) {
+    public ClientesController(ClientesServicio servicio, Catalogos catalogos, ModeloComun modelo, TelefonosServicio telefonos) {
+        this.telefonos = telefonos;
         this.servicio = servicio;
         this.catalogos = catalogos;
         this.modelo = modelo;
@@ -87,6 +89,7 @@ public class ClientesController {
     public String ver(@PathVariable long id, Model model) {
         ClienteForm form = servicio.formulario(id).orElseThrow(NoEncontrado::new);
         model.addAttribute("contactos", servicio.contactos(id));
+        model.addAttribute("telefonos", telefonos.deCliente(id));
         model.addAttribute("historial", servicio.historial(id));
         return formulario(model, form, "ver", new Errores());
     }
@@ -195,7 +198,18 @@ public class ClientesController {
         model.addAttribute("ver", "ver".equals(modo));
         model.addAttribute("errores", errores);
         model.addAttribute("tiposDocumento", catalogos.tiposDocumentoIdentidad());
-        model.addAttribute("ciudades", catalogos.ciudades());
+        if (form.getId() == null && form.getPaisId() == null && form.getCiudadId() == null) {
+            // Alta: Paraguay elegido de entrada.
+            catalogos.paises(null).stream().filter(p -> "PY".equals(p.getCodigo())).findFirst().ifPresent(p -> form.setPaisId((Long) p.getId()));
+        }
+        if (form.getTelefonoPaisId() == null && !"ver".equals(modo)) {
+            // Prefijo de Paraguay por defecto (también para un cliente antiguo que todavía no tiene teléfono).
+            catalogos.prefijos(null).stream().filter(p -> "PY".equals(p.getCodigo())).findFirst().ifPresent(p -> form.setTelefonoPaisId((Long) p.getId()));
+        }
+        model.addAttribute("prefijos", catalogos.prefijos(form.getTelefonoPaisId()));
+        model.addAttribute("paises", catalogos.paises(form.getPaisId()));
+        model.addAttribute("departamentos", catalogos.departamentos(form.getDepartamentoId()));
+        model.addAttribute("ciudades", catalogos.ciudades(form.getCiudadId()));
         if (form.getId() != null) model.addAttribute("ficha", servicio.ficha(form.getId()).orElseThrow(NoEncontrado::new));
         return "pantallas/clientes/form";
     }

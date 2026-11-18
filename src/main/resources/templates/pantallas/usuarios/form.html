@@ -29,7 +29,7 @@
         <div class="gx-campos gx-campos--3">
           <div class="gx-campo" th:classappend="${errores.tiene('nombreUsuario')} ? 'is-error'">
             <label for="nombreUsuario" th:classappend="${modo == 'alta'} ? 'requerido'">Usuario</label>
-            <input th:field="*{nombreUsuario}" maxlength="30" autocomplete="off"
+            <input th:field="*{nombreUsuario}" maxlength="30" autocomplete="off" data-sin-mayusculas
                    th:disabled="${modo != 'alta'}" placeholder="por ejemplo, jperez">
             <p th:replace="~{componentes/componentes :: error('nombreUsuario')}"></p>
           </div>

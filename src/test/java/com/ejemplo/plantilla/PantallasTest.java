@@ -79,10 +79,10 @@ class PantallasTest {
     @Test
     void lasPantallasPendientesMuestranUnAviso() throws Exception {
         long id = Sesiones.crearUsuario(jdbc, "prueba_admin", "ADMINISTRADOR", false);
-        mvc.perform(get("/documentos").with(Sesiones.como(id, "prueba_admin", Sesiones.TODOS)))
+        mvc.perform(get("/reportes/expedientes").with(Sesiones.como(id, "prueba_admin", Sesiones.TODOS)))
                 .andExpect(status().isOk())
                 .andExpect(content().string(Matchers.containsString("Pantalla en construcción")))
-                .andExpect(content().string(Matchers.containsString("<span>Buscar documentos</span>")));
+                .andExpect(content().string(Matchers.containsString("<span>Casos activos y cerrados</span>")));
     }
 
     @Test

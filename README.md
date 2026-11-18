@@ -36,6 +36,8 @@ Requisitos: JDK 11 o superior, Maven 3.8 o superior y SQL Server 2019 o superior
 
 En el primer arranque, si la base no tiene usuarios, se crea el usuario **`admin`** (rol Administrador) con la clave de la variable de entorno `APP_ADMIN_CLAVE`. Si no está definida, se genera una al azar y se muestra una sola vez en el log. El sistema pide cambiarla en el primer ingreso. Después, los demás usuarios se crean desde **Administración → Seguridad → Usuarios**.
 
+**Documentos:** los archivos adjuntos se guardan fuera de la base y del proyecto, en la carpeta de la variable de entorno `APP_DOCUMENTOS_DIR` (por defecto `~/LexNova/documentos`), con una subcarpeta por expediente. Esa carpeta se respalda junto con la base: sin ella, los documentos quedan sin su archivo. Nunca se sube al repositorio.
+
 - La contraseña debe tener al menos 8 caracteres, con letras y números, y no contener el nombre de usuario.
 - Tras 5 intentos fallidos el usuario queda bloqueado 15 minutos (parámetros `seguridad.max_intentos` y `seguridad.minutos_bloqueo`); un administrador puede desbloquearlo antes.
 - Un administrador puede reiniciar la clave de cualquier usuario; el usuario deberá cambiarla al ingresar.

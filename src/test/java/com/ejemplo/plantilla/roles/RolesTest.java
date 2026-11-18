@@ -108,7 +108,7 @@ class RolesTest {
         mvc.perform(post("/admin/roles/" + id).with(admin).with(csrf()).param("codigo", "OTRO")
                         .param("nombre", "Procurador judicial").param("permisos", permiso("CLIENTES_VER")).param("activo", "true"))
                 .andExpect(redirectedUrlPattern("/admin/roles?ok=*"));
-        assertThat(rol("PROCURADOR").get("nombre")).isEqualTo("Procurador judicial");
+        assertThat(rol("PROCURADOR").get("nombre")).isEqualTo("PROCURADOR JUDICIAL");
         assertThat(permisosDe("PROCURADOR")).containsExactly("CLIENTES_VER");
     }
 

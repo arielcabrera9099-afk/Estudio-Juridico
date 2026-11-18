@@ -77,7 +77,7 @@ class UsuariosTest {
         mvc.perform(alta()).andExpect(redirectedUrlPattern("/admin/usuarios?ok=*"));
         Map<String, Object> u = usuario("jperez");
         assertThat(u.get("email")).isEqualTo("jperez@estudio.py");
-        assertThat(u.get("nombres")).isEqualTo("Juan Carlos");
+        assertThat(u.get("nombres")).isEqualTo("JUAN CARLOS");
         assertThat(u.get("debe_cambiar_clave")).isEqualTo(true);
         assertThat(u.get("creado_por")).isEqualTo(adminId);
         assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM usuario_rol WHERE usuario_id = :id",

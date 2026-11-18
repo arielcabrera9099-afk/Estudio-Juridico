@@ -25,6 +25,7 @@ import com.ejemplo.plantilla.datos.Filas;
 public class AvisosServicio {
 
     public static final int MAXIMO_FILAS = 500;
+    private static final Locale ES = new Locale("es", "PY");
     /** Cuántos recordatorios procesa cada pasada de la tarea. */
     static final int LOTE = 200;
     private static final DateTimeFormatter CON_HORA = DateTimeFormatter.ofPattern("EEE dd/MM/yyyy HH:mm", new Locale("es", "PY"));
@@ -62,9 +63,10 @@ public class AvisosServicio {
             LocalDateTime inicio = (LocalDateTime) r.get("fecha_inicio");
             boolean plazo = Boolean.TRUE.equals(r.get("es_plazo"));
             String tipo = plazo ? "VENCIMIENTO" : "AUDIENCIA".equals(r.get("tipo_codigo")) ? "AUDIENCIA" : "SISTEMA";
-            String titulo = recortar(r.get("tipo") + " " + cuando(hoy, inicio.toLocalDate(), plazo) + ": " + r.get("titulo"), 150);
+            String titulo = recortar((r.get("tipo") + " " + cuando(hoy, inicio.toLocalDate(), plazo) + ": " + r.get("titulo")).toUpperCase(ES), 150);
             String mensaje = (Boolean.TRUE.equals(r.get("todo_el_dia")) ? inicio.format(SIN_HORA) : inicio.format(CON_HORA))
                     + (r.get("numero_interno") == null ? "" : " · Expediente " + r.get("numero_interno") + " · " + r.get("caratula"));
+            mensaje = mensaje.toUpperCase(ES);
             jdbc.update("INSERT INTO notificacion (usuario_id, titulo, mensaje, tipo, referencia_tipo, referencia_id) "
                     + "VALUES (:usuario, :titulo, :mensaje, :tipo, 'EVENTO_AGENDA', :evento)",
                     new MapSqlParameterSource("usuario", r.get("usuario_id")).addValue("titulo", titulo).addValue("mensaje", mensaje)

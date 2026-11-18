@@ -132,7 +132,8 @@ public class CatalogosServicio {
         for (Campo f : c.getCampos()) {
             String col = f.getColumna();
             if (id != null && f.isFijoTrasAlta()) valores.put(col, String.valueOf(actual.get(col)));
-            String v = Textos.limpio(valores.get(col));
+            // Solo el texto libre va en mayúsculas; las opciones (colores), referencias y números quedan como llegan.
+            String v = f.getTipo() == Campo.Tipo.TEXTO ? Textos.limpio(valores.get(col)) : Textos.recortado(valores.get(col));
             valores.put(col, v);
             convertidos.put(col, null);
             if (f.getTipo() == Campo.Tipo.SINO) {
@@ -301,8 +302,8 @@ public class CatalogosServicio {
         Map<String, Object> f = ficha(c, id).orElseThrow();
         for (Campo campo : c.getCampos()) {
             if (campo.getTipo() == Campo.Tipo.REFERENCIA && Boolean.FALSE.equals(f.get(campo.getColumna() + "__activo"))) {
-                return Optional.of("No se puede reactivar: " + campo.getReferenciaSingular() + " "
-                        + f.get(campo.getColumna() + "__texto") + " está dada de baja. Reactívela primero.");
+                return Optional.of("No se puede reactivar: primero hay que reactivar " + campo.getReferenciaSingular()
+                        + " «" + f.get(campo.getColumna() + "__texto") + "», que está dado de baja.");
             }
         }
         cambiarActivo(c, id, true);

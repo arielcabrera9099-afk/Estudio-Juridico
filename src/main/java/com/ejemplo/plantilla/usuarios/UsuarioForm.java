@@ -46,14 +46,11 @@ public class UsuarioForm {
     }
 
     static String limpio(String s) {
-        if (s == null) return null;
-        s = s.trim().replaceAll("\\s+", " ");
-        return s.isEmpty() ? null : s;
+        return com.ejemplo.plantilla.web.Textos.limpio(s);
     }
 
     private static String minusculas(String s) {
-        s = limpio(s);
-        return s == null ? null : s.toLowerCase();
+        return com.ejemplo.plantilla.web.Textos.minusculas(s);
     }
 
     public Long getId() { return id; }
