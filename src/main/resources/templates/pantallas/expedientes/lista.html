@@ -1,0 +1,115 @@
+<!doctype html>
+<!-- Expedientes: lista con filtros y, desde ella, el alta y la ficha de cada expediente (ExpedientesController). -->
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/layout :: layout(~{::title}, ~{::#contenido}, ~{::estilos})}">
+<head>
+  <title>Expedientes</title>
+  <th:block th:fragment="estilos"></th:block>
+</head>
+<body>
+<div id="contenido" class="gx-pantalla">
+  <p th:replace="~{componentes/componentes :: ok}"></p>
+
+  <header class="gx-encabezado">
+    <h1><svg class="lucide" width="20" height="20"><use href="#i-archive"/></svg>Expedientes</h1>
+    <p>Casos del estudio: cliente, juzgado, estado y responsable</p>
+  </header>
+
+  <section class="gx-panel">
+    <h2 class="gx-panel__titulo">Filtros</h2>
+    <div class="gx-panel__cuerpo">
+      <div class="gx-barra-resumen">
+        <a th:if="${puedeEditar}" class="gx-btn gx-btn--icono" th:href="@{/expedientes/nuevo(cliente=${f.cliente})}"><svg class="lucide" width="16" height="16"><use href="#i-file-plus"/></svg>Agregar</a>
+        <span th:unless="${puedeEditar}"></span>
+        <span class="gx-panel__nota" th:text="${#lists.size(filas)} == 1 ? '1 expediente' : |${#lists.size(filas)} expedientes|">0 expedientes</span>
+      </div>
+      <form class="gx-campos gx-campos--filtros" method="get" th:action="@{/expedientes}" data-filtros>
+        <input type="hidden" name="cliente" th:if="${f.cliente != null}" th:value="${f.cliente}">
+        <div class="gx-campo"><label for="f-texto">Buscar</label>
+          <input id="f-texto" name="texto" th:value="${f.texto}" maxlength="80" autocomplete="off"
+                 placeholder="Número, carátula, cliente o documento"></div>
+        <div class="gx-campo"><label for="f-situacion">Situación</label>
+          <select id="f-situacion" name="situacion">
+            <option value="EN_CURSO" th:selected="${f.situacion == 'EN_CURSO'}">EN CURSO</option>
+            <option value="CERRADOS" th:selected="${f.situacion == 'CERRADOS'}">CERRADOS</option>
+            <option value="TODOS" th:selected="${f.situacion == 'TODOS'}">TODOS</option>
+          </select></div>
+        <div class="gx-campo"><label for="f-estado">Estado</label>
+          <select id="f-estado" name="estado">
+            <option value="">TODOS</option>
+            <option th:each="o : ${estados}" th:value="${o.id}" th:text="${#strings.toUpperCase(o.texto)}" th:selected="${o.id == f.estado}">Estado</option>
+          </select></div>
+        <div class="gx-campo"><label for="f-materia">Materia</label>
+          <select id="f-materia" name="materia">
+            <option value="">TODAS</option>
+            <option th:each="o : ${materias}" th:value="${o.id}" th:text="${#strings.toUpperCase(o.texto)}" th:selected="${o.id == f.materia}">Materia</option>
+          </select></div>
+        <div class="gx-campo"><label for="f-abogado">Responsable</label>
+          <select id="f-abogado" name="abogado">
+            <option value="">TODOS</option>
+            <option th:each="o : ${abogados}" th:value="${o.id}" th:text="${o.texto}" th:selected="${o.id == f.abogado}">Abogado</option>
+          </select></div>
+        <div class="gx-campo gx-campo--boton">
+          <div class="gx-botonera">
+            <button type="submit" class="gx-btn gx-btn--icono"><svg class="lucide" width="16" height="16"><use href="#i-search"/></svg>Buscar</button>
+            <a class="gx-btn gx-btn--secundario" th:href="@{/expedientes}">Limpiar</a>
+          </div>
+        </div>
+      </form>
+      <p class="gx-panel__nota" th:if="${f.cliente != null and !#lists.isEmpty(filas)}"
+         th:text="|Expedientes del cliente ${filas[0].cliente}. Limpiar muestra todos.|">Filtrado por cliente.</p>
+    </div>
+  </section>
+
+  <p class="gx-aviso gx-aviso--alerta" th:if="${recortada}">
+    <svg class="lucide" width="16" height="16"><use href="#i-alert-triangle"/></svg>
+    <span th:text="|Se muestran los primeros ${maximo} expedientes. Ajuste los filtros para ver el resto.|">Se muestran los primeros 500.</span>
+  </p>
+
+  <section class="gx-panel gx-panel--grilla">
+    <div class="gx-panel__cuerpo">
+      <div class="gx-grilla-wrap">
+        <table class="gx-grilla" id="grilla-expedientes" data-paginar="10">
+          <thead><tr>
+            <th class="gx-col-acciones"></th><th>Número</th><th>Carátula</th><th>Cliente</th><th>Materia · Proceso</th>
+            <th>Juzgado · N.º judicial</th><th>Responsable</th><th>Inicio</th><th>Estado</th>
+          </tr></thead>
+          <tbody>
+            <tr th:if="${#lists.isEmpty(filas)}"><td colspan="9" class="gx-grilla__vacio">No hay expedientes con esos filtros.</td></tr>
+            <tr th:each="x : ${filas}">
+              <td class="gx-col-acciones">
+                <div class="gx-accion-grupo">
+                  <button type="button" class="gx-accion-grupo__boton" aria-haspopup="true" aria-label="Acciones">
+                    <svg class="lucide" width="16" height="16"><use href="#i-menu"/></svg></button>
+                  <ul class="gx-accion-grupo__menu" hidden>
+                    <li><a th:href="@{/expedientes/{id}(id=${x.id})}"><svg class="lucide" width="15" height="15"><use href="#i-search"/></svg>Visualizar</a></li>
+                    <th:block th:if="${puedeEditar}">
+                      <li th:unless="${x.es_cierre}"><a th:href="@{/expedientes/{id}/editar(id=${x.id})}"><svg class="lucide" width="15" height="15"><use href="#i-pencil"/></svg>Modificar</a></li>
+                      <li th:unless="${x.es_cierre}"><a th:href="@{/expedientes/{id}/actuaciones/nuevo(id=${x.id})}"><svg class="lucide" width="15" height="15"><use href="#i-pen-line"/></svg>Registrar actuación</a></li>
+                      <li><a th:href="@{/expedientes/{id}/estado(id=${x.id})}"><svg class="lucide" width="15" height="15"><use href="#i-workflow"/></svg>Cambiar estado</a></li>
+                    </th:block>
+                  </ul>
+                </div>
+              </td>
+              <td><a class="gx-enlace" th:href="@{/expedientes/{id}(id=${x.id})}" th:text="${x.numero_interno}">2026-0001</a></td>
+              <td th:text="${x.caratula}">Carátula</td>
+              <td><a class="gx-enlace" th:href="@{/clientes/{id}(id=${x.cliente_id})}" th:text="${x.cliente}">Cliente</a></td>
+              <td th:text="|${x.materia} · ${x.tipo_proceso}|">Civil · Ordinario</td>
+              <td>
+                <span th:text="${x.juzgado != null} ? ${x.juzgado} + (${x.juzgado_turno != null} ? ' · ' + ${x.juzgado_turno} : '') : '—'">Juzgado</span>
+                <br th:if="${x.numero_expediente_judicial != null}"><small th:if="${x.numero_expediente_judicial != null}"
+                       th:text="|N.º ${x.numero_expediente_judicial}/${x.anio_judicial}|">N.º 123/2026</small>
+              </td>
+              <td th:text="${x.abogado}">Abogado</td>
+              <td th:text="${#temporals.format(x.fecha_inicio, 'dd/MM/yyyy')}">01/01/2026</td>
+              <td><span class="gx-etiqueta" th:text="${#strings.toUpperCase(x.estado)}"
+                        th:classappend="${x.es_cierre} ? 'gx-etiqueta--peligro' : (${x.es_activo} ? 'gx-etiqueta--exito' : 'gx-etiqueta--aviso')">ABIERTO</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</div>
+</body>
+</html>

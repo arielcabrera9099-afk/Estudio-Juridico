@@ -44,7 +44,11 @@
 </p>
 
 <!-- Mensaje de la acción anterior (?ok=) -->
-<p th:fragment="ok" class="gx-aviso gx-aviso--exito" th:if="${param.ok}" th:text="${param.ok[0]}">Listo.</p>
+<!-- Resultado de una acción, después de redirigir: ?ok=mensaje (verde) o ?error=motivo (rojo). -->
+<th:block th:fragment="ok">
+  <p class="gx-aviso gx-aviso--exito" th:if="${param.ok}" th:text="${param.ok[0]}">Listo.</p>
+  <p class="gx-aviso gx-aviso--error" role="alert" th:if="${param.error}" th:text="${param.error[0]}">No se pudo.</p>
+</th:block>
 
 <!-- Indicador de carga compacto -->
 <div th:fragment="loader(texto)" class="app-loader app-loader--compacto" role="status">

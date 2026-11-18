@@ -1,0 +1,68 @@
+<!doctype html>
+<!--
+  Cambio de estado del expediente. Si el estado nuevo es de cierre, pide fecha y motivo; si el expediente estaba
+  cerrado (reapertura), pide la observación. Cada cambio queda en el historial de estados.
+-->
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/layout :: layout(~{::title}, ~{::#contenido}, ~{::estilos})}">
+<head>
+  <title>Cambiar estado</title>
+  <th:block th:fragment="estilos"></th:block>
+</head>
+<body>
+<div id="contenido" class="gx-pantalla gx-pantalla--angosta">
+  <header class="gx-encabezado">
+    <h1><svg class="lucide" width="20" height="20"><use href="#i-workflow"/></svg><span th:text="${reabre} ? 'Reabrir expediente' : ${paginaTitulo}">Cambiar estado</span></h1>
+    <p th:text="|${ficha.numero_interno} · ${ficha.caratula}|">Expediente</p>
+  </header>
+
+  <p th:replace="~{componentes/componentes :: erroresResumen}"></p>
+
+  <form method="post" th:object="${form}" novalidate th:action="@{/expedientes/{id}/estado(id=${expedienteId})}"
+        data-confirmar="¿Confirma el cambio de estado del expediente?">
+    <section class="gx-panel">
+      <h2 class="gx-panel__titulo">Estado</h2>
+      <div class="gx-panel__cuerpo">
+        <div class="gx-campos">
+          <div class="gx-campo"><label>Estado actual</label><input disabled th:value="${ficha.estado}"></div>
+          <div class="gx-campo" th:classappend="${errores.tiene('estadoId')} ? 'is-error'">
+            <label for="estadoId" class="requerido">Estado nuevo</label>
+            <select th:field="*{estadoId}">
+              <option value="">Seleccione…</option>
+              <option th:each="o : ${estados}" th:value="${o.id}" th:text="${o.codigo == 'CIERRE'} ? |${o.texto} (cierra el expediente)| : ${o.texto}">Estado</option>
+            </select>
+            <p th:replace="~{componentes/componentes :: error('estadoId')}"></p>
+          </div>
+        </div>
+
+        <div class="gx-campos" th:if="${idsCierre != ''}" th:attr="data-visible-si=|estadoId:${idsCierre}|">
+          <div class="gx-campo" th:classappend="${errores.tiene('fechaCierre')} ? 'is-error'">
+            <label for="fechaCierre" class="requerido">Fecha de cierre</label>
+            <input th:field="*{fechaCierre}" type="date">
+            <p th:replace="~{componentes/componentes :: error('fechaCierre')}"></p>
+          </div>
+          <div class="gx-campo gx-campo--completo" th:classappend="${errores.tiene('motivoCierre')} ? 'is-error'">
+            <label for="motivoCierre" class="requerido">Motivo del cierre</label>
+            <textarea th:field="*{motivoCierre}" rows="3" maxlength="2000" placeholder="Sentencia firme, acuerdo, desistimiento…"></textarea>
+            <p th:replace="~{componentes/componentes :: error('motivoCierre')}"></p>
+          </div>
+        </div>
+
+        <div class="gx-campos">
+          <div class="gx-campo gx-campo--completo" th:classappend="${errores.tiene('observacion')} ? 'is-error'">
+            <label for="observacion" th:classappend="${reabre} ? 'requerido'" th:text="${reabre} ? 'Motivo de la reapertura' : 'Observación'">Observación</label>
+            <textarea th:field="*{observacion}" rows="2" maxlength="2000"></textarea>
+            <p th:replace="~{componentes/componentes :: error('observacion')}"></p>
+          </div>
+        </div>
+        <p class="gx-panel__nota" th:text="${reabre} ? 'Al reabrir se borran la fecha y el motivo del cierre; quedan en el historial y en la auditoría.' : 'Cerrar el expediente lo deja de solo lectura hasta reabrirlo. Cerrar y reabrir requieren el permiso de cierre.'">Nota</p>
+        <div class="gx-acciones-pie">
+          <button type="submit" class="gx-btn gx-btn--icono"><svg class="lucide" width="16" height="16"><use href="#i-save"/></svg>Confirmar</button>
+          <a class="gx-btn gx-btn--secundario" th:href="@{/expedientes/{id}(id=${expedienteId})}">Cancelar</a>
+        </div>
+      </div>
+    </section>
+  </form>
+</div>
+</body>
+</html>

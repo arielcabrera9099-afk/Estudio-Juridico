@@ -222,3 +222,6 @@ html:has(#contenido.lx-inicio) .admin-shell .admin-content {
 /* Muestra de color de un catálogo (color de los tipos de evento en la agenda). */
 .lx-muestra { display: inline-block; width: 12px; height: 12px; margin-right: 6px; border-radius: 2px;
   vertical-align: -1px; border: 1px solid rgba(0, 0, 0, .15); }
+
+/* Textos largos en una grilla (bitácora, observaciones): respetan los saltos de línea. */
+.gx-grilla td.lx-texto-largo { white-space: pre-line; min-width: 260px; }

@@ -56,6 +56,25 @@
     aplicar();
   });
 
+  // select[data-depende="campo"]: solo muestra las opciones cuyo data-padre es el valor elegido en el control "campo"
+  // (por ejemplo, los tipos de proceso de la materia elegida). Si al cambiar el padre la opción elegida ya no
+  // corresponde, el combo vuelve a "Seleccione…". Las opciones sin data-padre se muestran siempre.
+  document.querySelectorAll('select[data-depende]').forEach(function (s) {
+    var form = s.closest('form');
+    var padre = form && form.elements[s.getAttribute('data-depende')];
+    if (!padre) return;
+    function aplicar(limpiar) {
+      Array.prototype.forEach.call(s.options, function (o) {
+        if (!o.hasAttribute('data-padre')) return;
+        var corresponde = o.getAttribute('data-padre') === padre.value;
+        o.hidden = !corresponde;
+        if (!corresponde && o.selected && limpiar) s.value = '';
+      });
+    }
+    padre.addEventListener('change', function () { aplicar(true); });
+    aplicar(false);
+  });
+
   document.querySelectorAll('form[data-filtros] select').forEach(function (s) {
     s.addEventListener('change', function () { s.form.requestSubmit ? s.form.requestSubmit() : s.form.submit(); });
   });

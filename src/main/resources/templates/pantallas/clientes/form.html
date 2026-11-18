@@ -186,13 +186,18 @@
     <section class="gx-panel" id="historial">
       <h2 class="gx-panel__titulo">Historial de casos</h2>
       <div class="gx-panel__cuerpo">
+        <div class="gx-barra-resumen">
+          <a th:if="${form.activo and #authorization.expression('hasAuthority(''EXPEDIENTES_EDITAR'')')}" class="gx-btn gx-btn--icono"
+             th:href="@{/expedientes/nuevo(cliente=${form.id})}"><svg class="lucide" width="16" height="16"><use href="#i-file-plus"/></svg>Nuevo expediente</a>
+          <a class="gx-btn gx-btn--secundario" th:href="@{/expedientes(cliente=${form.id},situacion='TODOS')}">Ver en Expedientes</a>
+        </div>
         <div class="gx-grilla-wrap">
           <table class="gx-grilla" data-paginar="10">
             <thead><tr><th>Número</th><th>Carátula</th><th>Materia</th><th>Estado</th><th>Inicio</th><th>Cierre</th><th>Próxima fecha</th></tr></thead>
             <tbody>
               <tr th:if="${#lists.isEmpty(historial)}"><td colspan="7" class="gx-grilla__vacio">El cliente todavía no tiene casos registrados.</td></tr>
               <tr th:each="h : ${historial}">
-                <td th:text="${h.numero_interno}">2026-0001</td>
+                <td><a class="gx-enlace" th:href="@{/expedientes/{id}(id=${h.expediente_id})}" th:text="${h.numero_interno}">2026-0001</a></td>
                 <td th:text="${h.caratula}">Carátula</td>
                 <td th:text="${h.materia_nombre}">Civil</td>
                 <td><span class="gx-etiqueta" th:classappend="${h.es_activo} ? 'gx-etiqueta--exito' : 'gx-etiqueta--info'"

@@ -1,0 +1,68 @@
+<!doctype html>
+<!-- Parte del expediente: alta y modificación. Vuelve a la ficha del expediente. -->
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/layout :: layout(~{::title}, ~{::#contenido}, ~{::estilos})}">
+<head>
+  <title>Parte</title>
+  <th:block th:fragment="estilos"></th:block>
+</head>
+<body>
+<div id="contenido" class="gx-pantalla gx-pantalla--angosta">
+  <header class="gx-encabezado">
+    <h1><svg class="lucide" width="20" height="20"><use href="#i-users"/></svg><span th:text="${paginaTitulo}">Parte</span></h1>
+    <p th:text="|${ficha.numero_interno} · ${ficha.caratula}|">Expediente</p>
+  </header>
+
+  <p th:replace="~{componentes/componentes :: erroresResumen}"></p>
+
+  <form method="post" th:object="${parte}" novalidate
+        th:action="${parte.id == null} ? @{/expedientes/{id}/partes(id=${ficha.id})} : @{/expedientes/{id}/partes/{p}(id=${ficha.id},p=${parte.id})}"
+        th:attr="data-confirmar=${parte.id == null} ? '¿Confirma el alta de la parte?' : '¿Confirma los cambios de la parte?'">
+    <section class="gx-panel">
+      <h2 class="gx-panel__titulo">Datos de la parte</h2>
+      <div class="gx-panel__cuerpo">
+        <div class="gx-campos">
+          <div class="gx-campo" th:classappend="${errores.tiene('rolParteId')} ? 'is-error'">
+            <label for="rolParteId" class="requerido">Rol en el caso</label>
+            <select th:field="*{rolParteId}">
+              <option value="">Seleccione…</option>
+              <option th:each="o : ${roles}" th:value="${o.id}" th:text="${o.texto}">Actor</option>
+            </select>
+            <p th:replace="~{componentes/componentes :: error('rolParteId')}"></p>
+          </div>
+          <div class="gx-campo" th:classappend="${errores.tiene('nombre')} ? 'is-error'">
+            <label for="nombre" class="requerido">Nombre o razón social</label>
+            <input th:field="*{nombre}" maxlength="150" autocomplete="off" autofocus>
+            <p th:replace="~{componentes/componentes :: error('nombre')}"></p>
+          </div>
+          <div class="gx-campo" th:classappend="${errores.tiene('numeroDocumento')} ? 'is-error'">
+            <label for="numeroDocumento">Documento</label>
+            <input th:field="*{numeroDocumento}" maxlength="20" autocomplete="off" placeholder="CI, RUC o pasaporte">
+            <p th:replace="~{componentes/componentes :: error('numeroDocumento')}"></p>
+          </div>
+          <div class="gx-campo" th:classappend="${errores.tiene('abogado')} ? 'is-error'">
+            <label for="abogado">Abogado de la parte</label>
+            <input th:field="*{abogado}" maxlength="120" autocomplete="off">
+            <p th:replace="~{componentes/componentes :: error('abogado')}"></p>
+          </div>
+          <div class="gx-campo gx-campo--ancho" th:classappend="${errores.tiene('contacto')} ? 'is-error'">
+            <label for="contacto">Contacto</label>
+            <input th:field="*{contacto}" maxlength="150" autocomplete="off" placeholder="Teléfono, email o domicilio">
+            <p th:replace="~{componentes/componentes :: error('contacto')}"></p>
+          </div>
+          <div class="gx-campo gx-campo--completo" th:classappend="${errores.tiene('observaciones')} ? 'is-error'">
+            <label for="observaciones">Observaciones</label>
+            <textarea th:field="*{observaciones}" rows="3" maxlength="2000"></textarea>
+            <p th:replace="~{componentes/componentes :: error('observaciones')}"></p>
+          </div>
+        </div>
+        <div class="gx-acciones-pie">
+          <button type="submit" class="gx-btn gx-btn--icono"><svg class="lucide" width="16" height="16"><use href="#i-save"/></svg>Confirmar</button>
+          <a class="gx-btn gx-btn--secundario" th:href="@{/expedientes/{id}(id=${ficha.id})} + '#partes'">Cancelar</a>
+        </div>
+      </div>
+    </section>
+  </form>
+</div>
+</body>
+</html>

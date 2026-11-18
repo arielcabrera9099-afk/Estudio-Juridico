@@ -36,7 +36,7 @@ public class PantallasController {
         return "pantallas/catalogo";
     }
 
-    @GetMapping({"/expedientes", "/expedientes/nuevo", "/agenda", "/agenda/vencimientos", "/documentos",
+    @GetMapping({"/agenda", "/agenda/vencimientos", "/documentos",
             "/reportes/expedientes", "/reportes/agenda"})
     public String pendiente(HttpServletRequest request, Model model) {
         String pagina = request.getRequestURI().substring(request.getContextPath().length()).replaceFirst("^/", "");

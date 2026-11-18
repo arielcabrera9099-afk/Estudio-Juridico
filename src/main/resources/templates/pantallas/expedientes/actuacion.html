@@ -1,0 +1,55 @@
+<!doctype html>
+<!-- Actuación de la bitácora del expediente: alta y modificación. Vuelve a la ficha del expediente. -->
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/layout :: layout(~{::title}, ~{::#contenido}, ~{::estilos})}">
+<head>
+  <title>Actuación</title>
+  <th:block th:fragment="estilos"></th:block>
+</head>
+<body>
+<div id="contenido" class="gx-pantalla gx-pantalla--angosta">
+  <header class="gx-encabezado">
+    <h1><svg class="lucide" width="20" height="20"><use href="#i-pen-line"/></svg><span th:text="${paginaTitulo}">Actuación</span></h1>
+    <p th:text="|${ficha.numero_interno} · ${ficha.caratula}|">Expediente</p>
+  </header>
+
+  <p th:replace="~{componentes/componentes :: erroresResumen}"></p>
+
+  <form method="post" th:object="${actuacion}" novalidate
+        th:action="${actuacion.id == null} ? @{/expedientes/{id}/actuaciones(id=${ficha.id})} : @{/expedientes/{id}/actuaciones/{a}(id=${ficha.id},a=${actuacion.id})}"
+        th:attr="data-confirmar=${actuacion.id == null} ? '¿Confirma el registro de la actuación?' : '¿Confirma los cambios de la actuación?'">
+    <section class="gx-panel">
+      <h2 class="gx-panel__titulo">Actuación</h2>
+      <div class="gx-panel__cuerpo">
+        <div class="gx-campos">
+          <div class="gx-campo" th:classappend="${errores.tiene('tipoActuacionId')} ? 'is-error'">
+            <label for="tipoActuacionId" class="requerido">Tipo</label>
+            <select th:field="*{tipoActuacionId}">
+              <option value="">Seleccione…</option>
+              <option th:each="o : ${tipos}" th:value="${o.id}" th:text="${o.texto}">Tipo</option>
+            </select>
+            <p th:replace="~{componentes/componentes :: error('tipoActuacionId')}"></p>
+          </div>
+          <div class="gx-campo" th:classappend="${errores.tiene('fecha')} ? 'is-error'">
+            <label for="fecha" class="requerido">Fecha</label>
+            <input th:field="*{fecha}" type="date" th:attr="max=${hoy},min=${ficha.fecha_inicio}">
+            <p th:replace="~{componentes/componentes :: error('fecha')}"></p>
+          </div>
+          <div class="gx-campo gx-campo--completo" th:classappend="${errores.tiene('descripcion')} ? 'is-error'">
+            <label for="descripcion" class="requerido">Descripción</label>
+            <textarea th:field="*{descripcion}" rows="5" maxlength="4000" autofocus
+                      placeholder="Qué se presentó, qué resolvió el juzgado, qué se acordó con el cliente…"></textarea>
+            <p th:replace="~{componentes/componentes :: error('descripcion')}"></p>
+          </div>
+        </div>
+        <p class="gx-panel__nota">La bitácora registra lo que ya pasó. Las audiencias y vencimientos por venir se cargan en la agenda.</p>
+        <div class="gx-acciones-pie">
+          <button type="submit" class="gx-btn gx-btn--icono"><svg class="lucide" width="16" height="16"><use href="#i-save"/></svg>Confirmar</button>
+          <a class="gx-btn gx-btn--secundario" th:href="@{/expedientes/{id}(id=${ficha.id})} + '#actuaciones'">Cancelar</a>
+        </div>
+      </div>
+    </section>
+  </form>
+</div>
+</body>
+</html>

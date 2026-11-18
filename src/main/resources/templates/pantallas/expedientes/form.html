@@ -1,0 +1,280 @@
+<!doctype html>
+<!--
+  Expediente: alta ("alta"), ficha ("ver": campos deshabilitados, con partes, bitácora de actuaciones e historial de
+  estados) y modificación ("editar"). El número interno lo asigna el sistema; el estado se cambia con "Cambiar estado".
+-->
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/layout :: layout(~{::title}, ~{::#contenido}, ~{::estilos})}">
+<head>
+  <title>Expediente</title>
+  <th:block th:fragment="estilos"></th:block>
+</head>
+<body>
+<div id="contenido" class="gx-pantalla">
+  <p th:replace="~{componentes/componentes :: ok}"></p>
+
+  <header class="gx-encabezado">
+    <h1><svg class="lucide" width="20" height="20"><use th:attr="href=${modo == 'alta'} ? '#i-file-plus' : '#i-archive'"/></svg>
+      <span th:text="${paginaTitulo}">Expediente</span></h1>
+    <p th:text="${modo == 'alta'} ? 'Complete los datos del nuevo caso' : ${form.caratula}">Carátula</p>
+  </header>
+
+  <p class="gx-aviso gx-aviso--info" th:if="${cerrado}">
+    <svg class="lucide" width="16" height="16"><use href="#i-lock"/></svg>
+    <span th:text="|Expediente cerrado el ${#temporals.format(ficha.fecha_cierre, 'dd/MM/yyyy')}. Es de solo lectura: para modificarlo, reábralo con Cambiar estado.|">Cerrado.</span>
+  </p>
+
+  <p th:replace="~{componentes/componentes :: erroresResumen}"></p>
+
+  <form id="form-expediente" method="post" th:object="${form}" novalidate
+        th:action="${modo == 'alta'} ? @{/expedientes} : @{/expedientes/{id}(id=${form.id})}"
+        th:attr="data-confirmar=${modo == 'alta'} ? '¿Confirma el alta del expediente?' : '¿Confirma los cambios del expediente?'">
+
+    <section class="gx-panel">
+      <h2 class="gx-panel__titulo">Datos del caso</h2>
+      <div class="gx-panel__cuerpo">
+        <div class="gx-campos gx-campos--3">
+          <div class="gx-campo"><label>Número interno</label>
+            <input disabled th:value="${modo == 'alta'} ? 'Se asigna al guardar' : ${form.numeroInterno}"></div>
+          <div class="gx-campo gx-campo--doble" th:classappend="${errores.tiene('caratula')} ? 'is-error'">
+            <label for="caratula" class="requerido">Carátula</label>
+            <input th:field="*{caratula}" maxlength="250" autocomplete="off" th:disabled="${ver}" th:autofocus="${modo == 'alta'}"
+                   placeholder="Por ejemplo: Pérez, Juan c/ Gómez, Ana s/ cobro de guaraníes">
+            <p th:replace="~{componentes/componentes :: error('caratula')}"></p>
+          </div>
+          <div class="gx-campo" th:classappend="${errores.tiene('clienteId')} ? 'is-error'">
+            <label for="clienteId" class="requerido">Cliente</label>
+            <select th:field="*{clienteId}" th:disabled="${ver}">
+              <option value="">Seleccione…</option>
+              <option th:each="o : ${clientes}" th:value="${o.id}" th:text="${o.texto}">Cliente</option>
+            </select>
+            <p th:replace="~{componentes/componentes :: error('clienteId')}"></p>
+          </div>
+          <div class="gx-campo" th:classappend="${errores.tiene('abogadoId')} ? 'is-error'">
+            <label for="abogadoId" class="requerido">Abogado responsable</label>
+            <select th:field="*{abogadoId}" th:disabled="${ver}">
+              <option value="">Seleccione…</option>
+              <option th:each="o : ${abogados}" th:value="${o.id}" th:text="${o.texto}">Abogado</option>
+            </select>
+            <p th:replace="~{componentes/componentes :: error('abogadoId')}"></p>
+          </div>
+          <div class="gx-campo" th:classappend="${errores.tiene('fechaInicio')} ? 'is-error'">
+            <label for="fechaInicio" class="requerido">Fecha de inicio</label>
+            <input th:field="*{fechaInicio}" type="date" th:disabled="${ver}">
+            <p th:replace="~{componentes/componentes :: error('fechaInicio')}"></p>
+          </div>
+          <div class="gx-campo" th:classappend="${errores.tiene('materiaId')} ? 'is-error'">
+            <label for="materiaId" class="requerido">Materia</label>
+            <select th:field="*{materiaId}" th:disabled="${ver}">
+              <option value="">Seleccione…</option>
+              <option th:each="o : ${materias}" th:value="${o.id}" th:text="${o.texto}">Materia</option>
+            </select>
+            <p th:replace="~{componentes/componentes :: error('materiaId')}"></p>
+          </div>
+          <div class="gx-campo" th:classappend="${errores.tiene('tipoProcesoId')} ? 'is-error'">
+            <label for="tipoProcesoId" class="requerido">Tipo de proceso</label>
+            <select th:field="*{tipoProcesoId}" th:disabled="${ver}" data-depende="materiaId">
+              <option value="">Seleccione…</option>
+              <option th:each="o : ${tiposProceso}" th:value="${o.id}" th:text="${o.texto}" th:attr="data-padre=${o.codigo}">Tipo</option>
+            </select>
+            <p th:replace="~{componentes/componentes :: error('tipoProcesoId')}"></p>
+          </div>
+          <div class="gx-campo" th:if="${modo == 'alta'}" th:classappend="${errores.tiene('estadoId')} ? 'is-error'">
+            <label for="estadoId" class="requerido">Estado inicial</label>
+            <select th:field="*{estadoId}">
+              <option th:each="o : ${estadosIniciales}" th:value="${o.id}" th:text="${o.texto}">Abierto</option>
+            </select>
+            <p th:replace="~{componentes/componentes :: error('estadoId')}"></p>
+          </div>
+          <div class="gx-campo" th:unless="${modo == 'alta'}"><label>Estado</label>
+            <input disabled th:value="${ficha.estado}"></div>
+          <div class="gx-campo gx-campo--completo" th:classappend="${errores.tiene('descripcion')} ? 'is-error'">
+            <label for="descripcion">Descripción</label>
+            <textarea th:field="*{descripcion}" rows="3" maxlength="4000" th:disabled="${ver}"
+                      placeholder="Resumen del caso, pretensión, datos relevantes"></textarea>
+            <p th:replace="~{componentes/componentes :: error('descripcion')}"></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="gx-panel">
+      <h2 class="gx-panel__titulo">Juzgado y monto</h2>
+      <div class="gx-panel__cuerpo">
+        <div class="gx-campos gx-campos--3">
+          <div class="gx-campo gx-campo--doble" th:classappend="${errores.tiene('juzgadoId')} ? 'is-error'">
+            <label for="juzgadoId">Juzgado</label>
+            <select th:field="*{juzgadoId}" th:disabled="${ver}">
+              <option value="">Sin juzgado (todavía no se presentó)</option>
+              <option th:each="o : ${juzgados}" th:value="${o.id}" th:text="${o.texto}">Juzgado</option>
+            </select>
+            <p th:replace="~{componentes/componentes :: error('juzgadoId')}"></p>
+            <span class="gx-ayuda" th:if="${!ver and #lists.isEmpty(juzgados)}">No hay juzgados cargados: se agregan en Administración → Juzgados y circunscripciones.</span>
+          </div>
+          <div class="gx-campo"></div>
+          <div class="gx-campo" th:classappend="${errores.tiene('numeroJudicial')} ? 'is-error'">
+            <label for="numeroJudicial">N.º de expediente judicial</label>
+            <input th:field="*{numeroJudicial}" maxlength="40" autocomplete="off" th:disabled="${ver}">
+            <p th:replace="~{componentes/componentes :: error('numeroJudicial')}"></p>
+          </div>
+          <div class="gx-campo" th:classappend="${errores.tiene('anioJudicial')} ? 'is-error'">
+            <label for="anioJudicial">Año</label>
+            <input th:field="*{anioJudicial}" maxlength="4" inputmode="numeric" autocomplete="off" th:disabled="${ver}">
+            <p th:replace="~{componentes/componentes :: error('anioJudicial')}"></p>
+          </div>
+          <div class="gx-campo"></div>
+          <div class="gx-campo" th:classappend="${errores.tiene('monto')} ? 'is-error'">
+            <label for="monto">Monto reclamado</label>
+            <input th:field="*{monto}" maxlength="22" inputmode="decimal" autocomplete="off" th:disabled="${ver}" placeholder="1.500.000">
+            <p th:replace="~{componentes/componentes :: error('monto')}"></p>
+          </div>
+          <div class="gx-campo" th:classappend="${errores.tiene('moneda')} ? 'is-error'">
+            <label for="moneda" class="requerido">Moneda</label>
+            <select th:field="*{moneda}" th:disabled="${ver}">
+              <option value="PYG">Guaraníes (PYG)</option>
+              <option value="USD">Dólares (USD)</option>
+            </select>
+            <p th:replace="~{componentes/componentes :: error('moneda')}"></p>
+          </div>
+        </div>
+        <p class="gx-panel__nota" th:unless="${ver}">Monto con punto para los miles y coma para los decimales. Los guaraníes no llevan decimales.</p>
+      </div>
+    </section>
+
+    <section class="gx-panel" th:if="${cerrado}">
+      <h2 class="gx-panel__titulo">Cierre</h2>
+      <div class="gx-panel__cuerpo">
+        <div class="gx-campos gx-campos--3">
+          <div class="gx-campo"><label>Fecha de cierre</label><input disabled th:value="${#temporals.format(ficha.fecha_cierre, 'dd/MM/yyyy')}"></div>
+          <div class="gx-campo gx-campo--doble"><label>Motivo</label><textarea disabled rows="2" th:text="${ficha.motivo_cierre}"></textarea></div>
+        </div>
+      </div>
+    </section>
+
+    <div class="gx-acciones-pie" th:unless="${ver}">
+      <button type="submit" class="gx-btn gx-btn--icono"><svg class="lucide" width="16" height="16"><use href="#i-save"/></svg>Confirmar</button>
+      <a class="gx-btn gx-btn--secundario" th:href="${form.id == null} ? @{/expedientes} : @{/expedientes/{id}(id=${form.id})}">Cancelar</a>
+    </div>
+  </form>
+
+  <!-- ================================================================ Ficha: acciones, partes, bitácora e historial -->
+  <th:block th:if="${ver}">
+    <div class="gx-acciones-pie">
+      <a th:if="${puedeEditar and !cerrado}" class="gx-btn gx-btn--icono" th:href="@{/expedientes/{id}/editar(id=${form.id})}"><svg class="lucide" width="16" height="16"><use href="#i-pencil"/></svg>Modificar</a>
+      <a th:if="${puedeEditar and (!cerrado or puedeCerrar)}" class="gx-btn gx-btn--secundario" th:href="@{/expedientes/{id}/estado(id=${form.id})}"
+         th:text="${cerrado} ? 'Reabrir' : 'Cambiar estado'">Cambiar estado</a>
+      <a class="gx-btn gx-btn--secundario" th:href="@{/expedientes}">Volver</a>
+    </div>
+
+    <section class="gx-panel" id="partes">
+      <h2 class="gx-panel__titulo" th:text="|Partes (${#lists.size(partes)})|">Partes</h2>
+      <div class="gx-panel__cuerpo">
+        <div class="gx-barra-resumen">
+          <a th:if="${puedeEditar and !cerrado}" class="gx-btn gx-btn--icono" th:href="@{/expedientes/{id}/partes/nuevo(id=${form.id})}"><svg class="lucide" width="16" height="16"><use href="#i-user-plus"/></svg>Agregar parte</a>
+          <span th:unless="${puedeEditar and !cerrado}"></span>
+          <span class="gx-panel__nota">Contraparte, terceros y demás personas del caso (el cliente no va aquí)</span>
+        </div>
+        <div class="gx-grilla-wrap">
+          <table class="gx-grilla">
+            <thead><tr><th class="gx-col-acciones" th:if="${puedeEditar and !cerrado}"></th><th>Rol</th><th>Nombre</th><th>Documento</th><th>Abogado</th><th>Contacto</th></tr></thead>
+            <tbody>
+              <tr th:if="${#lists.isEmpty(partes)}"><td colspan="6" class="gx-grilla__vacio">El expediente no tiene partes cargadas.</td></tr>
+              <tr th:each="p : ${partes}">
+                <td class="gx-col-acciones" th:if="${puedeEditar and !cerrado}">
+                  <div class="gx-accion-grupo">
+                    <button type="button" class="gx-accion-grupo__boton" aria-haspopup="true" aria-label="Acciones">
+                      <svg class="lucide" width="16" height="16"><use href="#i-menu"/></svg></button>
+                    <ul class="gx-accion-grupo__menu" hidden>
+                      <li><a th:href="@{/expedientes/{id}/partes/{p}/editar(id=${form.id},p=${p.id})}"><svg class="lucide" width="15" height="15"><use href="#i-pencil"/></svg>Modificar</a></li>
+                      <li>
+                        <form method="post" th:action="@{/expedientes/{id}/partes/{p}/eliminar(id=${form.id},p=${p.id})}"
+                              data-confirmar-tipo="error" data-confirmar-boton="Quitar"
+                              th:attr="data-confirmar=|¿Quitar a ${p.nombre} de las partes del expediente?|">
+                          <button><svg class="lucide" width="15" height="15"><use href="#i-trash2"/></svg>Quitar</button>
+                        </form>
+                      </li>
+                    </ul>
+                  </div>
+                </td>
+                <td th:text="${p.rol}">Actor</td>
+                <td th:text="${p.nombre}">Nombre</td>
+                <td th:text="${p.numero_documento ?: '—'}">—</td>
+                <td th:text="${p.abogado ?: '—'}">—</td>
+                <td th:text="${p.contacto ?: '—'}">—</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="gx-panel" id="actuaciones">
+      <h2 class="gx-panel__titulo" th:text="|Bitácora de actuaciones (${#lists.size(actuaciones)})|">Actuaciones</h2>
+      <div class="gx-panel__cuerpo">
+        <div class="gx-barra-resumen">
+          <a th:if="${puedeEditar and !cerrado}" class="gx-btn gx-btn--icono" th:href="@{/expedientes/{id}/actuaciones/nuevo(id=${form.id})}"><svg class="lucide" width="16" height="16"><use href="#i-pen-line"/></svg>Registrar actuación</a>
+          <span th:unless="${puedeEditar and !cerrado}"></span>
+          <span class="gx-panel__nota">Cada movimiento del caso, del más reciente al más antiguo</span>
+        </div>
+        <div class="gx-grilla-wrap">
+          <table class="gx-grilla" data-paginar="10">
+            <thead><tr><th class="gx-col-acciones" th:if="${puedeEditar and !cerrado}"></th><th>Fecha</th><th>Tipo</th><th>Descripción</th><th>Registró</th></tr></thead>
+            <tbody>
+              <tr th:if="${#lists.isEmpty(actuaciones)}"><td colspan="5" class="gx-grilla__vacio">Todavía no hay actuaciones registradas.</td></tr>
+              <tr th:each="a : ${actuaciones}">
+                <td class="gx-col-acciones" th:if="${puedeEditar and !cerrado}">
+                  <div class="gx-accion-grupo">
+                    <button type="button" class="gx-accion-grupo__boton" aria-haspopup="true" aria-label="Acciones">
+                      <svg class="lucide" width="16" height="16"><use href="#i-menu"/></svg></button>
+                    <ul class="gx-accion-grupo__menu" hidden>
+                      <li><a th:href="@{/expedientes/{id}/actuaciones/{a}/editar(id=${form.id},a=${a.id})}"><svg class="lucide" width="15" height="15"><use href="#i-pencil"/></svg>Modificar</a></li>
+                      <li>
+                        <form method="post" th:action="@{/expedientes/{id}/actuaciones/{a}/eliminar(id=${form.id},a=${a.id})}"
+                              data-confirmar-tipo="error" data-confirmar-boton="Eliminar"
+                              data-confirmar="¿Eliminar esta actuación de la bitácora? Queda registrada en la auditoría.">
+                          <button><svg class="lucide" width="15" height="15"><use href="#i-trash2"/></svg>Eliminar</button>
+                        </form>
+                      </li>
+                    </ul>
+                  </div>
+                </td>
+                <td th:text="${#temporals.format(a.fecha, 'dd/MM/yyyy')}">01/01/2026</td>
+                <td th:text="${a.tipo}">Tipo</td>
+                <td class="lx-texto-largo" th:text="${a.descripcion}">Descripción</td>
+                <td th:text="${a.usuario}">usuario</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="gx-panel" id="historial">
+      <h2 class="gx-panel__titulo">Historial de estados</h2>
+      <div class="gx-panel__cuerpo">
+        <div class="gx-grilla-wrap">
+          <table class="gx-grilla" data-paginar="10">
+            <thead><tr><th>Fecha y hora</th><th>De</th><th>A</th><th>Usuario</th><th>Observación</th></tr></thead>
+            <tbody>
+              <tr th:each="h : ${historial}">
+                <td th:text="${#temporals.format(h.fecha, 'dd/MM/yyyy HH:mm')}">01/01/2026 10:00</td>
+                <td th:text="${h.anterior ?: '—'}">—</td>
+                <td><strong th:text="${h.nuevo}">Abierto</strong></td>
+                <td th:text="${h.usuario}">usuario</td>
+                <td class="lx-texto-largo" th:text="${h.observacion ?: ''}"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="gx-campos gx-campos--4">
+          <div class="gx-campo"><label>Alta</label>
+            <input disabled th:value="|${#temporals.format(ficha.creado_en, 'dd/MM/yyyy HH:mm')}${ficha.creado_por_usuario != null ? ' · ' + ficha.creado_por_usuario : ''}|"></div>
+          <div class="gx-campo"><label>Última modificación</label>
+            <input disabled th:value="${ficha.modificado_en != null} ? |${#temporals.format(ficha.modificado_en, 'dd/MM/yyyy HH:mm')} · ${ficha.modificado_por_usuario}| : 'Sin cambios'"></div>
+        </div>
+      </div>
+    </section>
+  </th:block>
+</div>
+</body>
+</html>

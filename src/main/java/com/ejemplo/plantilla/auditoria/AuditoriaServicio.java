@@ -56,6 +56,8 @@ public class AuditoriaServicio {
         TABLAS.put("tipo_actuacion", "Tipos de actuación");
         TABLAS.put("rol_parte", "Roles de parte");
         TABLAS.put("expediente", "Expedientes");
+        TABLAS.put("expediente_parte", "Partes de expedientes");
+        TABLAS.put("actuacion", "Actuaciones");
         TABLAS.put("evento_agenda", "Agenda");
         TABLAS.put("documento", "Documentos");
     }
@@ -146,6 +148,7 @@ public class AuditoriaServicio {
             case "rol": return Optional.of("/admin/roles/" + registroId);
             case "parametro": return Optional.of("/admin/parametros/" + registroId);
             case "cliente": return Optional.of("/clientes/" + registroId);
+            case "expediente": return Optional.of("/expedientes/" + registroId);
             default:
                 return secciones.seccionDe(tabla).map(s -> "/admin/" + s + "/" + tabla + "/" + registroId);
         }

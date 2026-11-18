@@ -152,7 +152,7 @@ public class ParametrosServicio {
 
     private static String formatoNumero(String v, Errores e) {
         String f = v.toUpperCase();
-        if (f.length() > 30) e.campo("valor", "El formato admite hasta 30 caracteres.");
+        if (f.length() > 16) e.campo("valor", "El formato admite hasta 16 caracteres (el número interno guarda 20 y el correlativo puede crecer).");
         else if (!f.matches("[A-Z0-9/.\\-]+")) e.campo("valor", "Solo se admiten letras, números, guion, barra y punto (sin espacios).");
         else if (!f.matches(".*N{3,8}.*") || f.replaceFirst("N{3,8}", "").contains("N")) {
             // Una sola serie de N: cualquier otra N (suelta, una segunda serie o más de 8) es un error.

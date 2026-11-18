@@ -454,9 +454,9 @@ Se construye por módulos, en el orden en que dependen unos de otros: cada paso 
 
 1. **Base:** SQL Server, Flyway, JDBC (`NamedParameterJdbcTemplate`, SQL explícito; se descartó JPA por los `DATETIMEOFFSET`, las vistas y los filtros dinámicos), conexión por variables de entorno. *Hecho: las migraciones `V1` a `V7` crean las 31 tablas, las 4 vistas y los datos iniciales.*
 2. **Seguridad:** usuarios, roles, permisos, menú desde la base, ingreso con la pantalla de login de la plantilla, recuperación de clave y auditoría de ingresos. *Hecho: ingreso, bloqueo por intentos, cambio de clave obligatorio, menú por permisos, auditoría de ingresos y ABM de usuarios. La recuperación de clave por email queda pendiente hasta definir el servidor de correo; mientras tanto, un administrador reinicia la clave. Roles y permisos se editan en la última etapa.*
-3. **Catálogos y parámetros:** materias, tipos de proceso, estados, juzgados, tipos de evento y de documento, departamentos y ciudades.
+3. **Catálogos y parámetros:** materias, tipos de proceso, estados, juzgados, tipos de evento y de documento, departamentos y ciudades. *Hecho: pantallas de catálogos (ABM genérico), parámetros, roles y auditoría.*
 4. **Clientes:** alta, edición, contactos e historial de casos. *Hecho: lista con filtros, ABM, contactos (un solo principal) e historial desde la vista `v_historial_cliente`; la baja no se permite con casos activos.*
-5. **Expedientes:** registro, partes, actuaciones, cambios de estado y cierre.
+5. **Expedientes:** registro, partes, actuaciones, cambios de estado y cierre. *Hecho: número interno automático según `expediente.formato_numero` (correlativo por año, con bloqueo para altas simultáneas), partes, bitácora, historial de estados; cerrar y reabrir con `EXPEDIENTES_CERRAR`; un expediente cerrado es de solo lectura.*
 6. **Agenda:** calendario, vencimientos, recordatorios y notificaciones.
 7. **Documentos:** carga de archivos por expediente y buscador.
 8. **Reportes:** casos activos y cerrados, agenda semanal y mensual, exportación.
