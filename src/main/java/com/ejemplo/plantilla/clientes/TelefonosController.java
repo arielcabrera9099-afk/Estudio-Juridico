@@ -55,7 +55,7 @@ public class TelefonosController {
         if (errores.hay()) return pantalla(model, id, t, errores);
         servicio.crear(id, t);
         redirect.addAttribute("ok", "Se agregó el teléfono " + t.getNumero() + ".");
-        return "redirect:/clientes/" + id + "#telefonos";
+        return "redirect:/clientes/" + id + "/editar#telefonos";
     }
 
     @GetMapping("/{telefonoId}/editar")
@@ -75,7 +75,7 @@ public class TelefonosController {
         if (errores.hay()) return pantalla(model, id, t, errores);
         servicio.modificar(id, t);
         redirect.addAttribute("ok", "Se guardaron los cambios del teléfono " + t.getNumero() + ".");
-        return "redirect:/clientes/" + id + "#telefonos";
+        return "redirect:/clientes/" + id + "/editar#telefonos";
     }
 
     @PostMapping("/{telefonoId}/eliminar")
@@ -85,12 +85,12 @@ public class TelefonosController {
         servicio.eliminar(id, telefonoId).ifPresentOrElse(
                 motivo -> redirect.addAttribute("error", motivo),
                 () -> redirect.addAttribute("ok", "Se quitó el teléfono " + t.getNumero() + "."));
-        return "redirect:/clientes/" + id + "#telefonos";
+        return "redirect:/clientes/" + id + "/editar#telefonos";
     }
 
     private static String sinDocumento(long id, RedirectAttributes redirect) {
         redirect.addAttribute("error", "El cliente no tiene documento: complételo con Modificar antes de cargar teléfonos.");
-        return "redirect:/clientes/" + id;
+        return "redirect:/clientes/" + id + "/editar";
     }
 
     private String pantalla(Model model, long clienteId, TelefonoForm t, Errores errores) {

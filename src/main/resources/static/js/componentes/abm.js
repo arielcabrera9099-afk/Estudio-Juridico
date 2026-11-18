@@ -91,7 +91,60 @@
     if (mayus !== c.value) c.value = mayus;
   });
 
-  document.querySelectorAll('form[data-filtros] select').forEach(function (s) {
-    s.addEventListener('change', function () { s.form.requestSubmit ? s.form.requestSubmit() : s.form.submit(); });
+  // [data-arbol] (menú de un rol): la casilla de un módulo marca o desmarca todas sus pantallas y muestra si están
+  // todas, algunas o ninguna; una acción solo se puede marcar si su pantalla está marcada.
+  document.querySelectorAll('[data-arbol]').forEach(function (arbol) {
+    function pantallasDe(modulo) { return arbol.querySelectorAll('input[data-de-modulo="' + modulo + '"]'); }
+    function acciones(p) {
+      arbol.querySelectorAll('input[data-requiere="' + p.value + '"]').forEach(function (a) {
+        a.disabled = p.disabled || !p.checked;
+        if (!p.checked) a.checked = false;
+      });
+    }
+    function modulo(m) {
+      var ps = Array.prototype.slice.call(pantallasDe(m.getAttribute('data-modulo')));
+      var marcadas = ps.filter(function (p) { return p.checked; }).length;
+      m.checked = ps.length > 0 && marcadas === ps.length;
+      m.indeterminate = marcadas > 0 && marcadas < ps.length;
+    }
+    arbol.querySelectorAll('input[data-modulo]').forEach(function (m) {
+      m.addEventListener('change', function () {
+        pantallasDe(m.getAttribute('data-modulo')).forEach(function (p) { p.checked = m.checked; acciones(p); });
+      });
+      modulo(m);
+    });
+    arbol.querySelectorAll('input[data-de-modulo]').forEach(function (p) {
+      p.addEventListener('change', function () {
+        acciones(p);
+        modulo(arbol.querySelector('input[data-modulo="' + p.getAttribute('data-de-modulo') + '"]'));
+      });
+      acciones(p);
+    });
+  });
+
+  // [data-imprimir]: imprime la pantalla (los reportes tienen su versión de impresión en lex-nova.css).
+  document.addEventListener('click', function (e) {
+    if (e.target.closest && e.target.closest('[data-imprimir]')) window.print();
+  });
+
+  // Filtros de las listas (form[data-filtros]): no hay botón Buscar. Se filtra al elegir en un combo y, en los campos
+  // de texto y fecha, al salir del campo (Tab o clic afuera) si el valor cambió; Enter también filtra.
+  document.querySelectorAll('form[data-filtros]').forEach(function (form) {
+    function filtrar() { form.requestSubmit ? form.requestSubmit() : form.submit(); }
+    function esTexto(c) { return c.tagName === 'INPUT' && (c.type === 'text' || c.type === 'search'); }
+    form.addEventListener('change', function (e) {
+      var c = e.target;
+      if (!c || !c.name || c.type === 'hidden') return;
+      // El texto se pasa a mayúsculas antes de enviar, como se ve al salir del campo.
+      if (esTexto(c) && !c.hasAttribute('data-sin-mayusculas')) c.value = c.value.toLocaleUpperCase('es');
+      filtrar();
+    });
+    // Sin botón de envío, Enter no envía un formulario con varios campos: se envía aquí.
+    form.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' && e.target && e.target.tagName === 'INPUT' && e.target.type !== 'date') {
+        e.preventDefault();
+        filtrar();
+      }
+    });
   });
 })();

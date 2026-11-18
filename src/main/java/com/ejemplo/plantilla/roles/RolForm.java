@@ -14,6 +14,9 @@ public class RolForm {
     private String codigo;
     private String nombre;
     private String descripcion;
+    /** Pantallas que ve (opciones del menú). */
+    private List<Long> menus = new ArrayList<>();
+    /** Acciones que puede hacer en esas pantallas. */
     private List<Long> permisos = new ArrayList<>();
     private boolean activo = true;
 
@@ -23,6 +26,7 @@ public class RolForm {
         if (codigo != null) codigo = codigo.toUpperCase().replace(' ', '_');
         nombre = Textos.limpio(nombre);
         descripcion = Textos.multilinea(descripcion);
+        if (menus == null) menus = new ArrayList<>();
         if (permisos == null) permisos = new ArrayList<>();
     }
 
@@ -31,7 +35,8 @@ public class RolForm {
         m.put("codigo", codigo);
         m.put("nombre", nombre);
         m.put("descripcion", descripcion);
-        m.put("permisos", permisos);
+        m.put("pantallas", menus);
+        m.put("acciones", permisos);
         m.put("activo", activo);
         return m;
     }
@@ -44,6 +49,8 @@ public class RolForm {
     public void setNombre(String nombre) { this.nombre = nombre; }
     public String getDescripcion() { return descripcion; }
     public void setDescripcion(String descripcion) { this.descripcion = descripcion; }
+    public List<Long> getMenus() { return menus; }
+    public void setMenus(List<Long> menus) { this.menus = menus; }
     public List<Long> getPermisos() { return permisos; }
     public void setPermisos(List<Long> permisos) { this.permisos = permisos; }
     public boolean isActivo() { return activo; }

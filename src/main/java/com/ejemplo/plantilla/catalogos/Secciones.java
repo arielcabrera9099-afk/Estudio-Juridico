@@ -82,20 +82,22 @@ public class Secciones {
                         .descripcion("Al dar de baja una circunscripción dejan de ofrecerse sus juzgados en las altas.")
                         .campo(Campo.texto("nombre", "Nombre", 60).requerido().enLista())));
 
-        agregar(new Seccion("ubicaciones", "Países, departamentos y ciudades",
-                "Ubicaciones para los domicilios de los clientes: país (con su prefijo telefónico), departamento y ciudad", "route",
+        // Ubicaciones: una opción del menú para cada nivel (país, departamento, ciudad).
+        agregar(new Seccion("paises", "Países", "Países con su prefijo telefónico, para domicilios y teléfonos de los clientes", "route",
                 new DefCatalogo("pais", "Países", "país", false)
                         .descripcion("Código ISO de dos letras (PY, AR, BR…). Al dar de baja un país dejan de ofrecerse sus departamentos y ciudades.")
                         .campo(Campo.texto("nombre", "Nombre", 60).requerido().enLista())
                         .campo(Campo.texto("prefijo_telefonico", "Prefijo telefónico", 5).requerido().enLista()
                                 .patron("^\\+\\d{1,4}$", "El prefijo es + y de 1 a 4 dígitos, por ejemplo +595.")
-                                .ayuda("Por ejemplo: +595 (Paraguay), +54 (Argentina).")),
+                                .ayuda("Por ejemplo: +595 (Paraguay), +54 (Argentina)."))));
+        agregar(new Seccion("departamentos", "Departamentos", "Departamentos de cada país (en otros países, provincias o estados)", "route",
                 new DefCatalogo("departamento", "Departamentos", "departamento", false)
                         .orden("r_pais_id.nombre, t.nombre")
                         .descripcion("En otros países, la provincia o el estado. Al dar de baja un departamento dejan de ofrecerse sus ciudades.")
                         .campo(Campo.texto("nombre", "Nombre", 60).requerido().enLista())
                         .campo(Campo.referencia("pais_id", "País", "pais", "el país").requerido().filtro())
-                        .unicoPor("Ya existe un departamento con ese nombre en el país.", "pais_id"),
+                        .unicoPor("Ya existe un departamento con ese nombre en el país.", "pais_id")));
+        agregar(new Seccion("ciudades", "Ciudades", "Ciudades de cada departamento, para el domicilio de los clientes", "route",
                 new DefCatalogo("ciudad", "Ciudades", "ciudad", true).sinCodigo()
                         .orden("r_departamento_id.nombre, t.nombre")
                         .campo(Campo.texto("nombre", "Nombre", 80).requerido().enLista())

@@ -86,15 +86,20 @@ Tabla puente con clave `(usuario_id, rol_id)`. Un usuario puede tener varios rol
 
 | Campo | Tipo | Regla |
 | --- | --- | --- |
-| `codigo` | VARCHAR(50) | Único, con la forma `MÓDULO_ACCIÓN` (`CLIENTES_VER`, `CLIENTES_EDITAR`, `EXPEDIENTES_CERRAR`) |
+| `codigo` | VARCHAR(50) | Único, con la forma `MÓDULO_ACCIÓN` (`CLIENTES_EDITAR`, `EXPEDIENTES_CERRAR`, `DOCUMENTOS_ELIMINAR`) |
 | `modulo` | VARCHAR(30) | Para agrupar en la pantalla de roles (`CLIENTES`, `EXPEDIENTES`…) |
-| `descripcion` | VARCHAR(150) | Qué habilita |
+| `descripcion` | VARCHAR(150) | Qué habilita ("Cerrar y reabrir expedientes") |
+| `menu_id` | BIGINT | La pantalla (opción del menú) en la que se hace la acción (`V13`) |
 
-Los permisos los define el sistema (datos iniciales), no el usuario: cada uno corresponde a un control en el código.
+Los permisos son solo **acciones** dentro de una pantalla; lo que un rol ve lo define su menú (`rol_menu`). Los define el sistema, no el usuario: cada uno corresponde a un control en el código.
 
 ### rol_permiso
 
-Tabla puente con clave `(rol_id, permiso_id)`.
+Tabla puente con clave `(rol_id, permiso_id)`: las acciones del rol. Solo valen las de pantallas que el rol ve.
+
+### rol_menu
+
+Tabla puente con clave `(rol_id, menu_id)` (`V13`): las pantallas (opciones del menú) que ve el rol. El menú lateral se arma con ellas y cada ruta se protege con la opción más específica que la cubre. El rol ADMINISTRADOR las tiene todas.
 
 ### menu
 
@@ -106,7 +111,7 @@ Tabla puente con clave `(rol_id, permiso_id)`.
 | `titulo` | VARCHAR(60) | Texto del menú |
 | `icono` | VARCHAR(40) | Id del ícono del sprite sin `i-` (solo en módulos) |
 | `ruta` | VARCHAR(120) | Solo en opciones (`/clientes`) |
-| `permiso_id` | BIGINT | Permiso que exige la opción. Un módulo o una sección se muestran si tienen al menos una opción visible |
+| (sin permiso) | | Desde `V13` la opción no lleva permiso: se asigna a los roles en `rol_menu`. Un módulo o una sección se muestran si tienen al menos una opción visible |
 | `orden` | SMALLINT | Orden dentro de su padre |
 | `activo` | BIT | |
 
@@ -460,7 +465,7 @@ Se construye por módulos, en el orden en que dependen unos de otros: cada paso 
 5. **Expedientes:** registro, partes, actuaciones, cambios de estado y cierre. *Hecho: número interno automático según `expediente.formato_numero` (correlativo por año, con bloqueo para altas simultáneas), partes, bitácora, historial de estados; cerrar y reabrir con `EXPEDIENTES_CERRAR`; un expediente cerrado es de solo lectura.*
 6. **Agenda:** calendario, vencimientos, recordatorios y notificaciones. *Hecho: lista y calendario mensual, ABM de eventos con estados (pendiente, realizado, suspendido, cancelado) y recordatorios generados al guardar (se recalculan o anulan). Después: tarea programada que los convierte en notificaciones (solo en el sistema, sin email), campana con contador y pantalla de vencimientos.*
 7. **Documentos:** carga de archivos por expediente y buscador. *Hecho: archivos en `APP_DOCUMENTOS_DIR` (`expedientes/<id>/<uuid>.<ext>`), extensión, tamaño y firma del contenido validados, sin duplicados por hash en un expediente, descarga auditada (`DESCARGA`), baja lógica con restauración, panel en la ficha del expediente.*
-8. **Reportes:** casos activos y cerrados, agenda semanal y mensual, exportación.
+8. **Reportes:** casos activos y cerrados, agenda semanal y mensual, exportación. *Hecho: resumen agrupado (estado, materia o responsable; tipo o responsable en la agenda) con totales calculados en la consulta, detalle, exportación CSV para Excel (";", UTF-8 con BOM) y versión de impresión.*
 9. **Asistente con IA:** cuando el resto esté en uso.
 
 Antes del paso 1 conviene confirmar:

@@ -1,5 +1,6 @@
 package com.ejemplo.plantilla.roles;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -18,15 +19,16 @@ import com.ejemplo.plantilla.seguridad.UsuarioActual;
 import com.ejemplo.plantilla.web.Errores;
 
 /**
- * Roles y sus permisos. Los permisos los define el sistema (migraciones); aquí solo se asignan a los roles. Reglas:
+ * Roles. Un rol se define por su menú: las pantallas que ve (rol_menu) y, en cada una, las acciones que puede hacer
+ * (rol_permiso; cada permiso cuelga de una pantalla). Reglas:
  * <ul>
  *   <li>Código: 3 a 30 caracteres en mayúsculas (letras, números y guion bajo), único y fijo después del alta (el
  *       sistema usa ADMINISTRADOR y ABOGADO en sus reglas).</li>
- *   <li>Nombre obligatorio y único. Al menos un permiso.</li>
- *   <li>El rol Administrador tiene siempre todos los permisos y no se da de baja: así nadie queda sin acceso a la
- *       administración.</li>
+ *   <li>Nombre obligatorio y único. Al menos una pantalla. Una acción solo vale si el rol ve su pantalla: las demás se
+ *       descartan al guardar.</li>
+ *   <li>El rol Administrador ve todo y hace todo, y no se da de baja: así nadie queda sin acceso a la administración.</li>
  *   <li>Un rol asignado a usuarios activos no se da de baja: primero hay que quitárselo.</li>
- *   <li>Los cambios de permisos rigen desde el próximo ingreso de cada usuario.</li>
+ *   <li>Los cambios rigen desde el próximo ingreso de cada usuario.</li>
  * </ul>
  */
 @Service
@@ -45,7 +47,7 @@ public class RolesServicio {
 
     // ------------------------------------------------------------------------------------------------ consultas
 
-    /** Roles según los filtros. estado: ACTIVOS, INACTIVOS o vacío (todos). */
+    /** Roles según los filtros. estado: ACTIVOS, INACTIVOS o cualquier otro (todos). */
     public List<Map<String, Object>> buscar(String texto, String estado) {
         MapSqlParameterSource p = new MapSqlParameterSource();
         StringBuilder w = new StringBuilder(" WHERE 1 = 1");
@@ -56,7 +58,8 @@ public class RolesServicio {
         if ("ACTIVOS".equals(estado)) w.append(" AND r.activo = 1");
         else if ("INACTIVOS".equals(estado)) w.append(" AND r.activo = 0");
         return Filas.lista(jdbc, "SELECT r.id, r.codigo, r.nombre, r.descripcion, r.activo, "
-                + "(SELECT COUNT(*) FROM rol_permiso rp WHERE rp.rol_id = r.id) AS permisos, "
+                + "(SELECT COUNT(*) FROM rol_menu rm WHERE rm.rol_id = r.id) AS pantallas, "
+                + "(SELECT COUNT(*) FROM rol_permiso rp WHERE rp.rol_id = r.id) AS acciones, "
                 + "(SELECT COUNT(*) FROM usuario_rol ur JOIN usuario u ON u.id = ur.usuario_id "
                 + " WHERE ur.rol_id = r.id AND u.activo = 1) AS usuarios "
                 + "FROM rol r" + w + " ORDER BY r.nombre", p);
@@ -78,17 +81,55 @@ public class RolesServicio {
             form.setNombre((String) f.get("nombre"));
             form.setDescripcion((String) f.get("descripcion"));
             form.setActivo(Boolean.TRUE.equals(f.get("activo")));
+            form.setMenus(jdbc.queryForList("SELECT menu_id FROM rol_menu WHERE rol_id = :id", Map.of("id", id), Long.class));
             form.setPermisos(jdbc.queryForList("SELECT permiso_id FROM rol_permiso WHERE rol_id = :id", Map.of("id", id), Long.class));
             return form;
         });
     }
 
-    /** Todos los permisos agrupados por módulo, en el orden en que se muestran. */
-    public Map<String, List<Map<String, Object>>> permisosPorModulo() {
-        return Filas.lista(jdbc, "SELECT id, codigo, modulo, descripcion FROM permiso ORDER BY "
-                        + "CASE modulo WHEN 'CLIENTES' THEN 1 WHEN 'EXPEDIENTES' THEN 2 WHEN 'AGENDA' THEN 3 "
-                        + "WHEN 'DOCUMENTOS' THEN 4 WHEN 'REPORTES' THEN 5 WHEN 'CATALOGOS' THEN 6 ELSE 7 END, id", Map.of())
-                .stream().collect(Collectors.groupingBy(p -> (String) p.get("modulo"), LinkedHashMap::new, Collectors.toList()));
+    /** El menú completo (opciones activas) con las acciones de cada pantalla, en el orden del menú lateral. */
+    public List<ArbolMenu.Modulo> arbol() {
+        List<Map<String, Object>> filas = Filas.lista(jdbc, "SELECT id, padre_id, nivel, titulo, icono, ruta FROM menu "
+                + "WHERE activo = 1 ORDER BY orden, id", Map.of());
+        Map<Long, List<ArbolMenu.Accion>> acciones = new HashMap<>();
+        for (Map<String, Object> a : Filas.lista(jdbc, "SELECT id, codigo, descripcion, menu_id FROM permiso ORDER BY id", Map.of())) {
+            acciones.computeIfAbsent(numero(a.get("menu_id")), k -> new ArrayList<>())
+                    .add(new ArbolMenu.Accion(numero(a.get("id")), (String) a.get("codigo"), (String) a.get("descripcion")));
+        }
+        List<ArbolMenu.Modulo> modulos = new ArrayList<>();
+        for (Map<String, Object> mod : filas) {
+            if (!"MODULO".equals(mod.get("nivel"))) continue;
+            ArbolMenu.Modulo m = new ArbolMenu.Modulo(numero(mod.get("id")), (String) mod.get("titulo"), (String) mod.get("icono"));
+            ArbolMenu.Seccion directas = new ArbolMenu.Seccion("");
+            for (Map<String, Object> hijo : hijos(filas, mod.get("id"))) {
+                if ("OPCION".equals(hijo.get("nivel"))) directas.getPantallas().add(pantalla(hijo, acciones));
+            }
+            if (!directas.getPantallas().isEmpty()) m.getSecciones().add(directas);
+            for (Map<String, Object> sec : hijos(filas, mod.get("id"))) {
+                if (!"SECCION".equals(sec.get("nivel"))) continue;
+                ArbolMenu.Seccion s = new ArbolMenu.Seccion((String) sec.get("titulo"));
+                for (Map<String, Object> op : hijos(filas, sec.get("id"))) {
+                    if ("OPCION".equals(op.get("nivel"))) s.getPantallas().add(pantalla(op, acciones));
+                }
+                if (!s.getPantallas().isEmpty()) m.getSecciones().add(s);
+            }
+            if (!m.getSecciones().isEmpty()) modulos.add(m);
+        }
+        return modulos;
+    }
+
+    private static ArbolMenu.Pantalla pantalla(Map<String, Object> f, Map<Long, List<ArbolMenu.Accion>> acciones) {
+        ArbolMenu.Pantalla p = new ArbolMenu.Pantalla(numero(f.get("id")), (String) f.get("titulo"), (String) f.get("ruta"));
+        p.getAcciones().addAll(acciones.getOrDefault(p.getId(), List.of()));
+        return p;
+    }
+
+    private static List<Map<String, Object>> hijos(List<Map<String, Object>> filas, Object padre) {
+        return filas.stream().filter(f -> padre.equals(f.get("padre_id"))).collect(Collectors.toList());
+    }
+
+    private static Long numero(Object o) {
+        return o == null ? null : ((Number) o).longValue();
     }
 
     /** Usuarios activos que tienen el rol (para la ficha). */
@@ -102,8 +143,15 @@ public class RolesServicio {
         return ADMINISTRADOR.equals(f.getCodigo());
     }
 
+    /** Todas las pantallas y acciones: lo que tiene el Administrador. */
+    private void todo(RolForm f) {
+        f.setMenus(jdbc.queryForList("SELECT id FROM menu WHERE nivel = 'OPCION' AND activo = 1", Map.of(), Long.class));
+        f.setPermisos(jdbc.queryForList("SELECT id FROM permiso", Map.of(), Long.class));
+    }
+
     // ------------------------------------------------------------------------------------------------ validación
 
+    /** Valida los datos y deja en el formulario solo las pantallas y acciones válidas (las acciones de pantallas elegidas). */
     public Errores validar(RolForm f, boolean alta) {
         Errores e = new Errores();
         if (alta) {
@@ -122,10 +170,18 @@ public class RolesServicio {
         if (f.getDescripcion() != null && f.getDescripcion().length() > 500) {
             e.campo("descripcion", "Descripción admite hasta 500 caracteres.");
         }
-        if (!esAdministrador(f)) {
-            List<Long> validos = jdbc.queryForList("SELECT id FROM permiso", Map.of(), Long.class);
-            if (f.getPermisos().isEmpty()) e.campo("permisos", "Elija al menos un permiso.");
-            else if (!validos.containsAll(f.getPermisos())) e.campo("permisos", "Uno de los permisos elegidos no existe.");
+        if (esAdministrador(f)) {
+            todo(f);
+        } else {
+            List<Long> pantallas = jdbc.queryForList("SELECT id FROM menu WHERE nivel = 'OPCION' AND activo = 1", Map.of(), Long.class);
+            f.setMenus(f.getMenus().stream().distinct().filter(pantallas::contains).collect(Collectors.toList()));
+            if (f.getMenus().isEmpty()) e.campo("menus", "Elija al menos una pantalla.");
+            Map<Long, Long> pantallaDe = new HashMap<>();
+            jdbc.query("SELECT id, menu_id FROM permiso", Map.of(), rs -> {
+                pantallaDe.put(rs.getLong(1), rs.getLong(2));
+            });
+            f.setPermisos(f.getPermisos().stream().distinct()
+                    .filter(p -> pantallaDe.containsKey(p) && f.getMenus().contains(pantallaDe.get(p))).collect(Collectors.toList()));
         }
         if (!alta && !f.isActivo()) motivoParaNoDarDeBaja(f.getId()).ifPresent(m -> e.campo("activo", m));
         return e;
@@ -157,24 +213,24 @@ public class RolesServicio {
     public long crear(RolForm f) {
         Long id = jdbc.queryForObject("INSERT INTO rol (codigo, nombre, descripcion, activo, creado_por) OUTPUT inserted.id "
                 + "VALUES (:codigo, :nombre, :descripcion, 1, :yo)", parametros(f).addValue("codigo", f.getCodigo()), Long.class);
-        guardarPermisos(id, f.getPermisos());
+        guardarMenu(id, f);
         auditoria.registrar(Auditoria.ALTA, "rol", id, null, f.paraAuditoria());
         return id;
     }
 
-    /** Modifica nombre, descripción, permisos y estado. El Administrador conserva todos los permisos y queda activo. */
+    /** Modifica nombre, descripción, menú y estado. El Administrador conserva todo y queda activo. */
     @Transactional
     public void modificar(RolForm f) {
         RolForm antes = formulario(f.getId()).orElseThrow();
         f.setCodigo(antes.getCodigo());
         if (esAdministrador(f)) {
             f.setActivo(true);
-            f.setPermisos(antes.getPermisos());
+            todo(f);
         }
         jdbc.update("UPDATE rol SET nombre = :nombre, descripcion = :descripcion, activo = :activo, "
                 + "modificado_en = SYSUTCDATETIME(), modificado_por = :yo WHERE id = :id",
                 parametros(f).addValue("id", f.getId()).addValue("activo", f.isActivo()));
-        if (!esAdministrador(f)) guardarPermisos(f.getId(), f.getPermisos());
+        guardarMenu(f.getId(), f);
         auditoria.registrar(Auditoria.MODIFICACION, "rol", f.getId(), antes.paraAuditoria(), f.paraAuditoria());
     }
 
@@ -198,9 +254,13 @@ public class RolesServicio {
                 Map.of("activo", !activo), Map.of("activo", activo));
     }
 
-    private void guardarPermisos(long id, List<Long> permisos) {
+    private void guardarMenu(long id, RolForm f) {
+        jdbc.update("DELETE FROM rol_menu WHERE rol_id = :id", Map.of("id", id));
         jdbc.update("DELETE FROM rol_permiso WHERE rol_id = :id", Map.of("id", id));
-        for (Long permiso : permisos.stream().distinct().collect(Collectors.toList())) {
+        for (Long menu : f.getMenus()) {
+            jdbc.update("INSERT INTO rol_menu (rol_id, menu_id) VALUES (:id, :m)", Map.of("id", id, "m", menu));
+        }
+        for (Long permiso : f.getPermisos()) {
             jdbc.update("INSERT INTO rol_permiso (rol_id, permiso_id) VALUES (:id, :p)", Map.of("id", id, "p", permiso));
         }
     }
@@ -211,4 +271,5 @@ public class RolesServicio {
                 .addValue("descripcion", f.getDescripcion())
                 .addValue("yo", UsuarioActual.id().orElse(null));
     }
+
 }

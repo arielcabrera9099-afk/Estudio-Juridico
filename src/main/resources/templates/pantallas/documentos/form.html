@@ -117,7 +117,7 @@
 
     <div class="gx-acciones-pie" th:unless="${ver}">
       <button type="submit" class="gx-btn gx-btn--icono"><svg class="lucide" width="16" height="16"><use th:attr="href=${modo == 'alta'} ? '#i-arrow-up-from-line' : '#i-save'"/></svg><span th:text="${modo == 'alta'} ? 'Cargar' : 'Confirmar'">Cargar</span></button>
-      <a class="gx-btn gx-btn--secundario" th:href="${volver == 'expediente' and form.expedienteId != null} ? @{/expedientes/{id}(id=${form.expedienteId})} + '#documentos' : @{/documentos}">Cancelar</a>
+      <a class="gx-btn gx-btn--secundario" th:href="${volver == 'expediente' and form.expedienteId != null} ? @{/expedientes/{id}/editar(id=${form.expedienteId})} + '#documentos' : @{/documentos}">Cancelar</a>
     </div>
   </form>
 
@@ -125,7 +125,6 @@
     <a th:if="${ficha.eliminado_en == null}" class="gx-btn gx-btn--icono" th:href="@{/documentos/{id}/ver(id=${form.id})}" target="_blank" rel="noopener">
       <svg class="lucide" width="16" height="16"><use href="#i-external-link"/></svg>Abrir</a>
     <a th:if="${ficha.eliminado_en == null or puedeEliminar}" class="gx-btn gx-btn--secundario" th:href="@{/documentos/{id}/descargar(id=${form.id})}">Descargar</a>
-    <a th:if="${puedeSubir and ficha.eliminado_en == null}" class="gx-btn gx-btn--secundario" th:href="@{/documentos/{id}/editar(id=${form.id})}">Modificar</a>
     <a class="gx-btn gx-btn--secundario" th:href="@{/expedientes/{id}(id=${form.expedienteId})} + '#documentos'">Ir al expediente</a>
     <a class="gx-btn gx-btn--secundario" th:href="@{/documentos}">Volver</a>
   </div>

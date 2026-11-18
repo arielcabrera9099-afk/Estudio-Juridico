@@ -70,6 +70,8 @@ public class ExpedientesController {
         model.addAttribute("materias", servicio.materiasFiltro());
         model.addAttribute("abogados", servicio.abogadosFiltro());
         model.addAttribute("puedeEditar", UsuarioActual.tiene(EDITAR));
+        model.addAttribute("puedeAgendar", UsuarioActual.tiene("AGENDA_EDITAR"));
+        model.addAttribute("puedeSubir", UsuarioActual.tiene(DocumentosServicio.SUBIR));
         return "pantallas/expedientes/lista";
     }
 
@@ -198,7 +200,7 @@ public class ExpedientesController {
         if (errores.hay()) return pantallaParte(model, id, parte, null, errores);
         servicio.crearParte(id, parte);
         redirect.addAttribute("ok", "Se agregó la parte " + parte.getNombre() + ".");
-        return "redirect:/expedientes/" + id + "#partes";
+        return "redirect:/expedientes/" + id + "/editar#partes";
     }
 
     @GetMapping("/{id}/partes/{parteId}/editar")
@@ -223,7 +225,7 @@ public class ExpedientesController {
         if (errores.hay()) return pantallaParte(model, id, parte, antes.getRolParteId(), errores);
         servicio.modificarParte(id, parte);
         redirect.addAttribute("ok", "Se guardaron los cambios de la parte " + parte.getNombre() + ".");
-        return "redirect:/expedientes/" + id + "#partes";
+        return "redirect:/expedientes/" + id + "/editar#partes";
     }
 
     @PostMapping("/{id}/partes/{parteId}/eliminar")
@@ -234,7 +236,7 @@ public class ExpedientesController {
         ParteForm p = servicio.parte(id, parteId).orElseThrow(NoEncontrado::new);
         servicio.eliminarParte(id, parteId);
         redirect.addAttribute("ok", "Se quitó la parte " + p.getNombre() + ".");
-        return "redirect:/expedientes/" + id + "#partes";
+        return "redirect:/expedientes/" + id + "/editar#partes";
     }
 
     private String pantallaParte(Model model, long id, ParteForm parte, Long rolAnterior, Errores errores) {
@@ -271,7 +273,7 @@ public class ExpedientesController {
         if (errores.hay()) return pantallaActuacion(model, id, a, null, errores);
         servicio.crearActuacion(id, a, fecha[0]);
         redirect.addAttribute("ok", "Se registró la actuación en la bitácora.");
-        return "redirect:/expedientes/" + id + "#actuaciones";
+        return "redirect:/expedientes/" + id + "/editar#actuaciones";
     }
 
     @GetMapping("/{id}/actuaciones/{actuacionId}/editar")
@@ -297,7 +299,7 @@ public class ExpedientesController {
         if (errores.hay()) return pantallaActuacion(model, id, a, antes.getTipoActuacionId(), errores);
         servicio.modificarActuacion(id, a, fecha[0]);
         redirect.addAttribute("ok", "Se guardaron los cambios de la actuación.");
-        return "redirect:/expedientes/" + id + "#actuaciones";
+        return "redirect:/expedientes/" + id + "/editar#actuaciones";
     }
 
     @PostMapping("/{id}/actuaciones/{actuacionId}/eliminar")
@@ -309,7 +311,7 @@ public class ExpedientesController {
         servicio.eliminarActuacion(id, actuacionId).ifPresentOrElse(
                 motivo -> redirect.addAttribute("error", motivo),
                 () -> redirect.addAttribute("ok", "Se eliminó la actuación de la bitácora."));
-        return "redirect:/expedientes/" + id + "#actuaciones";
+        return "redirect:/expedientes/" + id + "/editar#actuaciones";
     }
 
     private String pantallaActuacion(Model model, long id, ActuacionForm a, Long tipoAnterior, Errores errores) {
@@ -361,7 +363,8 @@ public class ExpedientesController {
             Map<String, Object> ficha = servicio.ficha(form.getId()).orElseThrow(NoEncontrado::new);
             model.addAttribute("ficha", ficha);
             model.addAttribute("cerrado", servicio.cerrado(ficha));
-            if ("ver".equals(modo)) {
+            // Partes, bitácora, agenda y documentos: en Visualizar para consultar, en Modificar para administrarlos.
+            if (!"alta".equals(modo)) {
                 model.addAttribute("partes", servicio.partes(form.getId()));
                 model.addAttribute("actuaciones", servicio.actuaciones(form.getId()));
                 model.addAttribute("historial", servicio.historial(form.getId()));

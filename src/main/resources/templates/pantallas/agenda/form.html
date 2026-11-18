@@ -122,14 +122,12 @@
 
     <div class="gx-acciones-pie" th:unless="${ver}">
       <button type="submit" class="gx-btn gx-btn--icono"><svg class="lucide" width="16" height="16"><use href="#i-save"/></svg>Confirmar</button>
-      <a class="gx-btn gx-btn--secundario" th:href="${form.id == null} ? @{/agenda} : @{/agenda/{id}(id=${form.id})}">Cancelar</a>
+      <a class="gx-btn gx-btn--secundario" th:href="@{/agenda}">Cancelar</a>
     </div>
   </form>
 
   <th:block th:if="${ver}">
     <div class="gx-acciones-pie">
-      <a th:if="${puedeEditar and modificable}" class="gx-btn gx-btn--icono" th:href="@{/agenda/{id}/editar(id=${form.id})}"><svg class="lucide" width="16" height="16"><use href="#i-pencil"/></svg>Modificar</a>
-      <a th:if="${puedeEditar and modificable}" class="gx-btn gx-btn--secundario" th:href="@{/agenda/{id}/estado(id=${form.id})}">Cambiar estado</a>
       <a th:if="${form.expedienteId != null}" class="gx-btn gx-btn--secundario" th:href="@{/expedientes/{id}(id=${form.expedienteId})} + '#agenda'">Ir al expediente</a>
       <a class="gx-btn gx-btn--secundario" th:href="@{/agenda}">Volver</a>
     </div>

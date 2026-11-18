@@ -157,7 +157,7 @@ class DocumentosTest {
     @Test
     void desdeLaFichaDelExpedienteVuelveAElla() throws Exception {
         mvc.perform(carga("poder.pdf", PDF).param("volver", "expediente"))
-                .andExpect(redirectedUrlPattern("/expedientes/" + expediente + "?ok=*"));
+                .andExpect(redirectedUrlPattern("/expedientes/" + expediente + "/editar?ok=*"));
     }
 
     @Test
@@ -184,7 +184,7 @@ class DocumentosTest {
         mvc.perform(carga("x.pdf", PDF).with(a)).andExpect(redirectedUrlPattern("/documentos?ok=*"));
         long id = jdbc.queryForObject("SELECT id FROM documento WHERE expediente_id = :e", Map.of("e", expediente), Long.class);
         mvc.perform(post("/documentos/" + id + "/eliminar").with(a).with(csrf())).andExpect(status().isForbidden());
-        RequestPostProcessor lector = Sesiones.como(asistente, "prueba_asistente", Set.of("DOCUMENTOS_VER"));
+        RequestPostProcessor lector = Sesiones.como(asistente, "prueba_asistente", Set.of(Sesiones.menu("DOCUMENTOS_BUSCAR")));
         mvc.perform(get("/documentos/nuevo").with(lector)).andExpect(status().isForbidden());
         mvc.perform(get("/documentos").with(lector)).andExpect(status().isOk())
                 .andExpect(content().string(Matchers.not(Matchers.containsString("/documentos/nuevo"))));

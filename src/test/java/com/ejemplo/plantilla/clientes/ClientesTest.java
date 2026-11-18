@@ -173,7 +173,7 @@ class ClientesTest {
 
         // Otro teléfono desde la ficha; el mismo número no se repite; el único no se puede quitar.
         mvc.perform(post("/clientes/" + id + "/telefonos").with(asistente).with(csrf()).param("paisId", py()).param("numero", "021 600 000"))
-                .andExpect(redirectedUrlPattern("/clientes/" + id + "?ok=*"));
+                .andExpect(redirectedUrlPattern("/clientes/" + id + "/editar?ok=*"));
         mvc.perform(post("/clientes/" + id + "/telefonos").with(asistente).with(csrf()).param("paisId", py()).param("numero", "021 600 000"))
                 .andExpect(content().string(Matchers.containsString("El cliente ya tiene ese teléfono.")));
         mvc.perform(post("/clientes/" + id + "/telefonos").with(asistente).with(csrf()).param("paisId", py()).param("numero", "+595 981"))
@@ -193,7 +193,7 @@ class ClientesTest {
         mvc.perform(post("/clientes/" + id + "/telefonos/" + segundo + "/eliminar").with(asistente).with(csrf()));
         long principal = ((Number) telefonos("4123457").get(0).get("id")).longValue();
         mvc.perform(post("/clientes/" + id + "/telefonos/" + principal + "/eliminar").with(asistente).with(csrf()))
-                .andExpect(redirectedUrlPattern("/clientes/" + id + "?error=*"));
+                .andExpect(redirectedUrlPattern("/clientes/" + id + "/editar?error=*"));
         assertThat(telefonos("4123457")).hasSize(1);
         mvc.perform(get("/clientes/" + id).with(asistente)).andExpect(content().string(Matchers.containsString("PRINCIPAL")));
         mvc.perform(get("/clientes/" + id + "/telefonos/nuevo").with(asistente)).andExpect(status().isOk());
@@ -231,7 +231,7 @@ class ClientesTest {
                 .andExpect(content().string(Matchers.containsString("Ingrese al menos un teléfono o un email.")));
         mvc.perform(post("/clientes/" + id + "/contactos").with(asistente).with(csrf())
                         .param("nombre", "Ana López").param("cargo", "Gerente").param("telefono", "0981 222 333"))
-                .andExpect(redirectedUrlPattern("/clientes/" + id + "?ok=*"));
+                .andExpect(redirectedUrlPattern("/clientes/" + id + "/editar?ok=*"));
         mvc.perform(post("/clientes/" + id + "/contactos").with(asistente).with(csrf())
                 .param("nombre", "Luis Benítez").param("email", "luis@empresa.py").param("esPrincipal", "true"));
         assertThat(jdbc.queryForList("SELECT nombre FROM cliente_contacto WHERE cliente_id = :id AND es_principal = 1",
@@ -239,7 +239,7 @@ class ClientesTest {
 
         long luis = jdbc.queryForObject("SELECT id FROM cliente_contacto WHERE nombre = N'Luis Benítez'", Map.of(), Long.class);
         mvc.perform(post("/clientes/" + id + "/contactos/" + luis + "/eliminar").with(asistente).with(csrf()))
-                .andExpect(redirectedUrlPattern("/clientes/" + id + "?ok=*"));
+                .andExpect(redirectedUrlPattern("/clientes/" + id + "/editar?ok=*"));
         assertThat(jdbc.queryForList("SELECT nombre FROM cliente_contacto WHERE cliente_id = :id AND es_principal = 1",
                 Map.of("id", id), String.class)).containsExactly("ANA LÓPEZ");
         mvc.perform(get("/clientes/" + id).with(asistente))
@@ -250,7 +250,7 @@ class ClientesTest {
     @Test
     void sinPermisoDeEdicionSoloConsulta() throws Exception {
         long id = Sesiones.crearUsuario(jdbc, "prueba_lector", "ASISTENTE", false);
-        RequestPostProcessor lector = Sesiones.como(id, "prueba_lector", Set.of("CLIENTES_VER"));
+        RequestPostProcessor lector = Sesiones.como(id, "prueba_lector", Set.of(Sesiones.menu("CLIENTES_LISTA")));
         mvc.perform(get("/clientes").with(lector)).andExpect(status().isOk())
                 .andExpect(content().string(Matchers.not(Matchers.containsString("/clientes/nuevo"))));
         mvc.perform(get("/clientes/nuevo").with(lector)).andExpect(status().isForbidden());

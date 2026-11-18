@@ -1,0 +1,156 @@
+<!doctype html>
+<!--
+  Reporte de agenda semanal o mensual (ReportesController): período con navegación, filtros, resumen por tipo de
+  evento (o por responsable) con la cantidad en cada estado, y detalle por día. Se imprime y se exporta a Excel (CSV).
+-->
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/layout :: layout(~{::title}, ~{::#contenido}, ~{::estilos})}">
+<head>
+  <title>Agenda semanal y mensual</title>
+  <th:block th:fragment="estilos"></th:block>
+</head>
+<body>
+<div id="contenido" class="gx-pantalla">
+  <header class="gx-encabezado">
+    <h1><svg class="lucide" width="20" height="20"><use href="#i-bar-chart3"/></svg>Agenda semanal y mensual</h1>
+    <p>Audiencias, vencimientos, reuniones y diligencias del período</p>
+  </header>
+
+  <!-- Solo en la impresión -->
+  <div class="lx-impresion">
+    <strong th:text="${app.nombre}">LEX NOVA</strong>
+    <h2 th:text="|Reporte de agenda · ${tituloPeriodo}|">Reporte de agenda</h2>
+    <p th:text="${descripcionFiltros}">Filtros</p>
+    <p th:text="|Emitido el ${#temporals.format(emitido, 'dd/MM/yyyy HH:mm')} por ${emisor}|">Emitido</p>
+  </div>
+
+  <section class="gx-panel lx-no-imprimir">
+    <h2 class="gx-panel__titulo">Filtros</h2>
+    <div class="gx-panel__cuerpo">
+      <div class="gx-barra-resumen">
+        <div class="gx-botonera">
+          <button type="button" class="gx-btn gx-btn--secundario" data-imprimir><svg class="lucide" width="16" height="16"><use href="#i-printer"/></svg>Imprimir</button>
+          <a class="gx-btn gx-btn--secundario" th:href="@{/reportes/agenda.csv(periodo=${periodo},dia=${dia},tipo=${tipo},responsable=${responsable},estado=${estado})}">
+            <svg class="lucide" width="16" height="16"><use href="#i-file-spreadsheet"/></svg>Exportar a Excel</a>
+        </div>
+        <span class="gx-panel__nota" th:text="${#lists.size(detalle) == 1} ? '1 evento' : |${#lists.size(detalle)} eventos|">0 eventos</span>
+      </div>
+      <form class="gx-campos gx-campos--filtros" method="get" th:action="@{/reportes/agenda}" data-filtros>
+        <div class="gx-campo"><label for="f-periodo">Período</label>
+          <select id="f-periodo" name="periodo">
+            <option value="SEMANA" th:selected="${periodo == 'SEMANA'}">SEMANAL</option>
+            <option value="MES" th:selected="${periodo == 'MES'}">MENSUAL</option>
+          </select></div>
+        <div class="gx-campo"><label for="f-dia">Fecha de referencia</label>
+          <input id="f-dia" name="dia" type="date" th:value="${dia}"></div>
+        <div class="gx-campo"><label for="f-tipo">Tipo</label>
+          <select id="f-tipo" name="tipo">
+            <option value="">TODOS</option>
+            <option th:each="o : ${tipos}" th:value="${o.id}" th:text="${o.texto}" th:selected="${o.id == tipo}">Tipo</option>
+          </select></div>
+        <div class="gx-campo"><label for="f-responsable">Responsable</label>
+          <select id="f-responsable" name="responsable">
+            <option value="">TODOS</option>
+            <option th:each="o : ${responsables}" th:value="${o.id}" th:text="${o.texto}" th:selected="${o.id == responsable}">Responsable</option>
+          </select></div>
+        <div class="gx-campo"><label for="f-estado">Estado</label>
+          <select id="f-estado" name="estado">
+            <option value="TODOS" th:selected="${estado == 'TODOS'}">TODOS</option>
+            <option value="PENDIENTE" th:selected="${estado == 'PENDIENTE'}">PENDIENTES</option>
+            <option value="REALIZADO" th:selected="${estado == 'REALIZADO'}">REALIZADOS</option>
+            <option value="SUSPENDIDO" th:selected="${estado == 'SUSPENDIDO'}">SUSPENDIDOS</option>
+            <option value="CANCELADO" th:selected="${estado == 'CANCELADO'}">CANCELADOS</option>
+          </select></div>
+        <div class="gx-campo"><label for="f-agrupar">Resumir por</label>
+          <select id="f-agrupar" name="agrupar">
+            <option value="TIPO" th:selected="${agrupar == 'TIPO'}">TIPO DE EVENTO</option>
+            <option value="RESPONSABLE" th:selected="${agrupar == 'RESPONSABLE'}">RESPONSABLE</option>
+          </select></div>
+        <div class="gx-campo gx-campo--boton">
+          <div class="gx-botonera">
+            <a class="gx-btn gx-btn--secundario" th:href="@{/reportes/agenda}">Limpiar</a>
+          </div>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <div class="lx-cal-barra lx-no-imprimir">
+    <div class="gx-botonera">
+      <a class="gx-btn gx-btn--secundario" th:href="@{/reportes/agenda(periodo=${periodo},dia=${anterior},tipo=${tipo},responsable=${responsable},estado=${estado},agrupar=${agrupar})}"
+         th:attr="aria-label=${periodo == 'MES'} ? 'Mes anterior' : 'Semana anterior'"><svg class="lucide" width="16" height="16"><use href="#i-arrow-left"/></svg></a>
+      <a class="gx-btn gx-btn--secundario" th:href="@{/reportes/agenda(periodo=${periodo},tipo=${tipo},responsable=${responsable},estado=${estado},agrupar=${agrupar})}">Hoy</a>
+      <a class="gx-btn gx-btn--secundario" th:href="@{/reportes/agenda(periodo=${periodo},dia=${siguiente},tipo=${tipo},responsable=${responsable},estado=${estado},agrupar=${agrupar})}"
+         th:attr="aria-label=${periodo == 'MES'} ? 'Mes siguiente' : 'Semana siguiente'"><svg class="lucide" width="16" height="16"><use href="#i-arrow-right"/></svg></a>
+    </div>
+    <strong class="lx-cal-titulo" th:text="${tituloPeriodo}">Semana del 16/11/2026 al 22/11/2026</strong>
+    <span></span>
+  </div>
+
+  <section class="gx-panel">
+    <h2 class="gx-panel__titulo" th:text="${agrupar == 'RESPONSABLE'} ? 'Resumen por responsable' : 'Resumen por tipo de evento'">Resumen</h2>
+    <div class="gx-panel__cuerpo">
+      <div class="gx-grilla-wrap">
+        <table class="gx-grilla" id="grilla-resumen">
+          <thead><tr>
+            <th th:text="${agrupar == 'RESPONSABLE'} ? 'Responsable' : 'Tipo'">Tipo</th>
+            <th class="gx-num">Pendientes</th><th class="gx-num">Realizados</th><th class="gx-num">Suspendidos</th>
+            <th class="gx-num">Cancelados</th><th class="gx-num">Total</th>
+          </tr></thead>
+          <tbody>
+            <tr th:if="${#lists.isEmpty(resumen)}"><td colspan="6" class="gx-grilla__vacio">No hay eventos en el período con esos filtros.</td></tr>
+            <tr th:each="r : ${resumen}">
+              <td><span th:if="${r.color != null}" class="lx-muestra" th:style="|background: var(--${r.color})|"></span><span th:text="${r.grupo}">Grupo</span></td>
+              <td class="gx-num" th:text="${r.pendientes}">0</td>
+              <td class="gx-num" th:text="${r.realizados}">0</td>
+              <td class="gx-num" th:text="${r.suspendidos}">0</td>
+              <td class="gx-num" th:text="${r.cancelados}">0</td>
+              <td class="gx-num"><strong th:text="${r.total}">0</strong></td>
+            </tr>
+          </tbody>
+          <tfoot th:unless="${#lists.isEmpty(resumen)}"><tr class="lx-total">
+            <td>Total</td>
+            <td class="gx-num" th:text="${#aggregates.sum(resumen.![pendientes])}">0</td>
+            <td class="gx-num" th:text="${#aggregates.sum(resumen.![realizados])}">0</td>
+            <td class="gx-num" th:text="${#aggregates.sum(resumen.![suspendidos])}">0</td>
+            <td class="gx-num" th:text="${#aggregates.sum(resumen.![cancelados])}">0</td>
+            <td class="gx-num" th:text="${#aggregates.sum(resumen.![total])}">0</td>
+          </tr></tfoot>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <p class="gx-aviso gx-aviso--alerta" th:if="${recortado}">
+    <svg class="lucide" width="16" height="16"><use href="#i-alert-triangle"/></svg>
+    <span>El detalle muestra los primeros 5000 eventos; el resumen incluye todos.</span>
+  </p>
+
+  <section class="gx-panel">
+    <h2 class="gx-panel__titulo">Detalle por día</h2>
+    <div class="gx-panel__cuerpo">
+      <div class="gx-grilla-wrap">
+        <table class="gx-grilla" id="grilla-detalle" data-paginar="20">
+          <thead><tr><th>Día</th><th>Hora</th><th>Tipo</th><th>Título</th><th>Expediente</th><th>Lugar / juzgado</th><th>Responsable</th><th>Estado</th></tr></thead>
+          <tbody>
+            <tr th:if="${#lists.isEmpty(detalle)}"><td colspan="8" class="gx-grilla__vacio">No hay eventos en el período con esos filtros.</td></tr>
+            <tr th:each="ev, st : ${detalle}"
+                th:classappend="${st.index > 0 and !ev.fecha_inicio.toLocalDate().equals(detalle[st.index - 1].fecha_inicio.toLocalDate())} ? 'lx-dia-nuevo'">
+              <td><a class="gx-enlace" th:href="@{/agenda/{id}(id=${ev.evento_agenda_id})}" th:text="${#temporals.format(ev.fecha_inicio, 'EEE dd/MM/yyyy')}">lun 16/11/2026</a></td>
+              <td th:text="${ev.todo_el_dia} ? 'Todo el día' : ${#temporals.format(ev.fecha_inicio, 'HH:mm')} + (${ev.fecha_fin != null} ? ' a ' + ${#temporals.format(ev.fecha_fin, 'HH:mm')} : '')">09:00</td>
+              <td><span class="lx-muestra" th:style="|background: var(--${ev.tipo_evento_color})|"></span><span th:text="${ev.tipo_evento_nombre}">Audiencia</span></td>
+              <td th:text="${ev.titulo}">Título</td>
+              <td th:text="${ev.numero_interno ?: '—'}" th:title="${ev.caratula}">—</td>
+              <td th:text="${ev.juzgado_nombre ?: (ev.lugar ?: '—')}">—</td>
+              <td th:text="${ev.responsable_nombre}">Responsable</td>
+              <td><span class="gx-etiqueta" th:text="${ev.estado}"
+                        th:classappend="${ev.estado == 'REALIZADO'} ? 'gx-etiqueta--exito' : (${ev.estado == 'CANCELADO'} ? 'gx-etiqueta--peligro' : (${ev.estado == 'SUSPENDIDO'} ? 'gx-etiqueta--aviso' : 'gx-etiqueta--info'))">PENDIENTE</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</div>
+</body>
+</html>

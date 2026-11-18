@@ -124,7 +124,6 @@
 
     <div class="gx-acciones-pie">
       <button th:unless="${ver}" type="submit" class="gx-btn gx-btn--icono"><svg class="lucide" width="16" height="16"><use href="#i-save"/></svg>Confirmar</button>
-      <a th:if="${ver}" class="gx-btn gx-btn--icono" th:href="@{/admin/usuarios/{id}/editar(id=${form.id})}"><svg class="lucide" width="16" height="16"><use href="#i-pencil"/></svg>Modificar</a>
       <a class="gx-btn gx-btn--secundario" th:href="@{/admin/usuarios}" th:text="${ver} ? 'Volver' : 'Cancelar'">Cancelar</a>
     </div>
   </form>

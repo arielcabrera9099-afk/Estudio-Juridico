@@ -64,7 +64,6 @@
           </select></div>
         <div class="gx-campo gx-campo--boton">
           <div class="gx-botonera">
-            <button type="submit" class="gx-btn gx-btn--icono"><svg class="lucide" width="16" height="16"><use href="#i-search"/></svg>Buscar</button>
             <a class="gx-btn gx-btn--secundario" th:href="${vista == 'MES'} ? @{/agenda(vista='MES')} : @{/agenda}">Limpiar</a>
           </div>
         </div>
@@ -106,12 +105,12 @@
                   </ul>
                 </div>
               </td>
-              <td><a class="gx-enlace" th:href="@{/agenda/{id}(id=${ev.id})}" th:text="${#temporals.format(ev.fecha_inicio, 'EEE dd/MM/yyyy')}">lun 01/01/2026</a></td>
+              <td><span th:text="${#temporals.format(ev.fecha_inicio, 'EEE dd/MM/yyyy')}">lun 01/01/2026</span></td>
               <td th:text="${ev.todo_el_dia} ? 'Todo el día' : ${#temporals.format(ev.fecha_inicio, 'HH:mm')} + (${ev.fecha_fin != null} ? ' a ' + ${#temporals.format(ev.fecha_fin, 'HH:mm')} : '')">09:00</td>
               <td><span class="lx-muestra" th:style="|background: var(--${ev.color})|"></span><span th:text="${ev.tipo}">Audiencia</span></td>
               <td th:text="${ev.titulo}">Título</td>
-              <td><a th:if="${ev.expediente_id != null}" class="gx-enlace" th:href="@{/expedientes/{id}(id=${ev.expediente_id})}"
-                     th:text="${ev.numero_interno}" th:title="${ev.caratula}">2026-0001</a><span th:if="${ev.expediente_id == null}">—</span></td>
+              <td><span th:if="${ev.expediente_id != null}"
+                     th:text="${ev.numero_interno}" th:title="${ev.caratula}">2026-0001</span><span th:if="${ev.expediente_id == null}">—</span></td>
               <td th:text="${ev.juzgado ?: (ev.lugar ?: '—')}">Lugar</td>
               <td th:text="${ev.responsable}">Responsable</td>
               <td><span class="gx-etiqueta" th:text="${ev.estado}"

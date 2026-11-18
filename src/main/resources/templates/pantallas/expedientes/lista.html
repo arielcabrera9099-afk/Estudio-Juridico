@@ -51,7 +51,6 @@
           </select></div>
         <div class="gx-campo gx-campo--boton">
           <div class="gx-botonera">
-            <button type="submit" class="gx-btn gx-btn--icono"><svg class="lucide" width="16" height="16"><use href="#i-search"/></svg>Buscar</button>
             <a class="gx-btn gx-btn--secundario" th:href="@{/expedientes}">Limpiar</a>
           </div>
         </div>
@@ -88,12 +87,14 @@
                       <li th:unless="${x.es_cierre}"><a th:href="@{/expedientes/{id}/actuaciones/nuevo(id=${x.id})}"><svg class="lucide" width="15" height="15"><use href="#i-pen-line"/></svg>Registrar actuación</a></li>
                       <li><a th:href="@{/expedientes/{id}/estado(id=${x.id})}"><svg class="lucide" width="15" height="15"><use href="#i-workflow"/></svg>Cambiar estado</a></li>
                     </th:block>
+                    <li th:if="${puedeAgendar and !x.es_cierre}"><a th:href="@{/agenda/nuevo(expediente=${x.id})}"><svg class="lucide" width="15" height="15"><use href="#i-calendar-check"/></svg>Agendar</a></li>
+                    <li th:if="${puedeSubir and !x.es_cierre}"><a th:href="@{/documentos/nuevo(expediente=${x.id})}"><svg class="lucide" width="15" height="15"><use href="#i-file-plus"/></svg>Adjuntar documento</a></li>
                   </ul>
                 </div>
               </td>
-              <td><a class="gx-enlace" th:href="@{/expedientes/{id}(id=${x.id})}" th:text="${x.numero_interno}">2026-0001</a></td>
+              <td><span th:text="${x.numero_interno}">2026-0001</span></td>
               <td th:text="${x.caratula}">Carátula</td>
-              <td><a class="gx-enlace" th:href="@{/clientes/{id}(id=${x.cliente_id})}" th:text="${x.cliente}">Cliente</a></td>
+              <td><span th:text="${x.cliente}">Cliente</span></td>
               <td th:text="|${x.materia} · ${x.tipo_proceso}|">Civil · Ordinario</td>
               <td>
                 <span th:text="${x.juzgado != null} ? ${x.juzgado} + (${x.juzgado_turno != null} ? ' · ' + ${x.juzgado_turno} : '') : '—'">Juzgado</span>

@@ -15,11 +15,24 @@ import com.ejemplo.plantilla.seguridad.UsuarioSesion;
 public final class Sesiones {
 
     public static final String CLAVE = "Prueba1234";
-    public static final Set<String> TODOS = Set.of("CLIENTES_VER", "CLIENTES_EDITAR", "EXPEDIENTES_VER", "EXPEDIENTES_EDITAR",
-            "EXPEDIENTES_CERRAR", "AGENDA_VER", "AGENDA_EDITAR", "DOCUMENTOS_VER", "DOCUMENTOS_SUBIR", "DOCUMENTOS_ELIMINAR",
-            "REPORTES_VER", "CATALOGOS_EDITAR", "SEGURIDAD_ADMINISTRAR", "AUDITORIA_VER");
-    public static final Set<String> ASISTENTE = Set.of("CLIENTES_VER", "CLIENTES_EDITAR", "EXPEDIENTES_VER",
-            "EXPEDIENTES_EDITAR", "AGENDA_VER", "AGENDA_EDITAR", "DOCUMENTOS_VER", "DOCUMENTOS_SUBIR");
+    /** Todas las pantallas del menú y todas las acciones (como el rol Administrador). */
+    public static final Set<String> TODOS = Set.of(
+            menu("CLIENTES_LISTA"), menu("EXPEDIENTES_LISTA"), menu("EXPEDIENTES_NUEVO"), menu("AGENDA_CALENDARIO"),
+            menu("AGENDA_VENCIMIENTOS"), menu("DOCUMENTOS_BUSCAR"), menu("REPORTES_EXPEDIENTES"), menu("REPORTES_AGENDA"),
+            menu("ADMIN_USUARIOS"), menu("ADMIN_ROLES"), menu("ADMIN_AUDITORIA"), menu("ADMIN_MATERIAS"), menu("ADMIN_JUZGADOS"),
+            menu("ADMIN_ESTADOS"), menu("ADMIN_TIPOS"), menu("ADMIN_PAISES"), menu("ADMIN_DEPARTAMENTOS"), menu("ADMIN_CIUDADES"),
+            menu("ADMIN_PARAMETROS"),
+            "CLIENTES_EDITAR", "EXPEDIENTES_EDITAR", "EXPEDIENTES_CERRAR", "AGENDA_EDITAR", "DOCUMENTOS_SUBIR", "DOCUMENTOS_ELIMINAR");
+    /** Lo del rol Asistente: clientes, expedientes, agenda y documentos; no cierra, no elimina, sin reportes ni administración. */
+    public static final Set<String> ASISTENTE = Set.of(
+            menu("CLIENTES_LISTA"), menu("EXPEDIENTES_LISTA"), menu("EXPEDIENTES_NUEVO"), menu("AGENDA_CALENDARIO"),
+            menu("AGENDA_VENCIMIENTOS"), menu("DOCUMENTOS_BUSCAR"),
+            "CLIENTES_EDITAR", "EXPEDIENTES_EDITAR", "AGENDA_EDITAR", "DOCUMENTOS_SUBIR");
+
+    /** La authority de una pantalla del menú: MENU_ + código de la opción. */
+    public static String menu(String codigo) {
+        return "MENU_" + codigo;
+    }
 
     private Sesiones() {
     }

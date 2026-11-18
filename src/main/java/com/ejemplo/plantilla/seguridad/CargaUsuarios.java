@@ -46,6 +46,13 @@ public class CargaUsuarios implements UserDetailsService {
                                     + "JOIN rol r ON r.id = ur.rol_id AND r.activo = 1 "
                                     + "JOIN rol_permiso rp ON rp.rol_id = r.id "
                                     + "JOIN permiso pe ON pe.id = rp.permiso_id WHERE ur.usuario_id = :id", p, String.class);
+                    // Las pantallas que ve (rol_menu) entran como MENU_<código de la opción>.
+                    permisos = new java.util.ArrayList<>(permisos);
+                    permisos.addAll(jdbc.queryForList(
+                            "SELECT DISTINCT CONCAT('" + UsuarioSesion.PREFIJO_MENU + "', m.codigo) FROM usuario_rol ur "
+                                    + "JOIN rol r ON r.id = ur.rol_id AND r.activo = 1 "
+                                    + "JOIN rol_menu rm ON rm.rol_id = r.id "
+                                    + "JOIN menu m ON m.id = rm.menu_id AND m.activo = 1 WHERE ur.usuario_id = :id", p, String.class));
                     return new UsuarioSesion(id, (String) f.get("nombre_usuario"), (String) f.get("clave_hash"),
                             f.get("nombres") + " " + f.get("apellidos"), roles, new HashSet<>(permisos),
                             Boolean.TRUE.equals(f.get("activo")), ((Number) f.get("bloqueado")).intValue() == 1,

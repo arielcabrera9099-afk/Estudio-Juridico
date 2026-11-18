@@ -124,7 +124,7 @@ class ExpedientesTest {
         mvc.perform(post("/expedientes/" + id + "/partes").with(abogado).with(csrf())
                         .param("rolParteId", id("rol_parte", "DEMANDADO")).param("nombre", "Pedro Contraparte")
                         .param("numeroDocumento", "1.234.567"))
-                .andExpect(redirectedUrlPattern("/expedientes/" + id + "?ok=*"));
+                .andExpect(redirectedUrlPattern("/expedientes/" + id + "/editar?ok=*"));
         long parte = jdbc.queryForObject("SELECT id FROM expediente_parte WHERE expediente_id = :id", Map.of("id", id), Long.class);
         mvc.perform(post("/expedientes/" + id + "/partes/" + parte + "/eliminar").with(abogado).with(csrf()));
         assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM expediente_parte WHERE expediente_id = :id", Map.of("id", id), Integer.class)).isZero();
@@ -136,7 +136,7 @@ class ExpedientesTest {
         mvc.perform(post("/expedientes/" + id + "/actuaciones").with(abogado).with(csrf())
                         .param("tipoActuacionId", id("tipo_actuacion", "ESCRITO")).param("fecha", hoy)
                         .param("descripcion", "Se presentó la demanda.\nCon documentos."))
-                .andExpect(redirectedUrlPattern("/expedientes/" + id + "?ok=*"));
+                .andExpect(redirectedUrlPattern("/expedientes/" + id + "/editar?ok=*"));
         Map<String, Object> a = jdbc.queryForMap("SELECT * FROM actuacion WHERE expediente_id = :id", Map.of("id", id));
         assertThat(a.get("usuario_id")).isEqualTo(abogadoId);
         assertThat(a.get("descripcion")).isEqualTo("SE PRESENTÓ LA DEMANDA.\nCON DOCUMENTOS.");
@@ -200,7 +200,7 @@ class ExpedientesTest {
     @Test
     void sinPermisoDeEdicionNoDaDeAlta() throws Exception {
         long lector = Sesiones.crearUsuario(jdbc, "prueba_lector", "ASISTENTE", false);
-        RequestPostProcessor soloVer = Sesiones.como(lector, "prueba_lector", java.util.Set.of("EXPEDIENTES_VER"));
+        RequestPostProcessor soloVer = Sesiones.como(lector, "prueba_lector", java.util.Set.of(Sesiones.menu("EXPEDIENTES_LISTA")));
         mvc.perform(get("/expedientes").with(soloVer)).andExpect(status().isOk())
                 .andExpect(content().string(Matchers.not(Matchers.containsString("/expedientes/nuevo"))));
         mvc.perform(get("/expedientes/nuevo").with(soloVer)).andExpect(status().isForbidden());

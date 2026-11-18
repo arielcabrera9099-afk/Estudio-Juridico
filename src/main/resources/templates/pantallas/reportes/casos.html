@@ -1,0 +1,134 @@
+<!doctype html>
+<!--
+  Reporte de casos activos y cerrados (ReportesController): filtros, resumen agrupado (por estado, materia o
+  responsable) y detalle. Se imprime (versión de impresión en lex-nova.css) y se exporta a Excel (CSV).
+-->
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/layout :: layout(~{::title}, ~{::#contenido}, ~{::estilos})}">
+<head>
+  <title>Casos activos y cerrados</title>
+  <th:block th:fragment="estilos"></th:block>
+</head>
+<body>
+<div id="contenido" class="gx-pantalla">
+  <header class="gx-encabezado">
+    <h1><svg class="lucide" width="20" height="20"><use href="#i-bar-chart3"/></svg>Casos activos y cerrados</h1>
+    <p>Expedientes por situación, estado, materia y responsable</p>
+  </header>
+
+  <!-- Solo en la impresión -->
+  <div class="lx-impresion">
+    <strong th:text="${app.nombre}">LEX NOVA</strong>
+    <h2>Reporte de casos activos y cerrados</h2>
+    <p th:text="${descripcionFiltros}">Filtros</p>
+    <p th:text="|Emitido el ${#temporals.format(emitido, 'dd/MM/yyyy HH:mm')} por ${emisor}|">Emitido</p>
+  </div>
+
+  <section class="gx-panel lx-no-imprimir">
+    <h2 class="gx-panel__titulo">Filtros</h2>
+    <div class="gx-panel__cuerpo">
+      <div class="gx-barra-resumen">
+        <div class="gx-botonera">
+          <button type="button" class="gx-btn gx-btn--secundario" data-imprimir><svg class="lucide" width="16" height="16"><use href="#i-printer"/></svg>Imprimir</button>
+          <a class="gx-btn gx-btn--secundario" th:href="@{/reportes/expedientes.csv(desde=${f.desde},hasta=${f.hasta},materia=${f.materia},abogado=${f.abogado},situacion=${f.situacion})}">
+            <svg class="lucide" width="16" height="16"><use href="#i-file-spreadsheet"/></svg>Exportar a Excel</a>
+        </div>
+        <span class="gx-panel__nota" th:text="${total == 1} ? '1 expediente' : |${total} expedientes|">0 expedientes</span>
+      </div>
+      <form class="gx-campos gx-campos--filtros" method="get" th:action="@{/reportes/expedientes}" data-filtros>
+        <div class="gx-campo" th:classappend="${errorFiltro != null} ? 'is-error'"><label for="f-desde">Inicio desde</label>
+          <input id="f-desde" name="desde" type="date" th:value="${f.desde}"></div>
+        <div class="gx-campo" th:classappend="${errorFiltro != null} ? 'is-error'"><label for="f-hasta">Inicio hasta</label>
+          <input id="f-hasta" name="hasta" type="date" th:value="${f.hasta}"></div>
+        <div class="gx-campo"><label for="f-situacion">Situación</label>
+          <select id="f-situacion" name="situacion">
+            <option value="TODOS" th:selected="${f.situacion == 'TODOS'}">TODOS</option>
+            <option value="ACTIVO" th:selected="${f.situacion == 'ACTIVO'}">ACTIVOS</option>
+            <option value="CERRADO" th:selected="${f.situacion == 'CERRADO'}">CERRADOS</option>
+          </select></div>
+        <div class="gx-campo"><label for="f-materia">Materia</label>
+          <select id="f-materia" name="materia">
+            <option value="">TODAS</option>
+            <option th:each="o : ${materias}" th:value="${o.id}" th:text="${o.texto}" th:selected="${o.id == f.materia}">Materia</option>
+          </select></div>
+        <div class="gx-campo"><label for="f-abogado">Responsable</label>
+          <select id="f-abogado" name="abogado">
+            <option value="">TODOS</option>
+            <option th:each="o : ${abogados}" th:value="${o.id}" th:text="${o.texto}" th:selected="${o.id == f.abogado}">Abogado</option>
+          </select></div>
+        <div class="gx-campo"><label for="f-agrupar">Agrupar por</label>
+          <select id="f-agrupar" name="agrupar">
+            <option value="ESTADO" th:selected="${f.agrupar == 'ESTADO'}">ESTADO</option>
+            <option value="MATERIA" th:selected="${f.agrupar == 'MATERIA'}">MATERIA</option>
+            <option value="ABOGADO" th:selected="${f.agrupar == 'ABOGADO'}">RESPONSABLE</option>
+          </select></div>
+        <div class="gx-campo gx-campo--boton">
+          <div class="gx-botonera">
+            <a class="gx-btn gx-btn--secundario" th:href="@{/reportes/expedientes}">Limpiar</a>
+          </div>
+        </div>
+      </form>
+      <p class="gx-ayuda gx-ayuda--error" th:if="${errorFiltro != null}" th:text="${errorFiltro}">Error</p>
+      <p class="gx-panel__nota">Activo: el estado del expediente cuenta como caso activo. Cerrado: todos los demás (cerrados, archivados…).</p>
+    </div>
+  </section>
+
+  <section class="gx-panel">
+    <h2 class="gx-panel__titulo" th:text="|Resumen por ${f.agrupar == 'MATERIA' ? 'materia' : (f.agrupar == 'ABOGADO' ? 'responsable' : 'estado')}|">Resumen</h2>
+    <div class="gx-panel__cuerpo">
+      <div class="gx-grilla-wrap">
+        <table class="gx-grilla" id="grilla-resumen">
+          <thead><tr>
+            <th th:text="${f.agrupar == 'MATERIA'} ? 'Materia' : (${f.agrupar == 'ABOGADO'} ? 'Responsable' : 'Estado')">Estado</th>
+            <th class="gx-num">Activos</th><th class="gx-num">Cerrados</th><th class="gx-num">Total</th><th class="gx-num">% del total</th>
+          </tr></thead>
+          <tbody>
+            <tr th:if="${#lists.isEmpty(resumen)}"><td colspan="5" class="gx-grilla__vacio">No hay expedientes con esos filtros.</td></tr>
+            <tr th:each="r : ${resumen}">
+              <td th:text="${r.grupo}">Grupo</td>
+              <td class="gx-num" th:text="${r.activos}">0</td>
+              <td class="gx-num" th:text="${r.cerrados}">0</td>
+              <td class="gx-num"><strong th:text="${r.total}">0</strong></td>
+              <td class="gx-num" th:text="${#numbers.formatDecimal(r.total * 100.0 / total, 1, 'POINT', 1, 'COMMA')} + ' %'">0 %</td>
+            </tr>
+          </tbody>
+          <tfoot th:unless="${#lists.isEmpty(resumen)}"><tr class="lx-total">
+            <td>Total</td><td class="gx-num" th:text="${activos}">0</td><td class="gx-num" th:text="${cerrados}">0</td>
+            <td class="gx-num" th:text="${total}">0</td><td class="gx-num">100 %</td>
+          </tr></tfoot>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <p class="gx-aviso gx-aviso--alerta" th:if="${recortado}">
+    <svg class="lucide" width="16" height="16"><use href="#i-alert-triangle"/></svg>
+    <span>El detalle muestra los primeros 5000 expedientes; el resumen y la exportación incluyen todos.</span>
+  </p>
+
+  <section class="gx-panel">
+    <h2 class="gx-panel__titulo">Detalle</h2>
+    <div class="gx-panel__cuerpo">
+      <div class="gx-grilla-wrap">
+        <table class="gx-grilla" id="grilla-detalle" data-paginar="15">
+          <thead><tr><th>Número</th><th>Carátula</th><th>Cliente</th><th>Materia</th><th>Responsable</th><th>Estado</th><th>Inicio</th><th>Cierre</th></tr></thead>
+          <tbody>
+            <tr th:if="${#lists.isEmpty(detalle)}"><td colspan="8" class="gx-grilla__vacio">No hay expedientes con esos filtros.</td></tr>
+            <tr th:each="x : ${detalle}">
+              <td><a class="gx-enlace" th:href="@{/expedientes/{id}(id=${x.expediente_id})}" th:text="${x.numero_interno}">2026-0001</a></td>
+              <td th:text="${x.caratula}">Carátula</td>
+              <td th:text="${x.cliente}">Cliente</td>
+              <td th:text="${x.materia_nombre}">Materia</td>
+              <td th:text="${x.abogado_nombre}">Responsable</td>
+              <td><span class="gx-etiqueta" th:classappend="${x.situacion == 'ACTIVO'} ? 'gx-etiqueta--exito' : 'gx-etiqueta--info'" th:text="${x.estado_nombre}">ABIERTO</span></td>
+              <td th:text="${#temporals.format(x.fecha_inicio, 'dd/MM/yyyy')}">01/01/2026</td>
+              <td th:text="${x.fecha_cierre != null} ? ${#temporals.format(x.fecha_cierre, 'dd/MM/yyyy')} : '—'">—</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</div>
+</body>
+</html>

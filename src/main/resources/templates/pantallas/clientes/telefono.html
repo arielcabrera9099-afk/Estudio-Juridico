@@ -42,7 +42,7 @@
           grilla): al marcar este, deja de serlo el anterior. El primero siempre es el principal.</p>
         <div class="gx-acciones-pie">
           <button type="submit" class="gx-btn gx-btn--icono"><svg class="lucide" width="16" height="16"><use href="#i-save"/></svg>Confirmar</button>
-          <a class="gx-btn gx-btn--secundario" th:href="@{/clientes/{id}(id=${cliente.id})} + '#telefonos'">Cancelar</a>
+          <a class="gx-btn gx-btn--secundario" th:href="@{/clientes/{id}/editar(id=${cliente.id})} + '#telefonos'">Cancelar</a>
         </div>
       </div>
     </section>

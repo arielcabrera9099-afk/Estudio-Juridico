@@ -45,7 +45,6 @@
           </select></div>
         <div class="gx-campo gx-campo--boton">
           <div class="gx-botonera">
-            <button type="submit" class="gx-btn gx-btn--icono"><svg class="lucide" width="16" height="16"><use href="#i-search"/></svg>Buscar</button>
             <a class="gx-btn gx-btn--secundario" th:href="@{/documentos}">Limpiar</a>
           </div>
         </div>
@@ -96,12 +95,12 @@
                 </div>
               </td>
               <td>
-                <a class="gx-enlace" th:href="@{/documentos/{id}(id=${d.id})}" th:text="${d.nombre}">Nombre</a>
+                <span th:text="${d.nombre}">Nombre</span>
                 <br><small class="lx-archivo" th:text="${d.nombre_archivo}">archivo.pdf</small>
                 <span th:if="${d.eliminado_en != null}" class="gx-etiqueta gx-etiqueta--peligro">ELIMINADO</span>
               </td>
               <td th:text="${d.tipo}">Escrito</td>
-              <td><a class="gx-enlace" th:href="@{/expedientes/{id}(id=${d.expediente_id})} + '#documentos'" th:text="${d.numero_interno}" th:title="${d.caratula}">2026-0001</a></td>
+              <td><span th:text="${d.numero_interno}" th:title="${d.caratula}">2026-0001</span></td>
               <td th:text="${d.cliente}">Cliente</td>
               <td th:text="${d.fecha_documento != null} ? ${#temporals.format(d.fecha_documento, 'dd/MM/yyyy')} : '—'">—</td>
               <td class="gx-num" th:text="${d.tamano_bytes >= 1048576} ? ${#numbers.formatDecimal(d.tamano_bytes / 1048576.0, 1, 'POINT', 1, 'COMMA')} + ' MB' : ${#numbers.formatInteger((d.tamano_bytes + 1023) / 1024, 1, 'POINT')} + ' KB'">120 KB</td>

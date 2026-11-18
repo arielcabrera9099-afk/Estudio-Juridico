@@ -16,8 +16,8 @@ import com.ejemplo.plantilla.seguridad.UsuarioActual;
 import com.ejemplo.plantilla.seguridad.UsuarioSesion;
 
 /**
- * El menú lateral, leído de la tabla {@code menu} (módulo → sección → opción) y filtrado por los permisos del usuario
- * de la sesión: una opción se ve si el usuario tiene su permiso, y un módulo o una sección si tienen alguna opción
+ * El menú lateral, leído de la tabla {@code menu} (módulo → sección → opción) y filtrado por el menú de los roles del usuario
+ * de la sesión: una opción se ve si alguno de sus roles la tiene (rol_menu), y un módulo o una sección si tienen alguna opción
  * visible. Las opciones que cuelgan directo de un módulo van en una sección sin rótulo. El id de cada opción es su ruta
  * sin la barra inicial ("/admin/usuarios" → "admin/usuarios"), que es también el nombre de pantalla que marca cada
  * controlador. Se arma una vez por pedido.
@@ -58,8 +58,8 @@ public class MenuAplicacion {
 
     private List<ModuloMenu> armar(UsuarioSesion u) {
         List<Map<String, Object>> filas = Filas.lista(jdbc,
-                "SELECT m.id, m.padre_id, m.nivel, m.codigo, m.titulo, m.icono, m.ruta, p.codigo AS permiso "
-                        + "FROM menu m LEFT JOIN permiso p ON p.id = m.permiso_id "
+                "SELECT m.id, m.padre_id, m.nivel, m.codigo, m.titulo, m.icono, m.ruta "
+                        + "FROM menu m "
                         + "WHERE m.activo = 1 ORDER BY m.orden, m.id", Map.of());
         List<ModuloMenu> modulos = new ArrayList<>();
         for (Map<String, Object> mod : filas) {
@@ -89,7 +89,7 @@ public class MenuAplicacion {
     private static List<ItemMenu> opciones(List<Map<String, Object>> filas, Object padre, UsuarioSesion u) {
         List<ItemMenu> l = new ArrayList<>();
         for (Map<String, Object> f : hijos(filas, padre)) {
-            if (!"OPCION".equals(f.get("nivel")) || !u.tiene((String) f.get("permiso"))) continue;
+            if (!"OPCION".equals(f.get("nivel")) || !u.tiene(UsuarioSesion.PREFIJO_MENU + f.get("codigo"))) continue;
             l.add(new ItemMenu(((String) f.get("ruta")).replaceFirst("^/", ""), (String) f.get("titulo")));
         }
         return l;

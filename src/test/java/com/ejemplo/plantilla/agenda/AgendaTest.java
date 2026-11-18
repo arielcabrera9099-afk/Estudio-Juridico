@@ -165,7 +165,7 @@ class AgendaTest {
 
     @Test
     void sinPermisoDeEdicionSoloConsulta() throws Exception {
-        RequestPostProcessor lector = Sesiones.como(yo, "prueba_abogado", Set.of("AGENDA_VER"));
+        RequestPostProcessor lector = Sesiones.como(yo, "prueba_abogado", Set.of(Sesiones.menu("AGENDA_CALENDARIO")));
         mvc.perform(get("/agenda").with(lector)).andExpect(status().isOk())
                 .andExpect(content().string(Matchers.not(Matchers.containsString("/agenda/nuevo"))));
         mvc.perform(get("/agenda/nuevo").with(lector)).andExpect(status().isForbidden());

@@ -362,3 +362,50 @@ html:has(#contenido.lx-inicio) .admin-shell .admin-content {
 .lx-telefono { display: flex; gap: 8px; align-items: flex-end; }
 .lx-telefono select { flex: 0 0 auto; width: 9.5em; }
 .lx-telefono input { flex: 1 1 auto; min-width: 0; }
+
+/* ---- Reportes ---- */
+.gx-grilla tfoot tr.lx-total td { font-weight: 700; background: var(--lx-gris-claro, #F3F4F6); border-top: 2px solid var(--lx-borde, #D9DDE3); }
+.gx-grilla tbody tr.lx-dia-nuevo td { border-top: 2px solid var(--lx-borde, #D9DDE3); }
+/* Encabezado que solo sale en la impresión. */
+.lx-impresion { display: none; }
+
+/* ---- Impresión ----
+   Sin menú, barra superior, filtros ni fondo; todas las filas de las grillas paginadas; encabezado del reporte. */
+@media print {
+  @page { size: A4 landscape; margin: 12mm; }
+  .admin-sidebar, .admin-header, .lx-no-imprimir, .gx-encabezado, .gx-aviso, .admin-backdrop, .gx-notificaciones { display: none !important; }
+  html, body, .admin-shell, .admin-main, .admin-content { background: #fff !important; }
+  .admin-shell .admin-content::before, .admin-shell .admin-content::after { display: none !important; }
+  .admin-main, .admin-content { margin: 0 !important; padding: 0 !important; overflow: visible !important; height: auto !important; }
+  .gx-pantalla { max-width: none !important; padding: 0 !important; }
+  .gx-panel { box-shadow: none !important; border: 1px solid #999 !important; break-inside: auto; margin-bottom: 8mm; }
+  .gx-panel__titulo { background: #fff !important; color: #000 !important; border-bottom: 1px solid #999 !important; }
+  .gx-grilla tbody tr[hidden] { display: table-row !important; }
+  .gx-grilla-marco--paginada > :not(.gx-grilla-wrap) { display: none !important; }
+  .gx-grilla-wrap { overflow: visible !important; max-height: none !important; }
+  .gx-grilla { font-size: 10pt; }
+  .gx-grilla thead { display: table-header-group; }
+  .gx-grilla tr { break-inside: avoid; }
+  .gx-etiqueta { border: 0 !important; background: none !important; color: #000 !important; padding: 0 !important; }
+  a, .gx-enlace { color: #000 !important; text-decoration: none !important; }
+  .lx-impresion { display: block; margin-bottom: 6mm; padding-bottom: 3mm; border-bottom: 2px solid #8C733F; }
+  .lx-impresion strong { letter-spacing: .2em; color: #8C733F; }
+  .lx-impresion h2 { margin: 2mm 0; font-size: 15pt; }
+  .lx-impresion p { margin: 1mm 0; font-size: 9.5pt; color: #333; }
+}
+
+/* ---- Menú de un rol: árbol módulo → sección → pantalla → acciones ---- */
+.lx-arbol { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px; align-items: start; }
+.lx-arbol-modulo { border: 1px solid var(--lx-borde, #D9DDE3); border-radius: 3px; background: #fff; }
+.lx-arbol-fila { display: flex; align-items: center; gap: 8px; padding: 5px 10px; font-size: 13px; cursor: pointer; }
+.lx-arbol-fila input { margin: 0; flex: none; }
+.lx-arbol-fila--modulo { padding: 8px 10px; background: var(--lx-carbon, #2B3038); color: #fff; font-weight: 600;
+  border-bottom: 2px solid var(--lx-dorado, #B99A5B); }
+.lx-arbol-fila--modulo .lucide { color: var(--lx-dorado, #B99A5B); }
+.lx-arbol-seccion { padding: 6px 10px 2px; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+  color: var(--lx-texto-secundario, #747B85); }
+.lx-arbol-pantalla { border-top: 1px solid #EEF0F3; padding: 2px 0; }
+.lx-arbol-pantalla:first-of-type { border-top: 0; }
+.lx-arbol-ruta { margin-left: auto; font-size: 11px; color: #A3A9B2; }
+.lx-arbol-fila--accion { padding: 3px 10px 3px 34px; color: var(--lx-texto-secundario, #747B85); font-size: 12.5px; }
+.lx-arbol-fila--accion input:disabled + span { color: #B4B9C0; }

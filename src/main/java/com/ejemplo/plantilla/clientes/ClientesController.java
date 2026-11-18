@@ -87,11 +87,7 @@ public class ClientesController {
 
     @GetMapping("/{id}")
     public String ver(@PathVariable long id, Model model) {
-        ClienteForm form = servicio.formulario(id).orElseThrow(NoEncontrado::new);
-        model.addAttribute("contactos", servicio.contactos(id));
-        model.addAttribute("telefonos", telefonos.deCliente(id));
-        model.addAttribute("historial", servicio.historial(id));
-        return formulario(model, form, "ver", new Errores());
+        return formulario(model, servicio.formulario(id).orElseThrow(NoEncontrado::new), "ver", new Errores());
     }
 
     @GetMapping("/{id}/editar")
@@ -152,7 +148,7 @@ public class ClientesController {
         if (errores.hay()) return formularioContacto(model, id, form, errores);
         servicio.crearContacto(id, form);
         redirect.addAttribute("ok", "Se agregó el contacto " + form.getNombre() + ".");
-        return "redirect:/clientes/" + id + "#contactos";
+        return "redirect:/clientes/" + id + "/editar#contactos";
     }
 
     @GetMapping("/{id}/contactos/{contactoId}/editar")
@@ -172,7 +168,7 @@ public class ClientesController {
         if (errores.hay()) return formularioContacto(model, id, form, errores);
         servicio.modificarContacto(id, form);
         redirect.addAttribute("ok", "Se guardaron los cambios del contacto " + form.getNombre() + ".");
-        return "redirect:/clientes/" + id + "#contactos";
+        return "redirect:/clientes/" + id + "/editar#contactos";
     }
 
     @PostMapping("/{id}/contactos/{contactoId}/eliminar")
@@ -181,7 +177,7 @@ public class ClientesController {
         ContactoForm c = servicio.contacto(id, contactoId).orElseThrow(NoEncontrado::new);
         servicio.eliminarContacto(id, contactoId);
         redirect.addAttribute("ok", "Se eliminó el contacto " + c.getNombre() + ".");
-        return "redirect:/clientes/" + id + "#contactos";
+        return "redirect:/clientes/" + id + "/editar#contactos";
     }
 
     // ------------------------------------------------------------------------------------------------ auxiliares
@@ -210,7 +206,13 @@ public class ClientesController {
         model.addAttribute("paises", catalogos.paises(form.getPaisId()));
         model.addAttribute("departamentos", catalogos.departamentos(form.getDepartamentoId()));
         model.addAttribute("ciudades", catalogos.ciudades(form.getCiudadId()));
-        if (form.getId() != null) model.addAttribute("ficha", servicio.ficha(form.getId()).orElseThrow(NoEncontrado::new));
+        if (form.getId() != null) {
+            model.addAttribute("ficha", servicio.ficha(form.getId()).orElseThrow(NoEncontrado::new));
+            // Teléfonos, contactos e historial: en Visualizar para consultar, en Modificar para administrarlos.
+            model.addAttribute("contactos", servicio.contactos(form.getId()));
+            model.addAttribute("telefonos", telefonos.deCliente(form.getId()));
+            model.addAttribute("historial", servicio.historial(form.getId()));
+        }
         return "pantallas/clientes/form";
     }
 

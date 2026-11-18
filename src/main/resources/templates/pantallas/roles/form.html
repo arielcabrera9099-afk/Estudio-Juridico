@@ -53,35 +53,43 @@
       </div>
     </section>
 
-    <section class="gx-panel" id="permisos">
-      <h2 class="gx-panel__titulo">Permisos</h2>
+    <section class="gx-panel" id="menu">
+      <h2 class="gx-panel__titulo">Menú del rol</h2>
       <div class="gx-panel__cuerpo">
         <p class="gx-aviso gx-aviso--info" th:if="${administrador}">
           <svg class="lucide" width="16" height="16"><use href="#i-info"/></svg>
-          <span>El rol Administrador tiene siempre todos los permisos y no puede darse de baja, para que nadie quede sin acceso a la administración.</span>
+          <span>El rol Administrador ve todas las pantallas y puede hacer todo, y no puede darse de baja: así nadie queda sin acceso a la administración.</span>
         </p>
-        <p class="gx-ayuda gx-ayuda--error" th:if="${errores.tiene('permisos')}" th:text="${errores.de('permisos')}">Error</p>
-        <div class="gx-grilla-wrap">
-          <table class="gx-grilla" id="grilla-permisos">
-            <thead><tr><th class="gx-col-check"></th><th>Módulo</th><th>Permiso</th><th>Código</th></tr></thead>
-            <tbody>
-              <th:block th:each="m : ${gruposPermisos}">
-                <tr th:each="p : ${m.value}">
-                  <td class="gx-col-check">
-                    <input type="checkbox" name="permisos" th:value="${p.id}" th:id="|permiso-${p.id}|"
-                           th:checked="${administrador or #lists.contains(form.permisos, p.id)}"
-                           th:disabled="${ver or administrador}" th:attr="aria-label=${p.descripcion}">
-                  </td>
-                  <td th:text="${nombresModulo[m.key] ?: m.key}">Módulo</td>
-                  <td><label th:for="|permiso-${p.id}|" th:text="${p.descripcion}">Descripción</label></td>
-                  <td th:text="${p.codigo}">CODIGO</td>
-                </tr>
-              </th:block>
-            </tbody>
-          </table>
+        <p class="gx-panel__nota" th:unless="${administrador}">Marque las pantallas que ve el rol y, debajo de cada una, lo que puede hacer en ella.
+          Quien ve una pantalla puede consultarla; las acciones (agregar, modificar, cerrar, eliminar) se habilitan aparte.</p>
+        <p class="gx-ayuda gx-ayuda--error" th:if="${errores.tiene('menus')}" th:text="${errores.de('menus')}">Error</p>
+
+        <div class="lx-arbol" data-arbol>
+          <div class="lx-arbol-modulo" th:each="m : ${arbol}">
+            <label class="lx-arbol-fila lx-arbol-fila--modulo">
+              <input type="checkbox" th:attr="data-modulo=${m.id}" th:disabled="${ver or administrador}" aria-label="Todo el módulo">
+              <svg class="lucide" width="16" height="16"><use th:attr="href=|#i-${m.icono}|"/></svg>
+              <span th:text="${m.titulo}">Módulo</span>
+            </label>
+            <th:block th:each="s : ${m.secciones}">
+              <div class="lx-arbol-seccion" th:if="${s.titulo != ''}" th:text="${s.titulo}">Sección</div>
+              <div class="lx-arbol-pantalla" th:each="p : ${s.pantallas}">
+                <label class="lx-arbol-fila">
+                  <input type="checkbox" name="menus" th:value="${p.id}" th:attr="data-de-modulo=${m.id}" th:id="|menu-${p.id}|"
+                         th:checked="${administrador or #lists.contains(form.menus, p.id)}" th:disabled="${ver or administrador}">
+                  <strong th:text="${p.titulo}">Pantalla</strong>
+                  <span class="lx-arbol-ruta" th:text="${p.ruta}">/ruta</span>
+                </label>
+                <label class="lx-arbol-fila lx-arbol-fila--accion" th:each="a : ${p.acciones}">
+                  <input type="checkbox" name="permisos" th:value="${a.id}" th:attr="data-requiere=${p.id}"
+                         th:checked="${administrador or #lists.contains(form.permisos, a.id)}" th:disabled="${ver or administrador}">
+                  <span th:text="${a.descripcion}">Acción</span>
+                </label>
+              </div>
+            </th:block>
+          </div>
         </div>
-        <p class="gx-panel__nota">Los permisos de "ver" abren el módulo en el menú; los demás habilitan los botones de cambio.
-          Los cambios rigen desde el próximo ingreso de cada usuario.</p>
+        <p class="gx-panel__nota">Los cambios rigen desde el próximo ingreso de cada usuario.</p>
       </div>
     </section>
 
@@ -111,7 +119,6 @@
 
     <div class="gx-acciones-pie">
       <button th:unless="${ver}" type="submit" class="gx-btn gx-btn--icono"><svg class="lucide" width="16" height="16"><use href="#i-save"/></svg>Confirmar</button>
-      <a th:if="${ver}" class="gx-btn gx-btn--icono" th:href="@{/admin/roles/{id}/editar(id=${form.id})}"><svg class="lucide" width="16" height="16"><use href="#i-pencil"/></svg>Modificar</a>
       <a class="gx-btn gx-btn--secundario" th:href="@{/admin/roles}" th:text="${ver} ? 'Volver' : 'Cancelar'">Cancelar</a>
     </div>
   </form>

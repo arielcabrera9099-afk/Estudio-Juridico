@@ -41,7 +41,6 @@
           <input id="f-texto" name="texto" th:value="${texto}" maxlength="80" autocomplete="off" placeholder="Título o expediente"></div>
         <div class="gx-campo gx-campo--boton">
           <div class="gx-botonera">
-            <button type="submit" class="gx-btn gx-btn--icono"><svg class="lucide" width="16" height="16"><use href="#i-search"/></svg>Buscar</button>
             <a class="gx-btn gx-btn--secundario" th:href="@{/agenda/vencimientos}">Limpiar</a>
           </div>
         </div>
@@ -78,11 +77,11 @@
               <td><span class="gx-etiqueta"
                         th:classappend="${v.dias < 0} ? 'gx-etiqueta--peligro' : (${v.dias <= 1} ? 'gx-etiqueta--aviso' : 'gx-etiqueta--info')"
                         th:text="${v.dias < 0} ? (${v.dias == -1} ? 'VENCIÓ AYER' : |VENCIÓ HACE ${-v.dias} DÍAS|) : (${v.dias == 0} ? 'VENCE HOY' : (${v.dias == 1} ? 'VENCE MAÑANA' : |EN ${v.dias} DÍAS|))">EN 3 DÍAS</span></td>
-              <td><a class="gx-enlace" th:href="@{/agenda/{id}(id=${v.id})}"
-                     th:text="${v.todo_el_dia} ? ${#temporals.format(v.fecha_inicio, 'EEE dd/MM/yyyy')} : ${#temporals.format(v.fecha_inicio, 'EEE dd/MM/yyyy HH:mm')}">lun 01/01/2026</a></td>
+              <td><span
+                     th:text="${v.todo_el_dia} ? ${#temporals.format(v.fecha_inicio, 'EEE dd/MM/yyyy')} : ${#temporals.format(v.fecha_inicio, 'EEE dd/MM/yyyy HH:mm')}">lun 01/01/2026</span></td>
               <td th:text="${v.titulo}">Título</td>
-              <td><a th:if="${v.expediente_id != null}" class="gx-enlace" th:href="@{/expedientes/{id}(id=${v.expediente_id})}"
-                     th:text="${v.numero_interno}" th:title="${v.caratula}">2026-0001</a><span th:if="${v.expediente_id == null}">—</span></td>
+              <td><span th:if="${v.expediente_id != null}"
+                     th:text="${v.numero_interno}" th:title="${v.caratula}">2026-0001</span><span th:if="${v.expediente_id == null}">—</span></td>
               <td th:text="${v.responsable}">Responsable</td>
               <td th:text="${v.proximo_aviso != null} ? ${#temporals.format(v.proximo_aviso, 'EEE dd/MM HH:mm')} : '—'">—</td>
             </tr>

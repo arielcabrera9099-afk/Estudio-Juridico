@@ -58,7 +58,7 @@
         </div>
         <div class="gx-acciones-pie">
           <button type="submit" class="gx-btn gx-btn--icono"><svg class="lucide" width="16" height="16"><use href="#i-save"/></svg>Confirmar</button>
-          <a class="gx-btn gx-btn--secundario" th:href="@{/expedientes/{id}(id=${ficha.id})} + '#partes'">Cancelar</a>
+          <a class="gx-btn gx-btn--secundario" th:href="@{/expedientes/{id}/editar(id=${ficha.id})} + '#partes'">Cancelar</a>
         </div>
       </div>
     </section>

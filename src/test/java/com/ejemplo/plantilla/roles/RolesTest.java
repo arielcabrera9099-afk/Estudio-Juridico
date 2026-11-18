@@ -20,6 +20,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,6 +48,14 @@ class RolesTest {
         admin = Sesiones.como(adminId, "prueba_admin", Sesiones.TODOS);
     }
 
+
+    @Autowired
+    private UserDetailsService usuarios;
+
+    private String menu(String codigo) {
+        return String.valueOf(jdbc.queryForObject("SELECT id FROM menu WHERE codigo = :c", Map.of("c", codigo), Long.class));
+    }
+
     private String permiso(String codigo) {
         return String.valueOf(jdbc.queryForObject("SELECT id FROM permiso WHERE codigo = :c", Map.of("c", codigo), Long.class));
     }
@@ -54,16 +64,25 @@ class RolesTest {
         return jdbc.queryForMap("SELECT * FROM rol WHERE codigo = :c", Map.of("c", codigo));
     }
 
-    private List<String> permisosDe(String codigo) {
+    private List<String> pantallasDe(String codigo) {
+        return jdbc.queryForList("SELECT m.codigo FROM rol_menu rm JOIN rol r ON r.id = rm.rol_id "
+                + "JOIN menu m ON m.id = rm.menu_id WHERE r.codigo = :c ORDER BY m.codigo", Map.of("c", codigo), String.class);
+    }
+
+    private List<String> accionesDe(String codigo) {
         return jdbc.queryForList("SELECT p.codigo FROM rol_permiso rp JOIN rol r ON r.id = rp.rol_id "
                 + "JOIN permiso p ON p.id = rp.permiso_id WHERE r.codigo = :c ORDER BY p.codigo", Map.of("c", codigo), String.class);
     }
 
+    /** Procurador: ve Expedientes y el Calendario, y puede modificar expedientes. */
     private long crearProcurador() throws Exception {
         mvc.perform(post("/admin/roles").with(admin).with(csrf())
                         .param("codigo", " procurador ").param("nombre", "Procurador")
                         .param("descripcion", "Sigue los expedientes en tribunales")
-                        .param("permisos", permiso("EXPEDIENTES_VER")).param("permisos", permiso("AGENDA_VER")))
+                        .param("menus", menu("EXPEDIENTES_LISTA")).param("menus", menu("AGENDA_CALENDARIO"))
+                        .param("permisos", permiso("EXPEDIENTES_EDITAR"))
+                        // Acción de una pantalla que el rol no ve: se descarta.
+                        .param("permisos", permiso("DOCUMENTOS_ELIMINAR")))
                 .andExpect(redirectedUrlPattern("/admin/roles?ok=*"));
         return ((Number) rol("PROCURADOR").get("id")).longValue();
     }
@@ -79,14 +98,36 @@ class RolesTest {
     }
 
     @Test
-    void altaNormalizaElCodigoYGuardaLosPermisos() throws Exception {
+    void altaGuardaElMenuYDescartaAccionesDePantallasQueNoVe() throws Exception {
         long id = crearProcurador();
         assertThat(rol("PROCURADOR").get("creado_por")).isEqualTo(adminId);
-        assertThat(permisosDe("PROCURADOR")).containsExactly("AGENDA_VER", "EXPEDIENTES_VER");
+        assertThat(pantallasDe("PROCURADOR")).containsExactly("AGENDA_CALENDARIO", "EXPEDIENTES_LISTA");
+        assertThat(accionesDe("PROCURADOR")).containsExactly("EXPEDIENTES_EDITAR");
         assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM auditoria WHERE tabla = 'rol' AND accion = 'ALTA' AND registro_id = :id",
                 Map.of("id", id), Integer.class)).isEqualTo(1);
         mvc.perform(get("/admin/roles/" + id).with(admin)).andExpect(status().isOk())
+                .andExpect(content().string(Matchers.containsString("Menú del rol")))
+                .andExpect(content().string(Matchers.containsString("Cerrar y reabrir expedientes")))
                 .andExpect(content().string(Matchers.containsString("Ningún usuario activo tiene este rol.")));
+    }
+
+    @Test
+    void elUsuarioVeSoloElMenuDeSuRol() throws Exception {
+        crearProcurador();
+        Sesiones.crearUsuario(jdbc, "prueba_procurador", "PROCURADOR", false);
+        RequestPostProcessor procurador = SecurityMockMvcRequestPostProcessors.user(usuarios.loadUserByUsername("prueba_procurador"));
+        mvc.perform(get("/expedientes").with(procurador)).andExpect(status().isOk())
+                .andExpect(content().string(Matchers.containsString("/agenda")))
+                .andExpect(content().string(Matchers.not(Matchers.containsString("href=\"/clientes\""))));
+        mvc.perform(get("/clientes").with(procurador)).andExpect(status().isForbidden());
+        mvc.perform(get("/agenda/vencimientos").with(procurador)).andExpect(status().isForbidden());
+        mvc.perform(get("/admin/roles").with(procurador)).andExpect(status().isForbidden());
+        mvc.perform(get("/reportes/expedientes.csv").with(procurador)).andExpect(status().isForbidden());
+        // Puede modificar expedientes pero no cerrarlos: el estado de cierre no se le ofrece.
+        mvc.perform(get("/expedientes/nuevo").with(procurador)).andExpect(status().isOk());
+        // Lo que no es de ninguna pantalla solo pide haber ingresado.
+        mvc.perform(get("/").with(procurador)).andExpect(status().isOk());
+        mvc.perform(get("/notificaciones").with(procurador)).andExpect(status().isOk());
     }
 
     @Test
@@ -95,35 +136,49 @@ class RolesTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(Matchers.containsString("Ya existe un rol con ese código.")))
                 .andExpect(content().string(Matchers.containsString("Ya existe un rol con ese nombre.")))
-                .andExpect(content().string(Matchers.containsString("Elija al menos un permiso.")));
-        mvc.perform(post("/admin/roles").with(admin).with(csrf()).param("codigo", "1X").param("permisos", "999999"))
+                .andExpect(content().string(Matchers.containsString("Elija al menos una pantalla.")));
+        mvc.perform(post("/admin/roles").with(admin).with(csrf()).param("codigo", "1X").param("menus", "999999"))
                 .andExpect(content().string(Matchers.containsString("El código debe tener de 3 a 30 caracteres")))
                 .andExpect(content().string(Matchers.containsString("Nombre es requerido.")))
-                .andExpect(content().string(Matchers.containsString("Uno de los permisos elegidos no existe.")));
+                .andExpect(content().string(Matchers.containsString("Elija al menos una pantalla.")));
     }
 
     @Test
-    void modificarCambiaPermisosPeroNoElCodigo() throws Exception {
+    void modificarCambiaElMenuPeroNoElCodigo() throws Exception {
         long id = crearProcurador();
         mvc.perform(post("/admin/roles/" + id).with(admin).with(csrf()).param("codigo", "OTRO")
-                        .param("nombre", "Procurador judicial").param("permisos", permiso("CLIENTES_VER")).param("activo", "true"))
+                        .param("nombre", "Procurador judicial").param("menus", menu("CLIENTES_LISTA"))
+                        .param("permisos", permiso("CLIENTES_EDITAR")).param("activo", "true"))
                 .andExpect(redirectedUrlPattern("/admin/roles?ok=*"));
         assertThat(rol("PROCURADOR").get("nombre")).isEqualTo("PROCURADOR JUDICIAL");
-        assertThat(permisosDe("PROCURADOR")).containsExactly("CLIENTES_VER");
+        assertThat(pantallasDe("PROCURADOR")).containsExactly("CLIENTES_LISTA");
+        assertThat(accionesDe("PROCURADOR")).containsExactly("CLIENTES_EDITAR");
     }
 
     @Test
-    void elAdministradorConservaTodosLosPermisosYNoSeDaDeBaja() throws Exception {
+    void elAdministradorVeTodoYNoSeDaDeBaja() throws Exception {
         long id = ((Number) rol("ADMINISTRADOR").get("id")).longValue();
-        int total = jdbc.queryForObject("SELECT COUNT(*) FROM permiso", Map.of(), Integer.class);
+        int pantallas = jdbc.queryForObject("SELECT COUNT(*) FROM menu WHERE nivel = 'OPCION' AND activo = 1", Map.of(), Integer.class);
+        int acciones = jdbc.queryForObject("SELECT COUNT(*) FROM permiso", Map.of(), Integer.class);
+        assertThat(pantallasDe("ADMINISTRADOR")).hasSize(pantallas);
         mvc.perform(post("/admin/roles/" + id).with(admin).with(csrf()).param("nombre", "Administrador general")
                         .param("_activo", "on"))
                 .andExpect(redirectedUrlPattern("/admin/roles?ok=*"));
         assertThat(rol("ADMINISTRADOR").get("activo")).isEqualTo(true);
-        assertThat(permisosDe("ADMINISTRADOR")).hasSize(total);
+        assertThat(pantallasDe("ADMINISTRADOR")).hasSize(pantallas);
+        assertThat(accionesDe("ADMINISTRADOR")).hasSize(acciones);
         mvc.perform(post("/admin/roles/" + id + "/baja").with(admin).with(csrf()))
                 .andExpect(redirectedUrlPattern("/admin/roles?error=*"));
         assertThat(rol("ADMINISTRADOR").get("activo")).isEqualTo(true);
+    }
+
+    @Test
+    void losRolesConservanLoQueVeianAntes() {
+        // V13 pasó los permisos de "ver" a pantallas: el Asistente ve lo suyo y no ve reportes ni administración.
+        assertThat(pantallasDe("ASISTENTE")).contains("CLIENTES_LISTA", "EXPEDIENTES_LISTA", "AGENDA_CALENDARIO", "DOCUMENTOS_BUSCAR")
+                .doesNotContain("REPORTES_EXPEDIENTES", "ADMIN_USUARIOS");
+        assertThat(accionesDe("ASISTENTE")).doesNotContain("EXPEDIENTES_CERRAR", "DOCUMENTOS_ELIMINAR");
+        assertThat(accionesDe("ABOGADO")).contains("EXPEDIENTES_CERRAR");
     }
 
     @Test

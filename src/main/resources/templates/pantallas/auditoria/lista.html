@@ -43,7 +43,6 @@
           <input id="f-registro" name="registro" th:value="${registro}" inputmode="numeric" maxlength="18" autocomplete="off"></div>
         <div class="gx-campo gx-campo--boton">
           <div class="gx-botonera">
-            <button type="submit" class="gx-btn gx-btn--icono"><svg class="lucide" width="16" height="16"><use href="#i-search"/></svg>Buscar</button>
             <a class="gx-btn gx-btn--secundario" th:href="@{/admin/auditoria}">Limpiar</a>
           </div>
         </div>
@@ -80,7 +79,7 @@
                   </ul>
                 </div>
               </td>
-              <td><a class="gx-enlace" th:href="@{/admin/auditoria/{id}(id=${f.id})}" th:text="${#temporals.format(f.fecha, 'dd/MM/yyyy HH:mm:ss')}">fecha</a></td>
+              <td><span th:text="${#temporals.format(f.fecha, 'dd/MM/yyyy HH:mm:ss')}">fecha</span></td>
               <td th:text="${f.nombre_usuario != null} ? ${f.nombre_usuario} : (${f.usuario_intentado != null} ? |${f.usuario_intentado} (no existe)| : '—')">usuario</td>
               <td>
                 <span class="gx-etiqueta" th:text="${#strings.toUpperCase(acciones[f.accion] ?: f.accion)}"

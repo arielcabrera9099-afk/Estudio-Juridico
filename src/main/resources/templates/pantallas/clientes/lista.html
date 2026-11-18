@@ -41,7 +41,6 @@
           </select></div>
         <div class="gx-campo gx-campo--boton">
           <div class="gx-botonera">
-            <button type="submit" class="gx-btn gx-btn--icono"><svg class="lucide" width="16" height="16"><use href="#i-search"/></svg>Buscar</button>
             <a class="gx-btn gx-btn--secundario" th:href="@{/clientes}">Limpiar</a>
           </div>
         </div>
@@ -74,6 +73,8 @@
                     <li th:if="${puedeEditar}"><a th:href="@{/clientes/{id}/editar(id=${f.id})}"><svg class="lucide" width="15" height="15"><use href="#i-pencil"/></svg>Modificar</a></li>
                     <li><a th:href="@{/clientes/{id}(id=${f.id})} + '#historial'"><svg class="lucide" width="15" height="15"><use href="#i-history"/></svg>Historial de casos</a></li>
                     <li th:if="${puedeEditar}"><a th:href="@{/clientes/{id}/contactos/nuevo(id=${f.id})}"><svg class="lucide" width="15" height="15"><use href="#i-phone"/></svg>Agregar contacto</a></li>
+                    <li th:if="${puedeEditar}"><a th:href="@{/clientes/{id}/telefonos/nuevo(id=${f.id})}"><svg class="lucide" width="15" height="15"><use href="#i-smartphone"/></svg>Agregar teléfono</a></li>
+                    <li th:if="${f.activo and #authorization.expression('hasAuthority(''EXPEDIENTES_EDITAR'')')}"><a th:href="@{/expedientes/nuevo(cliente=${f.id})}"><svg class="lucide" width="15" height="15"><use href="#i-file-plus"/></svg>Nuevo expediente</a></li>
                     <li th:if="${puedeEditar and f.activo}">
                       <form method="post" th:action="@{/clientes/{id}/baja(id=${f.id})}" data-confirmar-tipo="error"
                             data-confirmar-boton="Dar de baja"
@@ -90,7 +91,7 @@
                   </ul>
                 </div>
               </td>
-              <td><a class="gx-enlace" th:href="@{/clientes/{id}(id=${f.id})}" th:text="${f.nombre}">Cliente</a></td>
+              <td><span th:text="${f.nombre}">Cliente</span></td>
               <td th:text="${f.tipo_persona == 'J'} ? 'Jurídica' : 'Física'">Física</td>
               <td th:text="${f.numero_documento != null} ? |${f.documento_tipo} ${f.numero_documento}| : '—'">CI 1234567</td>
               <td th:text="${f.telefono}">0981 000 000</td>

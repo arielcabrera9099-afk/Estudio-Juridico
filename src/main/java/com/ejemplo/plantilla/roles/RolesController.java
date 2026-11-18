@@ -1,6 +1,5 @@
 package com.ejemplo.plantilla.roles;
 
-import java.util.Map;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -17,8 +16,8 @@ import com.ejemplo.plantilla.web.ModeloComun;
 import com.ejemplo.plantilla.web.NoEncontrado;
 
 /**
- * Roles y permisos (permiso SEGURIDAD_ADMINISTRAR, controlado por la ruta): lista con filtros y, desde ella, alta,
- * visualización, modificación (incluida la matriz de permisos), baja lógica y reactivación.
+ * Roles (pantalla del menú "Roles y permisos"): lista con filtros y, desde ella, alta,
+ * visualización, modificación (incluido su menú: pantallas que ve y acciones en cada una), baja lógica y reactivación.
  */
 @Controller
 @RequestMapping("/admin/roles")
@@ -26,9 +25,6 @@ public class RolesController {
 
     private static final String PAGINA = "admin/roles";
     private static final String LISTA = "redirect:/admin/roles";
-    private static final Map<String, String> NOMBRES_MODULO = Map.of("CLIENTES", "Clientes", "EXPEDIENTES", "Expedientes",
-            "AGENDA", "Agenda", "DOCUMENTOS", "Documentos", "REPORTES", "Reportes", "CATALOGOS", "Catálogos",
-            "SEGURIDAD", "Seguridad y auditoría");
 
     private final RolesServicio servicio;
     private final ModeloComun modelo;
@@ -82,9 +78,8 @@ public class RolesController {
         form.normalizar();
         form.setCodigo(actual.getCodigo());
         if (servicio.esAdministrador(form)) {
-            // En el formulario sus permisos y su estado van deshabilitados: se conservan los actuales.
+            // En el formulario su menú y su estado van deshabilitados: ve todo, hace todo y queda activo.
             form.setActivo(true);
-            form.setPermisos(actual.getPermisos());
         }
         Errores errores = servicio.validar(form, false);
         if (errores.hay()) return formulario(model, form, "editar", errores);
@@ -123,8 +118,7 @@ public class RolesController {
         model.addAttribute("ver", "ver".equals(modo));
         model.addAttribute("administrador", servicio.esAdministrador(form));
         model.addAttribute("errores", errores);
-        model.addAttribute("gruposPermisos", servicio.permisosPorModulo());
-        model.addAttribute("nombresModulo", NOMBRES_MODULO);
+        model.addAttribute("arbol", servicio.arbol());
         if (form.getId() != null) {
             model.addAttribute("ficha", servicio.ficha(form.getId()).orElseThrow(NoEncontrado::new));
             model.addAttribute("usuarios", servicio.usuarios(form.getId()));

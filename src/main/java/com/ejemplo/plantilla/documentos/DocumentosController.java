@@ -104,7 +104,7 @@ public class DocumentosController {
         }
         redirect.addAttribute("ok", "Se cargó el documento «" + form.getNombre() + "».");
         // Si se cargó desde la ficha del expediente, vuelve a ella; si no, a la grilla.
-        return "expediente".equals(volver) ? "redirect:/expedientes/" + form.getExpedienteId() + "#documentos" : "redirect:/documentos";
+        return "expediente".equals(volver) ? "redirect:/expedientes/" + form.getExpedienteId() + "/editar#documentos" : "redirect:/documentos";
     }
 
     @GetMapping("/{id}")

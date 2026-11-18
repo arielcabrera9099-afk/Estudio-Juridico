@@ -45,7 +45,7 @@
         <p class="gx-panel__nota">La bitácora registra lo que ya pasó. Las audiencias y vencimientos por venir se cargan en la agenda.</p>
         <div class="gx-acciones-pie">
           <button type="submit" class="gx-btn gx-btn--icono"><svg class="lucide" width="16" height="16"><use href="#i-save"/></svg>Confirmar</button>
-          <a class="gx-btn gx-btn--secundario" th:href="@{/expedientes/{id}(id=${ficha.id})} + '#actuaciones'">Cancelar</a>
+          <a class="gx-btn gx-btn--secundario" th:href="@{/expedientes/{id}/editar(id=${ficha.id})} + '#actuaciones'">Cancelar</a>
         </div>
       </div>
     </section>

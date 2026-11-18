@@ -160,21 +160,21 @@ class CatalogosTest {
 
     @Test
     void paisesDepartamentosYCiudades() throws Exception {
-        mvc.perform(get("/admin/ubicaciones").with(admin)).andExpect(status().isOk())
+        mvc.perform(get("/admin/paises").with(admin)).andExpect(status().isOk())
                 .andExpect(content().string(Matchers.containsString("+595")));
-        mvc.perform(post("/admin/ubicaciones/pais").with(admin).with(csrf()).param("codigo", "fr").param("nombre", "Francia")
+        mvc.perform(post("/admin/paises/pais").with(admin).with(csrf()).param("codigo", "fr").param("nombre", "Francia")
                         .param("prefijo_telefonico", "33"))
                 .andExpect(content().string(Matchers.containsString("El prefijo es + y de 1 a 4 dígitos")));
-        mvc.perform(post("/admin/ubicaciones/pais").with(admin).with(csrf()).param("codigo", "fr").param("nombre", "Francia")
+        mvc.perform(post("/admin/paises/pais").with(admin).with(csrf()).param("codigo", "fr").param("nombre", "Francia")
                         .param("prefijo_telefonico", "+33"))
-                .andExpect(redirectedUrlPattern("/admin/ubicaciones?catalogo=pais&ok=*"));
+                .andExpect(redirectedUrlPattern("/admin/paises?catalogo=pais&ok=*"));
         String francia = String.valueOf(id("pais", "FR"));
-        mvc.perform(post("/admin/ubicaciones/departamento").with(admin).with(csrf()).param("nombre", "Île-de-France").param("pais_id", francia))
-                .andExpect(redirectedUrlPattern("/admin/ubicaciones?catalogo=departamento&ok=*"));
+        mvc.perform(post("/admin/departamentos/departamento").with(admin).with(csrf()).param("nombre", "Île-de-France").param("pais_id", francia))
+                .andExpect(redirectedUrlPattern("/admin/departamentos?catalogo=departamento&ok=*"));
         long depto = jdbc.queryForObject("SELECT id FROM departamento WHERE nombre = N'Île-de-France'", Map.of(), Long.class);
-        mvc.perform(post("/admin/ubicaciones/ciudad").with(admin).with(csrf()).param("nombre", "París").param("departamento_id", String.valueOf(depto)))
-                .andExpect(redirectedUrlPattern("/admin/ubicaciones?catalogo=ciudad&ok=*"));
-        mvc.perform(post("/admin/ubicaciones/ciudad").with(admin).with(csrf()).param("nombre", "París").param("departamento_id", String.valueOf(depto)))
+        mvc.perform(post("/admin/ciudades/ciudad").with(admin).with(csrf()).param("nombre", "París").param("departamento_id", String.valueOf(depto)))
+                .andExpect(redirectedUrlPattern("/admin/ciudades?catalogo=ciudad&ok=*"));
+        mvc.perform(post("/admin/ciudades/ciudad").with(admin).with(csrf()).param("nombre", "París").param("departamento_id", String.valueOf(depto)))
                 .andExpect(content().string(Matchers.containsString("Ya existe una ciudad con ese nombre en el departamento.")));
         // Los departamentos cargados de Paraguay quedaron en su país.
         assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM departamento d JOIN pais p ON p.id = d.pais_id WHERE p.codigo = 'PY'",

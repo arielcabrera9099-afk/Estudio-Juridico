@@ -50,7 +50,6 @@
           </select></div>
         <div class="gx-campo gx-campo--boton">
           <div class="gx-botonera">
-            <button type="submit" class="gx-btn gx-btn--icono"><svg class="lucide" width="16" height="16"><use href="#i-search"/></svg>Buscar</button>
             <a class="gx-btn gx-btn--secundario" th:href="@{/admin/{s}(s=${seccion.clave},catalogo=${cat.tabla})}">Limpiar</a>
           </div>
         </div>
@@ -97,7 +96,7 @@
                   </ul>
                 </div>
               </td>
-              <td th:if="${cat.conCodigo}"><a class="gx-enlace" th:href="@{/admin/{s}/{c}/{id}(s=${seccion.clave},c=${cat.tabla},id=${f.id})}" th:text="${f.codigo}">CODIGO</a></td>
+              <td th:if="${cat.conCodigo}"><span th:text="${f.codigo}">CODIGO</span></td>
               <td th:each="campo : ${cat.campos}" th:if="${campo.enLista}" th:with="v=${f[campo.columna]}"
                   th:classappend="${campo.tipoNombre == 'ENTERO'} ? 'gx-num'">
                 <th:block th:switch="${campo.tipoNombre}">
@@ -105,8 +104,7 @@
                   <span th:case="'SINO'" th:text="${v} ? 'Sí' : 'No'">No</span>
                   <span th:case="'OPCIONES'"><span class="lx-muestra" th:style="|background: var(--${v})|"></span><span th:text="${campo.textoDe(v)}">Opción</span></span>
                   <th:block th:case="*">
-                    <a th:if="${campo.columna == 'nombre' and !cat.conCodigo}" class="gx-enlace"
-                       th:href="@{/admin/{s}/{c}/{id}(s=${seccion.clave},c=${cat.tabla},id=${f.id})}" th:text="${v}">Nombre</a>
+                    <span th:if="${campo.columna == 'nombre' and !cat.conCodigo}" th:text="${v}">Nombre</span>
                     <span th:unless="${campo.columna == 'nombre' and !cat.conCodigo}" th:text="${v}">Valor</span>
                   </th:block>
                 </th:block>

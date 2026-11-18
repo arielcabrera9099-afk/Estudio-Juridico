@@ -33,7 +33,6 @@
           </select></div>
         <div class="gx-campo gx-campo--boton">
           <div class="gx-botonera">
-            <button type="submit" class="gx-btn gx-btn--icono"><svg class="lucide" width="16" height="16"><use href="#i-search"/></svg>Buscar</button>
             <a class="gx-btn gx-btn--secundario" th:href="@{/admin/parametros}">Limpiar</a>
           </div>
         </div>
@@ -64,7 +63,7 @@
                 </div>
               </td>
               <td th:text="${nombresGrupo[g] ?: g}">Grupo</td>
-              <td><a class="gx-enlace" th:href="@{/admin/parametros/{id}(id=${f.id})}" th:text="${f.descripcion ?: f.clave}">Descripción</a></td>
+              <td><span th:text="${f.descripcion ?: f.clave}">Descripción</span></td>
               <td th:text="${f.clave}">clave</td>
               <td><strong th:text="${f.valor}">valor</strong></td>
               <td th:text="${f.modificado_en != null} ? |${#temporals.format(f.modificado_en, 'dd/MM/yyyy HH:mm')} · ${f.modificado_por_usuario}| : 'Valor inicial'">Valor inicial</td>

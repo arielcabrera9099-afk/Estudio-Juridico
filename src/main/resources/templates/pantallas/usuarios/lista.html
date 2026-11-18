@@ -40,7 +40,6 @@
           </select></div>
         <div class="gx-campo gx-campo--boton">
           <div class="gx-botonera">
-            <button type="submit" class="gx-btn gx-btn--icono"><svg class="lucide" width="16" height="16"><use href="#i-search"/></svg>Buscar</button>
             <a class="gx-btn gx-btn--secundario" th:href="@{/admin/usuarios}">Limpiar</a>
           </div>
         </div>
@@ -94,7 +93,7 @@
                   </ul>
                 </div>
               </td>
-              <td><a class="gx-enlace" th:href="@{/admin/usuarios/{id}(id=${f.id})}" th:text="${f.nombre_usuario}">usuario</a></td>
+              <td><span th:text="${f.nombre_usuario}">usuario</span></td>
               <td th:text="|${f.apellidos}, ${f.nombres}|">Apellido, Nombre</td>
               <td th:text="${f.email}">email</td>
               <td th:text="${f.roles}">Roles</td>

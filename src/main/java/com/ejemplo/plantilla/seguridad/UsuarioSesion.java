@@ -10,13 +10,16 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 /**
- * El usuario de la sesión: sus datos para la cabecera, sus roles y sus permisos (las authorities son los códigos de
- * {@code permiso}, como CLIENTES_VER). Los permisos se cargan al ingresar; un cambio de roles rige desde el próximo
+ * El usuario de la sesión: sus datos para la cabecera, sus roles y lo que puede hacer. Authorities: las pantallas que ve
+ * ({@link #PREFIJO_MENU} + código de la opción del menú, como MENU_CLIENTES_LISTA) y las acciones (códigos de
+ * {@code permiso}, como CLIENTES_EDITAR). Se cargan al ingresar; un cambio de roles rige desde el próximo
  * ingreso.
  */
 public class UsuarioSesion implements UserDetails {
 
     private static final long serialVersionUID = 1L;
+    /** Prefijo de las authorities de pantalla: MENU_ + código de la opción del menú. */
+    public static final String PREFIJO_MENU = "MENU_";
 
     private final long id;
     private final String usuario;

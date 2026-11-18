@@ -77,12 +77,15 @@ class PantallasTest {
     }
 
     @Test
-    void lasPantallasPendientesMuestranUnAviso() throws Exception {
+    void todasLasOpcionesDelMenuAbrenSuPantalla() throws Exception {
         long id = Sesiones.crearUsuario(jdbc, "prueba_admin", "ADMINISTRADOR", false);
-        mvc.perform(get("/reportes/expedientes").with(Sesiones.como(id, "prueba_admin", Sesiones.TODOS)))
-                .andExpect(status().isOk())
-                .andExpect(content().string(Matchers.containsString("Pantalla en construcción")))
-                .andExpect(content().string(Matchers.containsString("<span>Casos activos y cerrados</span>")));
+        for (String ruta : jdbc.queryForList("SELECT ruta FROM menu WHERE ruta IS NOT NULL AND activo = 1", java.util.Map.of(), String.class)) {
+            mvc.perform(get(ruta).with(Sesiones.como(id, "prueba_admin", Sesiones.TODOS)))
+                    .andExpect(status().isOk())
+                    .andExpect(content().string(Matchers.not(Matchers.containsString("Pantalla en construcción"))))
+                    // Las grillas no se navegan con clics: se ve cada registro con Visualizar (los reportes sí enlazan al detalle).
+                    .andExpect(content().string(ruta.startsWith("/reportes") ? Matchers.anything() : Matchers.not(Matchers.containsString("class=\"gx-enlace\""))));
+        }
     }
 
     @Test

@@ -76,7 +76,6 @@
         <p class="gx-panel__nota" th:if="${cat.descripcion != null and !ver}" th:text="${cat.descripcion}">Nota</p>
         <div class="gx-acciones-pie">
           <button th:unless="${ver}" type="submit" class="gx-btn gx-btn--icono"><svg class="lucide" width="16" height="16"><use href="#i-save"/></svg>Confirmar</button>
-          <a th:if="${ver}" class="gx-btn gx-btn--icono" th:href="@{/admin/{s}/{c}/{id}/editar(s=${seccion.clave},c=${cat.tabla},id=${ficha.id})}"><svg class="lucide" width="16" height="16"><use href="#i-pencil"/></svg>Modificar</a>
           <a class="gx-btn gx-btn--secundario" th:href="@{/admin/{s}(s=${seccion.clave},catalogo=${cat.tabla})}" th:text="${ver} ? 'Volver' : 'Cancelar'">Cancelar</a>
         </div>
       </div>

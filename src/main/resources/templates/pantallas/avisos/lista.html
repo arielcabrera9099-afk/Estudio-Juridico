@@ -40,7 +40,6 @@
           </select></div>
         <div class="gx-campo gx-campo--boton">
           <div class="gx-botonera">
-            <button type="submit" class="gx-btn gx-btn--icono"><svg class="lucide" width="16" height="16"><use href="#i-search"/></svg>Buscar</button>
             <a class="gx-btn gx-btn--secundario" th:href="@{/notificaciones}">Limpiar</a>
           </div>
         </div>
@@ -76,7 +75,7 @@
                 </div>
               </td>
               <td th:text="${#temporals.format(a.creado_en, 'dd/MM/yyyy HH:mm')}">18/11/2026 08:00</td>
-              <td><a class="gx-enlace" th:href="@{/notificaciones/{id}/abrir(id=${a.id})}" th:text="${a.titulo}">Título</a></td>
+              <td><span th:text="${a.titulo}">Título</span></td>
               <td th:text="${a.mensaje}">Detalle</td>
               <td th:text="${a.tipo == 'VENCIMIENTO'} ? 'Vencimiento' : (${a.tipo == 'AUDIENCIA'} ? 'Audiencia' : 'Otro')">Vencimiento</td>
               <td><span class="gx-etiqueta" th:classappend="${a.leida_en == null} ? 'gx-etiqueta--aviso' : 'gx-etiqueta--exito'"

@@ -96,7 +96,7 @@
                      placeholder="0981 123 456" aria-label="Número">
             </div>
             <p th:replace="~{componentes/componentes :: error('telefono')}"></p>
-            <span class="gx-ayuda" th:unless="${ver}">Fijo o celular, sin el prefijo. Otros teléfonos se agregan en la ficha del cliente.</span>
+            <span class="gx-ayuda" th:unless="${ver}">Fijo o celular, sin el prefijo. Otros teléfonos se agregan en Modificar, en el panel Teléfonos.</span>
           </div>
           <div class="gx-campo" th:classappend="${errores.tiene('email')} ? 'is-error'">
             <label for="email">Email</label>
@@ -140,20 +140,20 @@
             <p th:replace="~{componentes/componentes :: error('activo')}"></p>
           </div>
         </div>
-        <p class="gx-panel__nota">La ciudad se elige por país y departamento; si falta alguna, se agrega en Administración → Países, departamentos y ciudades.</p>
+        <p class="gx-panel__nota">La ciudad se elige por país y departamento; si falta alguna, se agrega en Administración → Catálogos → Países, Departamentos o Ciudades.</p>
       </div>
     </section>
 
     <div class="gx-acciones-pie" th:unless="${ver}">
       <button type="submit" class="gx-btn gx-btn--icono"><svg class="lucide" width="16" height="16"><use href="#i-save"/></svg>Confirmar</button>
-      <a class="gx-btn gx-btn--secundario" th:href="${modo == 'alta'} ? @{/clientes} : @{/clientes/{id}(id=${form.id})}">Cancelar</a>
+      <a class="gx-btn gx-btn--secundario" th:href="@{/clientes}">Cancelar</a>
     </div>
   </form>
 
-  <!-- ================================================================ Visualizar: acciones, contactos e historial -->
-  <th:block th:if="${ver}">
-    <div class="gx-acciones-pie">
-      <a th:if="${puedeEditar}" class="gx-btn gx-btn--icono" th:href="@{/clientes/{id}/editar(id=${form.id})}"><svg class="lucide" width="16" height="16"><use href="#i-pencil"/></svg>Modificar</a>
+  <!-- ================================================================ Teléfonos, contactos e historial
+       En Visualizar, solo consulta. En Modificar, con sus botones y menús para agregar, modificar y quitar. -->
+  <th:block th:if="${modo != 'alta'}" th:with="gestiona=${modo == 'editar' and puedeEditar}">
+    <div class="gx-acciones-pie" th:if="${ver}">
       <a class="gx-btn gx-btn--secundario" th:href="@{/clientes}">Volver</a>
     </div>
 
@@ -161,17 +161,17 @@
       <h2 class="gx-panel__titulo" th:text="|Teléfonos (${#lists.size(telefonos)})|">Teléfonos</h2>
       <div class="gx-panel__cuerpo">
         <div class="gx-barra-resumen">
-          <a th:if="${puedeEditar and form.numeroDocumento != null}" class="gx-btn gx-btn--icono" th:href="@{/clientes/{id}/telefonos/nuevo(id=${form.id})}"><svg class="lucide" width="16" height="16"><use href="#i-plus"/></svg>Agregar teléfono</a>
-          <span th:unless="${puedeEditar and form.numeroDocumento != null}"></span>
+          <a th:if="${gestiona and form.numeroDocumento != null}" class="gx-btn gx-btn--icono" th:href="@{/clientes/{id}/telefonos/nuevo(id=${form.id})}"><svg class="lucide" width="16" height="16"><use href="#i-plus"/></svg>Agregar teléfono</a>
+          <span th:unless="${gestiona and form.numeroDocumento != null}"></span>
           <span class="gx-panel__nota" th:text="${form.numeroDocumento != null} ? 'Fijos y celulares del cliente; el principal se muestra en la grilla' : 'Complete el documento del cliente (Modificar) para cargar sus teléfonos'">Teléfonos</span>
         </div>
         <div class="gx-grilla-wrap">
           <table class="gx-grilla">
-            <thead><tr><th class="gx-col-acciones" th:if="${puedeEditar}"></th><th>Prefijo</th><th>Número</th><th>País</th></tr></thead>
+            <thead><tr><th class="gx-col-acciones" th:if="${gestiona}"></th><th>Prefijo</th><th>Número</th><th>País</th></tr></thead>
             <tbody>
               <tr th:if="${#lists.isEmpty(telefonos)}"><td colspan="4" class="gx-grilla__vacio">El cliente no tiene teléfonos cargados.</td></tr>
               <tr th:each="t : ${telefonos}">
-                <td class="gx-col-acciones" th:if="${puedeEditar}">
+                <td class="gx-col-acciones" th:if="${gestiona}">
                   <div class="gx-accion-grupo">
                     <button type="button" class="gx-accion-grupo__boton" aria-haspopup="true" aria-label="Acciones">
                       <svg class="lucide" width="16" height="16"><use href="#i-menu"/></svg></button>
@@ -202,17 +202,17 @@
       <h2 class="gx-panel__titulo">Contactos</h2>
       <div class="gx-panel__cuerpo">
         <div class="gx-barra-resumen">
-          <a th:if="${puedeEditar}" class="gx-btn gx-btn--icono" th:href="@{/clientes/{id}/contactos/nuevo(id=${form.id})}"><svg class="lucide" width="16" height="16"><use href="#i-plus"/></svg>Agregar contacto</a>
-          <span th:unless="${puedeEditar}"></span>
+          <a th:if="${gestiona}" class="gx-btn gx-btn--icono" th:href="@{/clientes/{id}/contactos/nuevo(id=${form.id})}"><svg class="lucide" width="16" height="16"><use href="#i-plus"/></svg>Agregar contacto</a>
+          <span th:unless="${gestiona}"></span>
           <span class="gx-panel__nota">Personas de contacto, por ejemplo el gerente o el apoderado de una empresa</span>
         </div>
         <div class="gx-grilla-wrap">
           <table class="gx-grilla">
-            <thead><tr><th class="gx-col-acciones" th:if="${puedeEditar}"></th><th>Nombre</th><th>Cargo</th><th>Email</th><th>Teléfono</th></tr></thead>
+            <thead><tr><th class="gx-col-acciones" th:if="${gestiona}"></th><th>Nombre</th><th>Cargo</th><th>Email</th><th>Teléfono</th></tr></thead>
             <tbody>
               <tr th:if="${#lists.isEmpty(contactos)}"><td colspan="5" class="gx-grilla__vacio">El cliente no tiene contactos cargados.</td></tr>
               <tr th:each="c : ${contactos}">
-                <td class="gx-col-acciones" th:if="${puedeEditar}">
+                <td class="gx-col-acciones" th:if="${gestiona}">
                   <div class="gx-accion-grupo">
                     <button type="button" class="gx-accion-grupo__boton" aria-haspopup="true" aria-label="Acciones">
                       <svg class="lucide" width="16" height="16"><use href="#i-menu"/></svg></button>
@@ -244,8 +244,6 @@
       <h2 class="gx-panel__titulo">Historial de casos</h2>
       <div class="gx-panel__cuerpo">
         <div class="gx-barra-resumen">
-          <a th:if="${form.activo and #authorization.expression('hasAuthority(''EXPEDIENTES_EDITAR'')')}" class="gx-btn gx-btn--icono"
-             th:href="@{/expedientes/nuevo(cliente=${form.id})}"><svg class="lucide" width="16" height="16"><use href="#i-file-plus"/></svg>Nuevo expediente</a>
           <a class="gx-btn gx-btn--secundario" th:href="@{/expedientes(cliente=${form.id},situacion='TODOS')}">Ver en Expedientes</a>
         </div>
         <div class="gx-grilla-wrap">
