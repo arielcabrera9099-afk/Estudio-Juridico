@@ -93,9 +93,9 @@ public class ExpedientesController {
         ExpedientesServicio.Valores v = new ExpedientesServicio.Valores();
         Errores errores = servicio.validar(form, v);
         if (errores.hay()) return formulario(model, form, "alta", errores);
-        long id = servicio.crear(form, v);
+        servicio.crear(form, v);
         redirect.addAttribute("ok", "Se dio de alta el expediente " + form.getNumeroInterno() + ".");
-        return "redirect:/expedientes/" + id;
+        return "redirect:/expedientes";
     }
 
     @GetMapping("/{id}")
@@ -127,7 +127,7 @@ public class ExpedientesController {
         if (errores.hay()) return formulario(model, form, "editar", errores);
         servicio.modificar(form, v);
         redirect.addAttribute("ok", "Se guardaron los cambios del expediente " + actual.getNumeroInterno() + ".");
-        return "redirect:/expedientes/" + id;
+        return "redirect:/expedientes";
     }
 
     // ------------------------------------------------------------------------------------------------ estado
@@ -154,7 +154,7 @@ public class ExpedientesController {
         if (errores.hay()) return pantallaEstado(model, ficha, form, errores);
         Map<String, Object> nueva = servicio.ficha(id).orElseThrow();
         redirect.addAttribute("ok", "El expediente " + ficha.get("numero_interno") + " pasó a " + nueva.get("estado") + ".");
-        return "redirect:/expedientes/" + id;
+        return "redirect:/expedientes";
     }
 
     private String pantallaEstado(Model model, Map<String, Object> ficha, EstadoForm form, Errores errores) {

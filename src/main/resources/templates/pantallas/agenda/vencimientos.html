@@ -1,0 +1,97 @@
+<!doctype html>
+<!-- Vencimientos: plazos pendientes con su situación (vencido, hoy, mañana, en N días). Solo consulta (VencimientosController). -->
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/layout :: layout(~{::title}, ~{::#contenido}, ~{::estilos})}">
+<head>
+  <title>Vencimientos</title>
+  <th:block th:fragment="estilos"></th:block>
+</head>
+<body>
+<div id="contenido" class="gx-pantalla">
+  <p th:replace="~{componentes/componentes :: ok}"></p>
+
+  <header class="gx-encabezado">
+    <h1><svg class="lucide" width="20" height="20"><use href="#i-clock"/></svg>Vencimientos</h1>
+    <p>Plazos procesales pendientes, del más urgente al más lejano</p>
+  </header>
+
+  <section class="gx-panel">
+    <h2 class="gx-panel__titulo">Filtros</h2>
+    <div class="gx-panel__cuerpo">
+      <div class="gx-barra-resumen">
+        <a th:if="${puedeEditar}" class="gx-btn gx-btn--icono" th:href="@{/agenda/nuevo}"><svg class="lucide" width="16" height="16"><use href="#i-plus"/></svg>Agregar</a>
+        <span th:unless="${puedeEditar}"></span>
+        <span class="gx-panel__nota" th:text="|${#lists.size(filas)} ${#lists.size(filas) == 1 ? 'vencimiento' : 'vencimientos'}${vencidos > 0 ? ' · ' + vencidos + (vencidos == 1 ? ' vencido' : ' vencidos') : ''}|">0 vencimientos</span>
+      </div>
+      <form class="gx-campos gx-campos--filtros" method="get" th:action="@{/agenda/vencimientos}" data-filtros>
+        <div class="gx-campo"><label for="f-horizonte">Mostrar</label>
+          <select id="f-horizonte" name="horizonte">
+            <option value="VENCIDOS" th:selected="${horizonte == 'VENCIDOS'}">SOLO VENCIDOS</option>
+            <option value="7" th:selected="${horizonte == '7'}">VENCIDOS Y PRÓXIMOS 7 DÍAS</option>
+            <option value="30" th:selected="${horizonte == '30'}">VENCIDOS Y PRÓXIMOS 30 DÍAS</option>
+            <option value="TODOS" th:selected="${horizonte == 'TODOS'}">TODOS LOS PENDIENTES</option>
+          </select></div>
+        <div class="gx-campo"><label for="f-responsable">Responsable</label>
+          <select id="f-responsable" name="responsable">
+            <option value="">TODOS</option>
+            <option th:if="${yo != null}" th:value="${yo}" th:selected="${responsable == yo}">MÍOS</option>
+            <option th:each="o : ${responsables}" th:unless="${o.id == yo}" th:value="${o.id}" th:text="${o.texto}" th:selected="${o.id == responsable}">Responsable</option>
+          </select></div>
+        <div class="gx-campo"><label for="f-texto">Buscar</label>
+          <input id="f-texto" name="texto" th:value="${texto}" maxlength="80" autocomplete="off" placeholder="Título o expediente"></div>
+        <div class="gx-campo gx-campo--boton">
+          <div class="gx-botonera">
+            <button type="submit" class="gx-btn gx-btn--icono"><svg class="lucide" width="16" height="16"><use href="#i-search"/></svg>Buscar</button>
+            <a class="gx-btn gx-btn--secundario" th:href="@{/agenda/vencimientos}">Limpiar</a>
+          </div>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <p class="gx-aviso gx-aviso--error" th:if="${vencidos > 0}">
+    <svg class="lucide" width="16" height="16"><use href="#i-alert-triangle"/></svg>
+    <span th:text="${vencidos == 1} ? 'Hay 1 plazo vencido sin cerrar: márquelo realizado o reprográmelo.' : |Hay ${vencidos} plazos vencidos sin cerrar: márquelos realizados o reprográmelos.|">Vencidos.</span>
+  </p>
+
+  <section class="gx-panel gx-panel--grilla">
+    <div class="gx-panel__cuerpo">
+      <div class="gx-grilla-wrap">
+        <table class="gx-grilla" id="grilla-vencimientos" data-paginar="10">
+          <thead><tr><th class="gx-col-acciones"></th><th>Situación</th><th>Vence</th><th>Título</th><th>Expediente</th><th>Responsable</th><th>Próximo aviso</th></tr></thead>
+          <tbody>
+            <tr th:if="${#lists.isEmpty(filas)}"><td colspan="7" class="gx-grilla__vacio">No hay vencimientos pendientes con esos filtros.</td></tr>
+            <tr th:each="v : ${filas}" th:classappend="${v.dias < 0} ? 'gx-fila--peligro'">
+              <td class="gx-col-acciones">
+                <div class="gx-accion-grupo">
+                  <button type="button" class="gx-accion-grupo__boton" aria-haspopup="true" aria-label="Acciones">
+                    <svg class="lucide" width="16" height="16"><use href="#i-menu"/></svg></button>
+                  <ul class="gx-accion-grupo__menu" hidden>
+                    <li><a th:href="@{/agenda/{id}(id=${v.id})}"><svg class="lucide" width="15" height="15"><use href="#i-search"/></svg>Visualizar</a></li>
+                    <th:block th:if="${puedeEditar}">
+                      <li><a th:href="@{/agenda/{id}/editar(id=${v.id})}"><svg class="lucide" width="15" height="15"><use href="#i-pencil"/></svg>Reprogramar</a></li>
+                      <li><a th:href="@{/agenda/{id}/estado(id=${v.id},nuevo='REALIZADO')}"><svg class="lucide" width="15" height="15"><use href="#i-check"/></svg>Marcar realizado</a></li>
+                    </th:block>
+                  </ul>
+                </div>
+              </td>
+              <td><span class="gx-etiqueta"
+                        th:classappend="${v.dias < 0} ? 'gx-etiqueta--peligro' : (${v.dias <= 1} ? 'gx-etiqueta--aviso' : 'gx-etiqueta--info')"
+                        th:text="${v.dias < 0} ? (${v.dias == -1} ? 'VENCIÓ AYER' : |VENCIÓ HACE ${-v.dias} DÍAS|) : (${v.dias == 0} ? 'VENCE HOY' : (${v.dias == 1} ? 'VENCE MAÑANA' : |EN ${v.dias} DÍAS|))">EN 3 DÍAS</span></td>
+              <td><a class="gx-enlace" th:href="@{/agenda/{id}(id=${v.id})}"
+                     th:text="${v.todo_el_dia} ? ${#temporals.format(v.fecha_inicio, 'EEE dd/MM/yyyy')} : ${#temporals.format(v.fecha_inicio, 'EEE dd/MM/yyyy HH:mm')}">lun 01/01/2026</a></td>
+              <td th:text="${v.titulo}">Título</td>
+              <td><a th:if="${v.expediente_id != null}" class="gx-enlace" th:href="@{/expedientes/{id}(id=${v.expediente_id})}"
+                     th:text="${v.numero_interno}" th:title="${v.caratula}">2026-0001</a><span th:if="${v.expediente_id == null}">—</span></td>
+              <td th:text="${v.responsable}">Responsable</td>
+              <td th:text="${v.proximo_aviso != null} ? ${#temporals.format(v.proximo_aviso, 'EEE dd/MM HH:mm')} : '—'">—</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="gx-panel__nota">Los avisos llegan a la campana de la barra superior del responsable, según los días de aviso del parámetro de agenda.</p>
+    </div>
+  </section>
+</div>
+</body>
+</html>

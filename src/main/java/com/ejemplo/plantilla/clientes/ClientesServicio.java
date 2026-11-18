@@ -20,7 +20,7 @@ import com.ejemplo.plantilla.web.Errores;
  * Clientes del estudio (personas físicas o jurídicas), sus contactos y su historial de casos. Reglas:
  * <ul>
  *   <li>Persona física: nombres y apellidos; fecha de nacimiento opcional, no futura. Persona jurídica: razón social.</li>
- *   <li>Documento opcional, pero tipo y número van juntos; formato según el tipo (cédula: solo números; RUC: número,
+ *   <li>Tipo y número de documento obligatorios; formato según el tipo (cédula: solo números; RUC: número,
  *       guion y dígito verificador; pasaporte: letras y números) y único por tipo.</li>
  *   <li>Al menos un teléfono o celular. Email con formato válido.</li>
  *   <li>La baja es lógica (el cliente conserva su historial) y no se permite con casos activos.</li>
@@ -155,9 +155,9 @@ public class ClientesServicio {
 
         Long tipoDoc = f.getTipoDocumentoIdentidadId();
         String numero = f.getNumeroDocumento();
-        if (tipoDoc != null && numero == null) e.campo("numeroDocumento", "Ingrese el número del documento elegido.");
-        else if (tipoDoc == null && numero != null) e.campo("tipoDocumentoIdentidadId", "Elija el tipo de documento.");
-        else if (tipoDoc != null) {
+        if (tipoDoc == null) e.campo("tipoDocumentoIdentidadId", "Tipo de documento es requerido.");
+        else if (numero == null) e.campo("numeroDocumento", "Número de documento es requerido.");
+        else {
             String codigo = codigoDocumento(tipoDoc);
             if (codigo == null) e.campo("tipoDocumentoIdentidadId", "El tipo de documento no existe.");
             else formatoDocumento(codigo, numero).ifPresentOrElse(m -> e.campo("numeroDocumento", m), () -> {

@@ -77,11 +77,16 @@ public class AgendaController {
     public String lista(@RequestParam(defaultValue = "LISTA") String vista,
                         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
                         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta,
-                        @RequestParam(required = false) String mes, @RequestParam(required = false) Long tipo,
-                        @RequestParam(required = false) Long responsable, @RequestParam(defaultValue = "PENDIENTE") String estado,
+                        @RequestParam(required = false) String mes,
+                        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dia,
+                        @RequestParam(required = false) Long tipo,
+                        @RequestParam(required = false) Long responsable, @RequestParam(required = false) String estado,
                         @RequestParam(required = false) String texto, @RequestParam Map<String, String> params, Model model) {
         LocalDate hoy = LocalDate.now(Filas.ZONA);
         boolean calendario = "MES".equals(vista);
+        boolean semana = "SEMANA".equals(vista);
+        // En la lista, por defecto los pendientes; en el calendario, todos (también lo realizado).
+        if (estado == null || estado.isBlank()) estado = calendario || semana ? "TODOS" : "PENDIENTE";
         AgendaServicio.Filtro f = new AgendaServicio.Filtro();
         f.tipo = tipo;
         f.responsable = responsable;
@@ -89,6 +94,7 @@ public class AgendaController {
         f.texto = Textos.limpio(texto);
         String error = null;
         YearMonth ym = YearMonth.from(hoy);
+        LocalDate lunes = (dia != null ? dia : hoy).with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
         if (calendario) {
             if (mes != null && !mes.isBlank()) {
                 try {
@@ -99,6 +105,9 @@ public class AgendaController {
             }
             f.desde = ym.atDay(1).with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
             f.hasta = ym.atEndOfMonth().with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
+        } else if (semana) {
+            f.desde = lunes;
+            f.hasta = lunes.plusDays(6);
         } else {
             boolean sinFiltros = params.isEmpty() || (params.size() == 1 && params.containsKey("vista"));
             if (sinFiltros) {
@@ -115,7 +124,7 @@ public class AgendaController {
         if (recortada) filas = filas.subList(0, AgendaServicio.MAXIMO_FILAS);
 
         modelo.pantalla(model, PAGINA, "Agenda");
-        model.addAttribute("vista", calendario ? "MES" : "LISTA");
+        model.addAttribute("vista", calendario ? "MES" : semana ? "SEMANA" : "LISTA");
         model.addAttribute("filas", filas);
         model.addAttribute("recortada", recortada);
         model.addAttribute("maximo", AgendaServicio.MAXIMO_FILAS);
@@ -127,6 +136,7 @@ public class AgendaController {
         model.addAttribute("estado", estado);
         model.addAttribute("texto", f.texto);
         model.addAttribute("hoy", hoy);
+        model.addAttribute("ahora", LocalDateTime.now(Filas.ZONA));
         model.addAttribute("tipos", servicio.tiposFiltro());
         model.addAttribute("responsables", servicio.responsables(null));
         model.addAttribute("puedeEditar", UsuarioActual.tiene(AgendaServicio.EDITAR));
@@ -137,7 +147,24 @@ public class AgendaController {
             model.addAttribute("mesSiguiente", ym.plusMonths(1).toString());
             model.addAttribute("semanas", semanas(ym, f.desde, f.hasta, filas, hoy));
         }
+        if (semana) {
+            List<List<Dia>> unaSemana = semanas(YearMonth.from(lunes), f.desde, f.hasta, filas, hoy);
+            model.addAttribute("dias", unaSemana.isEmpty() ? List.of() : unaSemana.get(0));
+            model.addAttribute("semanaTitulo", tituloSemana(lunes));
+            model.addAttribute("semanaAnterior", lunes.minusWeeks(1));
+            model.addAttribute("semanaSiguiente", lunes.plusWeeks(1));
+            model.addAttribute("mes", YearMonth.from(lunes).toString());
+        }
         return "pantallas/agenda/lista";
+    }
+
+    /** "Semana del 16 al 22 de noviembre de 2026" (o "del 30 de noviembre al 6 de diciembre de 2026"). */
+    static String tituloSemana(LocalDate lunes) {
+        LocalDate domingo = lunes.plusDays(6);
+        DateTimeFormatter diaMes = DateTimeFormatter.ofPattern("d 'de' MMMM", ES);
+        String desde = lunes.getMonth() == domingo.getMonth() ? String.valueOf(lunes.getDayOfMonth())
+                : lunes.format(lunes.getYear() == domingo.getYear() ? diaMes : DateTimeFormatter.ofPattern("d 'de' MMMM 'de' yyyy", ES));
+        return "Semana del " + desde + " al " + domingo.format(DateTimeFormatter.ofPattern("d 'de' MMMM 'de' yyyy", ES));
     }
 
     private static List<List<Dia>> semanas(YearMonth ym, LocalDate desde, LocalDate hasta, List<Map<String, Object>> filas, LocalDate hoy) {
@@ -175,9 +202,9 @@ public class AgendaController {
         AgendaServicio.Momentos m = new AgendaServicio.Momentos();
         Errores errores = servicio.validar(form, m);
         if (errores.hay()) return formulario(model, form, "alta", errores);
-        long id = servicio.crear(form, m);
+        servicio.crear(form, m);
         redirect.addAttribute("ok", "Se agendó «" + form.getTitulo() + "».");
-        return "redirect:/agenda/" + id;
+        return "redirect:/agenda";
     }
 
     @GetMapping("/{id}")
@@ -203,7 +230,7 @@ public class AgendaController {
         if (errores.hay()) return formulario(model, form, "editar", errores);
         servicio.modificar(form, m);
         redirect.addAttribute("ok", "Se guardaron los cambios de «" + form.getTitulo() + "». Los avisos se recalcularon.");
-        return "redirect:/agenda/" + id;
+        return "redirect:/agenda";
     }
 
     @GetMapping("/{id}/estado")
@@ -221,7 +248,7 @@ public class AgendaController {
         Errores errores = servicio.cambiarEstado(id, estado, texto);
         if (errores.hay()) return pantallaEstado(model, id, estado, texto, errores);
         redirect.addAttribute("ok", "El evento quedó " + estado.toLowerCase() + ".");
-        return "redirect:/agenda/" + id;
+        return "redirect:/agenda";
     }
 
     private String pantallaEstado(Model model, long id, String nuevo, String resultado, Errores errores) {

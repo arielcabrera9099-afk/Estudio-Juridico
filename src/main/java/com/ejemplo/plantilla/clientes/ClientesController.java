@@ -78,9 +78,9 @@ public class ClientesController {
         form.normalizar();
         Errores errores = servicio.validar(form);
         if (errores.hay()) return formulario(model, form, "alta", errores);
-        long id = servicio.crear(form);
+        servicio.crear(form);
         redirect.addAttribute("ok", "Se dio de alta el cliente " + form.getNombreMostrar() + ".");
-        return "redirect:/clientes/" + id;
+        return "redirect:/clientes";
     }
 
     @GetMapping("/{id}")

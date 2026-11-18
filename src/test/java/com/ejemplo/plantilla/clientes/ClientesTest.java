@@ -64,8 +64,8 @@ class ClientesTest {
     }
 
     @Test
-    void altaDePersonaFisicaNormalizaYVaALaFicha() throws Exception {
-        mvc.perform(altaFisica()).andExpect(redirectedUrlPattern("/clientes/*?ok=*"));
+    void altaDePersonaFisicaNormalizaYVuelveALaLista() throws Exception {
+        mvc.perform(altaFisica()).andExpect(redirectedUrlPattern("/clientes?ok=*"));
         Map<String, Object> c = cliente("4123456");
         assertThat(c.get("nombres")).isEqualTo("Juan Carlos");
         assertThat(c.get("razon_social")).isNull();
@@ -88,7 +88,7 @@ class ClientesTest {
                         .param("razonSocial", "Comercial Asunción S.A.").param("nombres", "x").param("fechaNacimiento", "1990-01-01")
                         .param("tipoDocumentoIdentidadId", String.valueOf(tipoDoc("RUC"))).param("numeroDocumento", "80012345-6")
                         .param("telefono", "021 600 000"))
-                .andExpect(redirectedUrlPattern("/clientes/*?ok=*"));
+                .andExpect(redirectedUrlPattern("/clientes?ok=*"));
         Map<String, Object> c = cliente("80012345-6");
         assertThat(c.get("razon_social")).isEqualTo("Comercial Asunción S.A.");
         assertThat(c.get("nombres")).isNull();
@@ -110,7 +110,10 @@ class ClientesTest {
         mvc.perform(post("/clientes").with(asistente).with(csrf()).param("tipoPersona", "J").param("telefono", "021 600 000")
                         .param("numeroDocumento", "123"))
                 .andExpect(content().string(Matchers.containsString("Razón social es requerido.")))
-                .andExpect(content().string(Matchers.containsString("Elija el tipo de documento.")));
+                .andExpect(content().string(Matchers.containsString("Tipo de documento es requerido.")));
+        mvc.perform(post("/clientes").with(asistente).with(csrf()).param("tipoPersona", "J").param("razonSocial", "Sin Número S.A.")
+                        .param("telefono", "021 600 000").param("tipoDocumentoIdentidadId", String.valueOf(tipoDoc("RUC"))))
+                .andExpect(content().string(Matchers.containsString("Número de documento es requerido.")));
         mvc.perform(altaFisica());
         mvc.perform(altaFisica()).andExpect(status().isOk())
                 .andExpect(content().string(Matchers.containsString("Ya existe un cliente con ese documento.")));
@@ -138,13 +141,14 @@ class ClientesTest {
         mvc.perform(get("/clientes/" + id + "/editar").with(asistente)).andExpect(status().isOk());
         mvc.perform(post("/clientes/" + id).with(asistente).with(csrf()).param("tipoPersona", "J")
                         .param("razonSocial", "Pérez Hermanos S.R.L.").param("nombres", "Juan").param("telefono", "021 444 555")
+                        .param("tipoDocumentoIdentidadId", String.valueOf(tipoDoc("RUC"))).param("numeroDocumento", "80012345-6")
                         .param("_activo", "on").param("activo", "true"))
                 .andExpect(redirectedUrlPattern("/clientes?ok=*"));
         Map<String, Object> c = clientePorId(id);
         assertThat(c.get("tipo_persona")).isEqualTo("J");
         assertThat(c.get("nombres")).isNull();
         assertThat(c.get("fecha_nacimiento")).isNull();
-        assertThat(c.get("numero_documento")).isNull();
+        assertThat(c.get("numero_documento")).isEqualTo("80012345-6");
         assertThat(c.get("modificado_por")).isEqualTo(usuarioId);
     }
 

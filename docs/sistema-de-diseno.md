@@ -18,7 +18,7 @@ El sistema se llama **LEX NOVA** (`app.nombre`) y su estilo es el de una aplicac
 | `--lx-texto` / `--lx-texto-secundario` | `#30343B` / `#747B85` | Texto principal / secundario |
 
 - **Capa de marca:** `css/tema/lex-nova.css`, después de `tema.css` en el layout, el login, el cambio de clave y la página de error.
-- **Emblema:** `static/img/lex-nova.svg` (balanza dorada sobre grafito), también como favicon.
+- **Logo:** `static/img/lex-nova-logo.png` (balanza dorada con las iniciales LN, fondo transparente, 384 px); `favicon.png` es la misma imagen a 64 px. El original del estudio no va al repositorio: se reduce con estas medidas.
 - **Fondo institucional:** `static/img/fondo-lex-nova.jpg`, solo en el login y en el inicio (`#contenido.lx-inicio`). Las demás pantallas van sobre gris claro.
 - **Botones:** principal dorado con texto grafito (hover dorado oscuro con texto blanco); secundario blanco con borde gris; destructivo rojo moderado (`.gx-btn--peligro`), solo cuando corresponde.
 

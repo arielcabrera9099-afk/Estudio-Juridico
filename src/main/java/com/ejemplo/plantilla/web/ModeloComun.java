@@ -6,6 +6,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
 
+import com.ejemplo.plantilla.avisos.AvisosServicio;
 import com.ejemplo.plantilla.config.AppProperties;
 import com.ejemplo.plantilla.seguridad.UsuarioActual;
 import com.ejemplo.plantilla.web.menu.MenuAplicacion;
@@ -25,10 +26,12 @@ public class ModeloComun {
 
     private final AppProperties app;
     private final MenuAplicacion menu;
+    private final AvisosServicio avisos;
 
-    public ModeloComun(AppProperties app, MenuAplicacion menu) {
+    public ModeloComun(AppProperties app, MenuAplicacion menu, AvisosServicio avisos) {
         this.app = app;
         this.menu = menu;
+        this.avisos = avisos;
     }
 
     @ModelAttribute("app")
@@ -46,13 +49,17 @@ public class ModeloComun {
         return ACENTO;
     }
 
-    /** Usuario de la sesión para la cabecera: usuario, usuarioNombre y usuarioDetalle (sus roles). */
+    /**
+     * Usuario de la sesión para la cabecera: usuario, usuarioNombre, usuarioDetalle (sus roles) y avisosNoLeidos (el
+     * contador de la campana).
+     */
     @ModelAttribute
     public void sesion(Model model) {
         UsuarioActual.sesion().ifPresent(u -> {
             model.addAttribute("usuario", u.getUsername().toUpperCase());
             model.addAttribute("usuarioNombre", u.getNombre());
             model.addAttribute("usuarioDetalle", String.join(", ", u.getRoles()));
+            model.addAttribute("avisosNoLeidos", avisos.noLeidas(u.getId()));
         });
     }
 

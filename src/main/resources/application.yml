@@ -50,7 +50,7 @@ app:
   nombre: LEX NOVA
   subtitulo: "Gestión jurídica"
   # Ruta dentro de static/, por ejemplo /img/logo.png. Vacío: se muestra la inicial del nombre.
-  logo: /img/lex-nova.svg
+  logo: /img/lex-nova-logo.png
   # Usuario administrador que se crea al arrancar si la base no tiene ningún usuario. La clave inicial sale de la
   # variable de entorno APP_ADMIN_CLAVE (nunca en el repositorio); se pide cambiarla en el primer ingreso.
   admin:

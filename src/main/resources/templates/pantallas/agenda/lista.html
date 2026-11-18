@@ -24,14 +24,18 @@
       <div class="gx-barra-resumen">
         <div class="gx-botonera">
           <a th:if="${puedeEditar}" class="gx-btn gx-btn--icono" th:href="@{/agenda/nuevo}"><svg class="lucide" width="16" height="16"><use href="#i-plus"/></svg>Agregar</a>
-          <a class="gx-btn" th:classappend="${vista == 'LISTA'} ? '' : 'gx-btn--secundario'" th:href="@{/agenda}">Lista</a>
-          <a class="gx-btn" th:classappend="${vista == 'MES'} ? '' : 'gx-btn--secundario'" th:href="@{/agenda(vista='MES')}">Mes</a>
+        </div>
+        <div class="lx-vistas" role="group" aria-label="Vista">
+          <a th:classappend="${vista == 'LISTA'} ? 'is-activa'" th:href="@{/agenda}"><svg class="lucide" width="15" height="15"><use href="#i-list-ordered"/></svg>Lista</a>
+          <a th:classappend="${vista == 'SEMANA'} ? 'is-activa'" th:href="@{/agenda(vista='SEMANA')}"><svg class="lucide" width="15" height="15"><use href="#i-layout-grid"/></svg>Semana</a>
+          <a th:classappend="${vista == 'MES'} ? 'is-activa'" th:href="@{/agenda(vista='MES')}"><svg class="lucide" width="15" height="15"><use href="#i-calendar-check"/></svg>Mes</a>
         </div>
         <span class="gx-panel__nota" th:text="${#lists.size(filas)} == 1 ? '1 evento' : |${#lists.size(filas)} eventos|">0 eventos</span>
       </div>
       <form class="gx-campos gx-campos--filtros" method="get" th:action="@{/agenda}" data-filtros>
         <input type="hidden" name="vista" th:value="${vista}">
         <input type="hidden" name="mes" th:if="${vista == 'MES'}" th:value="${mes}">
+        <input type="hidden" name="dia" th:if="${vista == 'SEMANA'}" th:value="${dias[0].fecha}">
         <th:block th:if="${vista == 'LISTA'}">
           <div class="gx-campo" th:classappend="${errorFiltro != null} ? 'is-error'"><label for="f-desde">Desde</label>
             <input id="f-desde" name="desde" type="date" th:value="${desde}"></div>
@@ -120,10 +124,53 @@
     </div>
   </section>
 
+  <!-- ================================================================ Vista semana -->
+  <section class="gx-panel" th:if="${vista == 'SEMANA'}">
+    <div class="gx-panel__cuerpo">
+      <div class="lx-cal-barra">
+        <div class="gx-botonera">
+          <a class="gx-btn gx-btn--secundario" th:href="@{/agenda(vista='SEMANA',dia=${semanaAnterior},tipo=${tipo},responsable=${responsable},estado=${estado},texto=${texto})}" aria-label="Semana anterior">
+            <svg class="lucide" width="16" height="16"><use href="#i-arrow-left"/></svg></a>
+          <a class="gx-btn gx-btn--secundario" th:href="@{/agenda(vista='SEMANA',tipo=${tipo},responsable=${responsable},estado=${estado},texto=${texto})}">Hoy</a>
+          <a class="gx-btn gx-btn--secundario" th:href="@{/agenda(vista='SEMANA',dia=${semanaSiguiente},tipo=${tipo},responsable=${responsable},estado=${estado},texto=${texto})}" aria-label="Semana siguiente">
+            <svg class="lucide" width="16" height="16"><use href="#i-arrow-right"/></svg></a>
+        </div>
+        <strong class="lx-cal-titulo" th:text="${semanaTitulo}">Semana del 16 al 22 de noviembre de 2026</strong>
+        <a class="lx-cal-enlace" th:href="@{/agenda(vista='MES',mes=${mes},tipo=${tipo},responsable=${responsable},estado=${estado},texto=${texto})}">Ver el mes</a>
+      </div>
+      <div class="lx-leyenda">
+        <span th:each="t : ${tipos}"><i class="lx-muestra" th:style="|background: var(--${t.codigo})|"></i><span th:text="${t.texto}">Audiencia</span></span>
+      </div>
+      <div class="lx-semana">
+        <div th:each="d : ${dias}" class="lx-semana-dia" th:classappend="${(d.hoy ? 'is-hoy ' : '') + (d.fecha.dayOfWeek.value >= 6 ? 'is-finde' : '')}">
+          <div class="lx-semana-cabecera">
+            <span class="lx-semana-nombre" th:text="${#strings.capitalize(#temporals.format(d.fecha, 'EEEE'))}">Lunes</span>
+            <span class="lx-semana-numero" th:text="${#temporals.format(d.fecha, 'd MMM')}">16 nov</span>
+            <a th:if="${puedeEditar and !d.fecha.isBefore(hoy)}" class="lx-cal-agregar" th:href="@{/agenda/nuevo(fecha=${d.fecha})}"
+               th:attr="aria-label=|Agregar evento el ${#temporals.format(d.fecha, 'dd/MM')}|" title="Agregar evento">+</a>
+          </div>
+          <p class="lx-semana-vacio" th:if="${#lists.isEmpty(d.eventos)}">Sin eventos</p>
+          <a th:each="ev : ${d.eventos}" class="lx-tarjeta" th:href="@{/agenda/{id}(id=${ev.id})}"
+             th:style="|--lx-color: var(--${ev.color})|"
+             th:classappend="${(ev.estado == 'CANCELADO' or ev.estado == 'SUSPENDIDO' ? 'is-cancelado ' : '') + (ev.estado == 'REALIZADO' ? 'is-realizado ' : '') + (ev.estado == 'PENDIENTE' and ev.fecha_inicio.isBefore(ahora) ? 'is-atrasado' : '')}">
+            <span class="lx-tarjeta-hora" th:text="${ev.todo_el_dia} ? 'Todo el día' : ${#temporals.format(ev.fecha_inicio, 'HH:mm')} + (${ev.fecha_fin != null} ? ' a ' + ${#temporals.format(ev.fecha_fin, 'HH:mm')} : '')">09:00</span>
+            <span class="lx-tarjeta-tipo" th:text="${ev.tipo}">Audiencia</span>
+            <strong class="lx-tarjeta-titulo" th:text="${ev.titulo}">Título</strong>
+            <span class="lx-tarjeta-dato" th:if="${ev.numero_interno != null}" th:text="|Exp. ${ev.numero_interno} · ${ev.caratula}|">Exp.</span>
+            <span class="lx-tarjeta-dato" th:if="${ev.juzgado != null or ev.lugar != null}" th:text="${ev.juzgado ?: ev.lugar}">Lugar</span>
+            <span class="lx-tarjeta-dato" th:text="${ev.responsable}">Responsable</span>
+            <span class="lx-tarjeta-estado" th:if="${ev.estado != 'PENDIENTE'}" th:text="${ev.estado}">REALIZADO</span>
+          </a>
+        </div>
+      </div>
+      <p class="gx-panel__nota">Los pendientes cuya hora ya pasó se marcan en rojo; lo realizado se ve atenuado y lo cancelado o suspendido, tachado.</p>
+    </div>
+  </section>
+
   <!-- ================================================================ Vista mes -->
   <section class="gx-panel" th:if="${vista == 'MES'}">
     <div class="gx-panel__cuerpo">
-      <div class="gx-barra-resumen">
+      <div class="lx-cal-barra">
         <div class="gx-botonera">
           <a class="gx-btn gx-btn--secundario" th:href="@{/agenda(vista='MES',mes=${mesAnterior},tipo=${tipo},responsable=${responsable},estado=${estado},texto=${texto})}" aria-label="Mes anterior">
             <svg class="lucide" width="16" height="16"><use href="#i-arrow-left"/></svg></a>
@@ -131,30 +178,40 @@
           <a class="gx-btn gx-btn--secundario" th:href="@{/agenda(vista='MES',mes=${mesSiguiente},tipo=${tipo},responsable=${responsable},estado=${estado},texto=${texto})}" aria-label="Mes siguiente">
             <svg class="lucide" width="16" height="16"><use href="#i-arrow-right"/></svg></a>
         </div>
-        <strong class="lx-calendario__mes" th:text="${#strings.capitalize(mesTitulo)}">Noviembre de 2026</strong>
+        <strong class="lx-cal-titulo" th:text="${#strings.capitalize(mesTitulo)}">Noviembre de 2026</strong>
+        <span></span>
+      </div>
+      <div class="lx-leyenda">
+        <span th:each="t : ${tipos}"><i class="lx-muestra" th:style="|background: var(--${t.codigo})|"></i><span th:text="${t.texto}">Audiencia</span></span>
       </div>
       <div class="gx-grilla-wrap">
         <table class="lx-calendario">
-          <thead><tr><th>Lun</th><th>Mar</th><th>Mié</th><th>Jue</th><th>Vie</th><th>Sáb</th><th>Dom</th></tr></thead>
+          <thead><tr><th>Lunes</th><th>Martes</th><th>Miércoles</th><th>Jueves</th><th>Viernes</th><th class="is-finde">Sábado</th><th class="is-finde">Domingo</th></tr></thead>
           <tbody>
             <tr th:each="semana : ${semanas}">
-              <td th:each="d : ${semana}" th:classappend="${(d.delMes ? '' : 'lx-dia-otro ') + (d.hoy ? 'lx-dia-hoy' : '')}">
-                <div class="lx-calendario__dia">
-                  <span th:text="${d.fecha.dayOfMonth}">1</span>
-                  <a th:if="${puedeEditar and !d.fecha.isBefore(hoy)}" class="lx-calendario__agregar" th:href="@{/agenda/nuevo(fecha=${d.fecha})}"
-                     th:attr="aria-label=|Agregar evento el ${#temporals.format(d.fecha, 'dd/MM')}|">+</a>
+              <td th:each="d : ${semana}" th:classappend="${(d.delMes ? '' : 'lx-dia-otro ') + (d.hoy ? 'lx-dia-hoy ' : '') + (d.fecha.dayOfWeek.value >= 6 ? 'is-finde' : '')}">
+                <div class="lx-cal-dia">
+                  <a class="lx-cal-numero" th:href="@{/agenda(vista='SEMANA',dia=${d.fecha},tipo=${tipo},responsable=${responsable},estado=${estado},texto=${texto})}"
+                     th:text="${d.fecha.dayOfMonth}" th:title="|Ver la semana del ${#temporals.format(d.fecha, 'dd/MM')}|">1</a>
+                  <a th:if="${puedeEditar and !d.fecha.isBefore(hoy)}" class="lx-cal-agregar" th:href="@{/agenda/nuevo(fecha=${d.fecha})}"
+                     th:attr="aria-label=|Agregar evento el ${#temporals.format(d.fecha, 'dd/MM')}|" title="Agregar evento">+</a>
                 </div>
-                <a th:each="ev : ${d.eventos}" class="lx-calendario__evento" th:href="@{/agenda/{id}(id=${ev.id})}"
-                   th:style="|border-left-color: var(--${ev.color})|" th:title="|${ev.tipo}: ${ev.titulo}${ev.numero_interno != null ? ' · ' + ev.numero_interno : ''}|"
-                   th:classappend="${ev.estado != 'PENDIENTE'} ? 'lx-calendario__evento--cerrado'">
-                  <span th:text="${ev.todo_el_dia} ? '' : ${#temporals.format(ev.fecha_inicio, 'HH:mm')}">09:00</span>
+                <a th:each="ev, st : ${d.eventos}" th:if="${st.index < 3}" class="lx-chip" th:href="@{/agenda/{id}(id=${ev.id})}"
+                   th:style="|--lx-color: var(--${ev.color})|"
+                   th:title="|${ev.tipo}: ${ev.titulo}${ev.numero_interno != null ? ' · Exp. ' + ev.numero_interno : ''}${ev.estado != 'PENDIENTE' ? ' (' + ev.estado + ')' : ''}|"
+                   th:classappend="${(ev.estado == 'CANCELADO' or ev.estado == 'SUSPENDIDO' ? 'is-cancelado ' : '') + (ev.estado == 'REALIZADO' ? 'is-realizado ' : '') + (ev.estado == 'PENDIENTE' and ev.fecha_inicio.isBefore(ahora) ? 'is-atrasado' : '')}">
+                  <b th:unless="${ev.todo_el_dia}" th:text="${#temporals.format(ev.fecha_inicio, 'HH:mm')}">09:00</b>
                   <span th:text="${ev.titulo}">Título</span>
                 </a>
+                <a th:if="${#lists.size(d.eventos) > 3}" class="lx-cal-mas"
+                   th:href="@{/agenda(vista='SEMANA',dia=${d.fecha},tipo=${tipo},responsable=${responsable},estado=${estado},texto=${texto})}"
+                   th:text="|+${#lists.size(d.eventos) - 3} más|">+2 más</a>
               </td>
             </tr>
           </tbody>
         </table>
       </div>
+      <p class="gx-panel__nota">Clic en el número de un día para ver esa semana en detalle. Los pendientes cuya hora ya pasó se marcan en rojo; lo realizado se ve atenuado.</p>
     </div>
   </section>
 </div>

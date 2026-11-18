@@ -74,7 +74,7 @@ class ExpedientesTest {
     }
 
     private long crear(String caratula) throws Exception {
-        mvc.perform(alta(caratula)).andExpect(redirectedUrlPattern("/expedientes/*?ok=*"));
+        mvc.perform(alta(caratula)).andExpect(redirectedUrlPattern("/expedientes?ok=*"));
         return ((Number) expediente(caratula).get("id")).longValue();
     }
 
@@ -152,7 +152,7 @@ class ExpedientesTest {
                 .andExpect(content().string(Matchers.containsString("Indique el motivo del cierre")));
         mvc.perform(post("/expedientes/" + id + "/estado").with(abogado).with(csrf()).param("estadoId", cerrado)
                         .param("fechaCierre", hoy).param("motivoCierre", "Acuerdo homologado"))
-                .andExpect(redirectedUrlPattern("/expedientes/" + id + "?ok=*"));
+                .andExpect(redirectedUrlPattern("/expedientes?ok=*"));
         Map<String, Object> x = jdbc.queryForMap("SELECT * FROM expediente WHERE id = :id", Map.of("id", id));
         assertThat(x.get("motivo_cierre")).isEqualTo("Acuerdo homologado");
         assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM expediente_estado_historial WHERE expediente_id = :id", Map.of("id", id), Integer.class)).isEqualTo(2);
@@ -168,7 +168,7 @@ class ExpedientesTest {
                 .andExpect(content().string(Matchers.containsString("Indique por qué se reabre el expediente.")));
         mvc.perform(post("/expedientes/" + id + "/estado").with(abogado).with(csrf()).param("estadoId", tramite)
                         .param("observacion", "Se anuló el acuerdo"))
-                .andExpect(redirectedUrlPattern("/expedientes/" + id + "?ok=*"));
+                .andExpect(redirectedUrlPattern("/expedientes?ok=*"));
         x = jdbc.queryForMap("SELECT * FROM expediente WHERE id = :id", Map.of("id", id));
         assertThat(x.get("fecha_cierre")).isNull();
         assertThat(x.get("motivo_cierre")).isNull();

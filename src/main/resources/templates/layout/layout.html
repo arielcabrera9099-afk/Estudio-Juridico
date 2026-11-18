@@ -15,7 +15,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="icon" type="image/svg+xml" href="/img/favicon.svg" th:href="@{/img/favicon.svg}">
+  <link rel="icon" type="image/png" href="/img/favicon.png" th:href="@{/img/favicon.png}">
   <!-- CSRF de la sesión (si se agrega Spring Security): lo manda componentes.js (enviarJson) en un encabezado. -->
   <meta name="_csrf" th:if="${_csrf != null}" th:content="${_csrf.token}">
   <meta name="_csrf_header" th:if="${_csrf != null}" th:content="${_csrf.headerName}">
@@ -113,6 +113,19 @@
         <span class="admin-header__pagina" th:text="${paginaTitulo}">Pantalla</span>
       </div>
       <div class="admin-header__actions">
+        <!-- Campana de avisos (campana.js): el contador se actualiza cada minuto; al abrirla se cargan los últimos avisos. -->
+        <div class="lx-campana" data-campana th:if="${usuario != null}"
+             th:attr="data-url-contador=@{/notificaciones/contador},data-url-panel=@{/notificaciones/panel}">
+          <button type="button" class="admin-icon-btn lx-campana-boton" data-campana-abrir aria-haspopup="true" aria-expanded="false"
+                  th:title="${avisosNoLeidos > 0} ? |Avisos: ${avisosNoLeidos} sin leer| : 'Avisos'">
+            <svg class="lucide" width="18" height="18" aria-hidden="true"><use href="#i-bell"/></svg>
+            <span class="lx-campana-contador" data-campana-contador th:hidden="${avisosNoLeidos == 0}"
+                  th:text="${avisosNoLeidos > 99} ? '99+' : ${avisosNoLeidos}">0</span>
+          </button>
+          <div class="lx-campana-panel" data-campana-panel hidden>
+            <p class="lx-campana-vacio">Cargando…</p>
+          </div>
+        </div>
         <!-- Usuario de la sesión: solo si la aplicación lo publica en el modelo (usuario, usuarioNombre,
              usuarioDetalle). La flecha abre el menú con "Cerrar sesión". -->
         <div class="admin-header__user" data-shell="usuario" th:if="${usuario != null}">
@@ -153,5 +166,6 @@
 <script th:src="@{/js/componentes/combo.js}"></script>
 <script th:src="@{/js/componentes/grilla.js}"></script>
 <script th:src="@{/js/componentes/abm.js}"></script>
+<script th:src="@{/js/componentes/campana.js}"></script>
 </body>
 </html>

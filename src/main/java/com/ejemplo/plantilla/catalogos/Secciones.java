@@ -72,7 +72,8 @@ public class Secciones {
                         .campo(Campo.texto("nombre", "Nombre", 150).requerido().enLista())
                         .campo(Campo.referencia("circunscripcion_id", "Circunscripción", "circunscripcion", "la circunscripción").requerido().filtro())
                         .campo(Campo.referencia("materia_id", "Materia", "materia", "la materia").requerido().filtro())
-                        .campo(Campo.texto("turno", "Turno", 30).enLista().ayuda("Por ejemplo: Primer turno."))
+                        .campo(Campo.texto("turno", "Turno (n.º de juzgado)", 30).enLista()
+                                .ayuda("No es un horario: distingue a los juzgados del mismo fuero (Primer turno, Segundo turno…)."))
                         .campo(Campo.texto("direccion", "Dirección", 200))
                         .campo(Campo.texto("telefono", "Teléfono", 30).enLista().patron(PATRON_TELEFONO,
                                 "El teléfono solo admite números, espacios, +, guiones y paréntesis (6 a 30 caracteres)."))

@@ -65,15 +65,15 @@
           </div>
 
           <div class="gx-campo" th:classappend="${errores.tiene('tipoDocumentoIdentidadId')} ? 'is-error'">
-            <label for="tipoDocumentoIdentidadId">Tipo de documento</label>
+            <label for="tipoDocumentoIdentidadId" class="requerido">Tipo de documento</label>
             <select th:field="*{tipoDocumentoIdentidadId}" th:disabled="${ver}">
-              <option value="">SIN DOCUMENTO</option>
+              <option value="">Seleccione…</option>
               <option th:each="t : ${tiposDocumento}" th:value="${t.id}" th:text="${t.texto}">Cédula</option>
             </select>
             <p th:replace="~{componentes/componentes :: error('tipoDocumentoIdentidadId')}"></p>
           </div>
           <div class="gx-campo" th:classappend="${errores.tiene('numeroDocumento')} ? 'is-error'">
-            <label for="numeroDocumento">Número de documento</label>
+            <label for="numeroDocumento" class="requerido">Número de documento</label>
             <input th:field="*{numeroDocumento}" maxlength="20" autocomplete="off" th:disabled="${ver}"
                    placeholder="CI: 1234567 · RUC: 80012345-6">
             <p th:replace="~{componentes/componentes :: error('numeroDocumento')}"></p>

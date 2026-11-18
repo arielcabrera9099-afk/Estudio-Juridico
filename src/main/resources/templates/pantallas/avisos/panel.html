@@ -1,0 +1,22 @@
+<!doctype html>
+<!-- Panel de la campana (lo pide campana.js a /notificaciones/panel): los últimos avisos, primero los no leídos. -->
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<body>
+<th:block th:fragment="panel">
+  <div class="lx-campana-cabecera">
+    <strong th:text="${noLeidas == 0} ? 'Avisos' : (${noLeidas == 1} ? 'Avisos · 1 sin leer' : |Avisos · ${noLeidas} sin leer|)">Avisos</strong>
+    <form th:if="${noLeidas > 0}" method="post" th:action="@{/notificaciones/leer-todas}">
+      <button class="lx-campana-accion">Marcar todos leídos</button>
+    </form>
+  </div>
+  <p class="lx-campana-vacio" th:if="${#lists.isEmpty(avisos)}">No tiene avisos.</p>
+  <a th:each="a : ${avisos}" class="lx-campana-item" th:classappend="${a.leida_en == null} ? 'lx-campana-item--nuevo'"
+     th:href="@{/notificaciones/{id}/abrir(id=${a.id})}">
+    <span class="lx-campana-titulo" th:text="${a.titulo}">Vencimiento mañana: contestar demanda</span>
+    <span class="lx-campana-mensaje" th:if="${a.mensaje != null}" th:text="${a.mensaje}">mar 19/11/2026 11:00</span>
+    <span class="lx-campana-fecha" th:text="|Avisado el ${#temporals.format(a.creado_en, 'dd/MM HH:mm')}|">Avisado el 18/11 08:00</span>
+  </a>
+  <a class="lx-campana-todos" th:href="@{/notificaciones(estado='TODOS')}">Ver todos los avisos</a>
+</th:block>
+</body>
+</html>

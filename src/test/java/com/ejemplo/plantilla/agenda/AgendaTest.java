@@ -76,7 +76,7 @@ class AgendaTest {
     void unVencimientoGeneraSusAvisosYSinHoraDeFin() throws Exception {
         LocalDate fecha = hoy.plusDays(10);
         mvc.perform(alta("Vence contestación", "VENCIMIENTO", fecha, "11:00").param("horaFin", "12:00"))
-                .andExpect(redirectedUrlPattern("/agenda/*?ok=*"));
+                .andExpect(redirectedUrlPattern("/agenda?ok=*"));
         long id = id("Vence contestación");
         Map<String, Object> ev = jdbc.queryForMap("SELECT fecha_fin, estado FROM evento_agenda WHERE id = :id", Map.of("id", id));
         assertThat(ev.get("fecha_fin")).isNull();
@@ -88,7 +88,7 @@ class AgendaTest {
         mvc.perform(post("/agenda/" + id).with(sesion).with(csrf()).param("tipoEventoId", tipo("VENCIMIENTO"))
                         .param("titulo", "Vence contestación").param("fecha", otra.toString()).param("todoElDia", "false")
                         .param("horaInicio", "07:30").param("responsableId", String.valueOf(yo)))
-                .andExpect(redirectedUrlPattern("/agenda/" + id + "?ok=*"));
+                .andExpect(redirectedUrlPattern("/agenda?ok=*"));
         assertThat(avisos(id, "ANULADO")).hasSize(3);
         // El mismo día avisa a la hora del evento, porque es antes de las 8.
         assertThat(avisos(id, "PENDIENTE")).containsExactly(otra.minusDays(3) + " 08:00", otra.minusDays(1) + " 08:00", otra + " 07:30");
@@ -118,10 +118,10 @@ class AgendaTest {
         mvc.perform(post("/agenda/" + id + "/estado").with(sesion).with(csrf()).param("estado", "SUSPENDIDO"))
                 .andExpect(content().string(Matchers.containsString("Indique el motivo.")));
         mvc.perform(post("/agenda/" + id + "/estado").with(sesion).with(csrf()).param("estado", "SUSPENDIDO").param("resultado", "Pidió el cliente"))
-                .andExpect(redirectedUrlPattern("/agenda/" + id + "?ok=*"));
+                .andExpect(redirectedUrlPattern("/agenda?ok=*"));
         assertThat(avisos(id, "PENDIENTE")).isEmpty();
         mvc.perform(post("/agenda/" + id + "/estado").with(sesion).with(csrf()).param("estado", "CANCELADO").param("resultado", "Se desistió"))
-                .andExpect(redirectedUrlPattern("/agenda/" + id + "?ok=*"));
+                .andExpect(redirectedUrlPattern("/agenda?ok=*"));
         // Cancelado es final: no se modifica.
         mvc.perform(get("/agenda/" + id + "/editar").with(sesion)).andExpect(redirectedUrlPattern("/agenda/" + id + "?error=*"));
 
@@ -130,7 +130,7 @@ class AgendaTest {
                 Map.of("t", Long.valueOf(tipo("AUDIENCIA")), "f", Filas.momento(LocalDateTime.now(Filas.ZONA).minusDays(1)), "yo", yo));
         long ayer = id("Audiencia de ayer");
         mvc.perform(post("/agenda/" + ayer + "/estado").with(sesion).with(csrf()).param("estado", "REALIZADO").param("resultado", "Se fijó nueva fecha"))
-                .andExpect(redirectedUrlPattern("/agenda/" + ayer + "?ok=*"));
+                .andExpect(redirectedUrlPattern("/agenda?ok=*"));
         assertThat(jdbc.queryForObject("SELECT resultado FROM evento_agenda WHERE id = :id", Map.of("id", ayer), String.class)).isEqualTo("Se fijó nueva fecha");
     }
 
@@ -147,13 +147,16 @@ class AgendaTest {
 
         mvc.perform(get("/agenda/nuevo").param("expediente", String.valueOf(expediente)).with(sesion)).andExpect(status().isOk());
         mvc.perform(alta("Audiencia preliminar", "AUDIENCIA", hoy.plusDays(1), "09:00").param("expedienteId", String.valueOf(expediente)))
-                .andExpect(redirectedUrlPattern("/agenda/*?ok=*"));
+                .andExpect(redirectedUrlPattern("/agenda?ok=*"));
         long id = id("Audiencia preliminar");
 
         mvc.perform(get("/agenda").with(sesion)).andExpect(status().isOk())
                 .andExpect(content().string(Matchers.containsString("Audiencia preliminar")));
         mvc.perform(get("/agenda").param("vista", "MES").param("mes", hoy.plusDays(1).toString().substring(0, 7)).with(sesion))
                 .andExpect(status().isOk()).andExpect(content().string(Matchers.containsString("/agenda/" + id)));
+        mvc.perform(get("/agenda").param("vista", "SEMANA").param("dia", hoy.plusDays(1).toString()).with(sesion))
+                .andExpect(status().isOk()).andExpect(content().string(Matchers.containsString("/agenda/" + id)))
+                .andExpect(content().string(Matchers.containsString("Semana del ")));
         mvc.perform(get("/agenda/" + id).with(sesion)).andExpect(status().isOk())
                 .andExpect(content().string(Matchers.containsString("Avisos programados")));
         mvc.perform(get("/agenda/" + id + "/estado").with(sesion)).andExpect(status().isOk());

@@ -1,0 +1,92 @@
+<!doctype html>
+<!-- Mis avisos: los avisos del usuario de la sesión, con filtros (NotificacionesController). Solo consulta y marcar leídos. -->
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/layout :: layout(~{::title}, ~{::#contenido}, ~{::estilos})}">
+<head>
+  <title>Mis avisos</title>
+  <th:block th:fragment="estilos"></th:block>
+</head>
+<body>
+<div id="contenido" class="gx-pantalla">
+  <p th:replace="~{componentes/componentes :: ok}"></p>
+
+  <header class="gx-encabezado">
+    <h1><svg class="lucide" width="20" height="20"><use href="#i-bell"/></svg>Mis avisos</h1>
+    <p>Recordatorios de vencimientos, audiencias y demás eventos de la agenda</p>
+  </header>
+
+  <section class="gx-panel">
+    <h2 class="gx-panel__titulo">Filtros</h2>
+    <div class="gx-panel__cuerpo">
+      <div class="gx-barra-resumen">
+        <form method="post" th:action="@{/notificaciones/leer-todas}" data-confirmar="¿Marcar todos sus avisos como leídos?">
+          <button class="gx-btn gx-btn--secundario"><svg class="lucide" width="16" height="16"><use href="#i-check"/></svg>Marcar todos leídos</button>
+        </form>
+        <span class="gx-panel__nota" th:text="${#lists.size(filas)} == 1 ? '1 aviso' : |${#lists.size(filas)} avisos|">0 avisos</span>
+      </div>
+      <form class="gx-campos gx-campos--filtros" method="get" th:action="@{/notificaciones}" data-filtros>
+        <div class="gx-campo"><label for="f-estado">Estado</label>
+          <select id="f-estado" name="estado">
+            <option value="NO_LEIDAS" th:selected="${estado == 'NO_LEIDAS'}">SIN LEER</option>
+            <option value="LEIDAS" th:selected="${estado == 'LEIDAS'}">LEÍDOS</option>
+            <option value="TODOS" th:selected="${estado == 'TODOS'}">TODOS</option>
+          </select></div>
+        <div class="gx-campo"><label for="f-tipo">Tipo</label>
+          <select id="f-tipo" name="tipo">
+            <option value="">TODOS</option>
+            <option value="VENCIMIENTO" th:selected="${tipo == 'VENCIMIENTO'}">VENCIMIENTOS</option>
+            <option value="AUDIENCIA" th:selected="${tipo == 'AUDIENCIA'}">AUDIENCIAS</option>
+            <option value="SISTEMA" th:selected="${tipo == 'SISTEMA'}">OTROS</option>
+          </select></div>
+        <div class="gx-campo gx-campo--boton">
+          <div class="gx-botonera">
+            <button type="submit" class="gx-btn gx-btn--icono"><svg class="lucide" width="16" height="16"><use href="#i-search"/></svg>Buscar</button>
+            <a class="gx-btn gx-btn--secundario" th:href="@{/notificaciones}">Limpiar</a>
+          </div>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <p class="gx-aviso gx-aviso--alerta" th:if="${recortada}">
+    <svg class="lucide" width="16" height="16"><use href="#i-alert-triangle"/></svg>
+    <span th:text="|Se muestran los ${maximo} avisos más recientes.|">Se muestran los más recientes.</span>
+  </p>
+
+  <section class="gx-panel gx-panel--grilla">
+    <div class="gx-panel__cuerpo">
+      <div class="gx-grilla-wrap">
+        <table class="gx-grilla" id="grilla-avisos" data-paginar="10">
+          <thead><tr><th class="gx-col-acciones"></th><th>Avisado</th><th>Aviso</th><th>Detalle</th><th>Tipo</th><th>Estado</th></tr></thead>
+          <tbody>
+            <tr th:if="${#lists.isEmpty(filas)}"><td colspan="6" class="gx-grilla__vacio">No hay avisos con esos filtros.</td></tr>
+            <tr th:each="a : ${filas}">
+              <td class="gx-col-acciones">
+                <div class="gx-accion-grupo">
+                  <button type="button" class="gx-accion-grupo__boton" aria-haspopup="true" aria-label="Acciones">
+                    <svg class="lucide" width="16" height="16"><use href="#i-menu"/></svg></button>
+                  <ul class="gx-accion-grupo__menu" hidden>
+                    <li><a th:href="@{/notificaciones/{id}/abrir(id=${a.id})}"><svg class="lucide" width="15" height="15"><use href="#i-external-link"/></svg>Abrir</a></li>
+                    <li th:if="${a.leida_en == null}">
+                      <form method="post" th:action="@{/notificaciones/{id}/leida(id=${a.id},estado=${estado})}">
+                        <button><svg class="lucide" width="15" height="15"><use href="#i-check"/></svg>Marcar leído</button>
+                      </form>
+                    </li>
+                  </ul>
+                </div>
+              </td>
+              <td th:text="${#temporals.format(a.creado_en, 'dd/MM/yyyy HH:mm')}">18/11/2026 08:00</td>
+              <td><a class="gx-enlace" th:href="@{/notificaciones/{id}/abrir(id=${a.id})}" th:text="${a.titulo}">Título</a></td>
+              <td th:text="${a.mensaje}">Detalle</td>
+              <td th:text="${a.tipo == 'VENCIMIENTO'} ? 'Vencimiento' : (${a.tipo == 'AUDIENCIA'} ? 'Audiencia' : 'Otro')">Vencimiento</td>
+              <td><span class="gx-etiqueta" th:classappend="${a.leida_en == null} ? 'gx-etiqueta--aviso' : 'gx-etiqueta--exito'"
+                        th:text="${a.leida_en == null} ? 'SIN LEER' : 'LEÍDO'">SIN LEER</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</div>
+</body>
+</html>

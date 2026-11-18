@@ -99,7 +99,7 @@ src/main/resources/
     │   ├── layout/                shell.js (menú, búsqueda, móvil), tema.js
     │   └── componentes/           componentes.js, combo.js, grilla.js
     ├── fonts/                     Poppins (licencia SIL OFL)
-    └── img/                       favicon.svg
+    └── img/                       favicon.png, lex-nova-logo.png
 ```
 
 Orden de carga del CSS (en `layout.html`): base → layout → componentes → CSS propio de la pantalla → tokens → tema. El tema va al final para que mande a igual especificidad.

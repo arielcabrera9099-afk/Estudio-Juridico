@@ -74,7 +74,7 @@
   border-radius: 3px; box-shadow: 0 16px 40px rgba(0, 0, 0, .5);
 }
 .gx-login__marca { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 0 15px; }
-.gx-login .gx-login__logo { width: 52px; height: 52px; max-height: none; margin: 0; }
+.gx-login .gx-login__logo { width: 72px; height: 72px; max-height: none; margin: 0; object-fit: contain; }
 .gx-login__marca-texto { text-align: left; line-height: 1.2; }
 .gx-login__marca-texto strong { display: block; color: var(--lx-grafito, #20242B); font-size: 1.35rem; letter-spacing: .18em; }
 .gx-login__marca-texto span { display: block; color: var(--lx-dorado-oscuro, #8C733F); font-size: 12px; letter-spacing: .06em; }
