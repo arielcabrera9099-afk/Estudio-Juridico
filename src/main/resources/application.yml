@@ -19,6 +19,9 @@ spring:
   # y guardados por el navegador un año. Un archivo que cambia cambia de nombre: nada queda viejo después de un
   # despliegue.
   web:
+    # Idioma fijo: fechas con día y mes en español ("lun 18/11/2026"), sin depender del navegador.
+    locale: es_PY
+    locale-resolver: fixed
     resources:
       chain:
         strategy:

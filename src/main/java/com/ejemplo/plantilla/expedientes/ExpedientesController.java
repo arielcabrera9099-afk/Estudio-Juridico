@@ -362,6 +362,9 @@ public class ExpedientesController {
                 model.addAttribute("partes", servicio.partes(form.getId()));
                 model.addAttribute("actuaciones", servicio.actuaciones(form.getId()));
                 model.addAttribute("historial", servicio.historial(form.getId()));
+                model.addAttribute("agenda", servicio.agenda(form.getId()));
+                model.addAttribute("puedeAgendar", UsuarioActual.tiene("AGENDA_EDITAR"));
+                model.addAttribute("hoy", LocalDate.now(Filas.ZONA));
             }
         }
         return "pantallas/expedientes/form";

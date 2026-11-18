@@ -149,6 +149,7 @@ public class AuditoriaServicio {
             case "parametro": return Optional.of("/admin/parametros/" + registroId);
             case "cliente": return Optional.of("/clientes/" + registroId);
             case "expediente": return Optional.of("/expedientes/" + registroId);
+            case "evento_agenda": return Optional.of("/agenda/" + registroId);
             default:
                 return secciones.seccionDe(tabla).map(s -> "/admin/" + s + "/" + tabla + "/" + registroId);
         }

@@ -1,0 +1,161 @@
+<!doctype html>
+<!--
+  Evento de agenda: alta ("alta"), visualización ("ver", con sus avisos programados) y modificación ("editar").
+  Los vencimientos (tipos de plazo) no llevan hora de fin. El estado se cambia con "Cambiar estado".
+-->
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/layout :: layout(~{::title}, ~{::#contenido}, ~{::estilos})}">
+<head>
+  <title>Evento</title>
+  <th:block th:fragment="estilos"></th:block>
+</head>
+<body>
+<div id="contenido" class="gx-pantalla">
+  <p th:replace="~{componentes/componentes :: ok}"></p>
+
+  <header class="gx-encabezado">
+    <h1><svg class="lucide" width="20" height="20"><use href="#i-calendar-check"/></svg><span th:text="${paginaTitulo}">Evento</span></h1>
+    <p th:text="${modo == 'alta'} ? 'Audiencia, vencimiento, reunión o diligencia' : ${form.titulo}">Evento</p>
+  </header>
+
+  <p th:replace="~{componentes/componentes :: erroresResumen}"></p>
+
+  <form id="form-evento" method="post" th:object="${form}" novalidate
+        th:action="${modo == 'alta'} ? @{/agenda} : @{/agenda/{id}(id=${form.id})}"
+        th:attr="data-confirmar=${modo == 'alta'} ? '¿Confirma el alta del evento?' : '¿Confirma los cambios del evento? Los avisos se recalculan.'">
+    <section class="gx-panel">
+      <h2 class="gx-panel__titulo">Datos del evento</h2>
+      <div class="gx-panel__cuerpo">
+        <div class="gx-campos gx-campos--3">
+          <div class="gx-campo" th:classappend="${errores.tiene('tipoEventoId')} ? 'is-error'">
+            <label for="tipoEventoId" class="requerido">Tipo</label>
+            <select th:field="*{tipoEventoId}" th:disabled="${ver}">
+              <option value="">Seleccione…</option>
+              <option th:each="o : ${tipos}" th:value="${o.id}" th:text="${o.texto}">Audiencia</option>
+            </select>
+            <p th:replace="~{componentes/componentes :: error('tipoEventoId')}"></p>
+          </div>
+          <div class="gx-campo gx-campo--doble" th:classappend="${errores.tiene('titulo')} ? 'is-error'">
+            <label for="titulo" class="requerido">Título</label>
+            <input th:field="*{titulo}" maxlength="150" autocomplete="off" th:disabled="${ver}" th:autofocus="${modo == 'alta'}"
+                   placeholder="Audiencia de conciliación, vence plazo para contestar…">
+            <p th:replace="~{componentes/componentes :: error('titulo')}"></p>
+          </div>
+          <div class="gx-campo" th:classappend="${errores.tiene('fecha')} ? 'is-error'">
+            <label for="fecha" class="requerido">Fecha</label>
+            <input th:field="*{fecha}" type="date" th:disabled="${ver}">
+            <p th:replace="~{componentes/componentes :: error('fecha')}"></p>
+          </div>
+          <div class="gx-campo">
+            <label for="todoElDia">Horario</label>
+            <select th:field="*{todoElDia}" th:disabled="${ver}">
+              <option value="false">Con hora</option>
+              <option value="true">Todo el día</option>
+            </select>
+          </div>
+          <div class="gx-campo" data-visible-si="todoElDia:false" th:classappend="${errores.tiene('horaInicio')} ? 'is-error'">
+            <label for="horaInicio" class="requerido">Hora</label>
+            <input th:field="*{horaInicio}" type="time" th:disabled="${ver}">
+            <p th:replace="~{componentes/componentes :: error('horaInicio')}"></p>
+          </div>
+          <div class="gx-campo" th:if="${idsSinPlazo != ''}" th:attr="data-visible-si=|tipoEventoId:${idsSinPlazo}|"
+               th:classappend="${errores.tiene('horaFin')} ? 'is-error'">
+            <label for="horaFin">Hora de fin</label>
+            <input th:field="*{horaFin}" type="time" th:disabled="${ver}">
+            <p th:replace="~{componentes/componentes :: error('horaFin')}"></p>
+            <span class="gx-ayuda" th:unless="${ver}">Opcional. No se usa en los eventos de todo el día.</span>
+          </div>
+          <div class="gx-campo" th:classappend="${errores.tiene('responsableId')} ? 'is-error'">
+            <label for="responsableId" class="requerido">Responsable</label>
+            <select th:field="*{responsableId}" th:disabled="${ver}">
+              <option value="">Seleccione…</option>
+              <option th:each="o : ${responsables}" th:value="${o.id}" th:text="${o.texto}">Responsable</option>
+            </select>
+            <p th:replace="~{componentes/componentes :: error('responsableId')}"></p>
+          </div>
+          <div class="gx-campo gx-campo--doble" th:classappend="${errores.tiene('expedienteId')} ? 'is-error'">
+            <label for="expedienteId">Expediente</label>
+            <select th:field="*{expedienteId}" th:disabled="${ver}">
+              <option value="">Sin expediente</option>
+              <option th:each="o : ${expedientes}" th:value="${o.id}" th:text="${o.texto}">2026-0001 · Carátula</option>
+            </select>
+            <p th:replace="~{componentes/componentes :: error('expedienteId')}"></p>
+          </div>
+          <div class="gx-campo gx-campo--doble" th:classappend="${errores.tiene('juzgadoId')} ? 'is-error'">
+            <label for="juzgadoId">Juzgado</label>
+            <select th:field="*{juzgadoId}" th:disabled="${ver}">
+              <option value="">Sin juzgado</option>
+              <option th:each="o : ${juzgados}" th:value="${o.id}" th:text="${o.texto}">Juzgado</option>
+            </select>
+            <p th:replace="~{componentes/componentes :: error('juzgadoId')}"></p>
+          </div>
+          <div class="gx-campo" th:classappend="${errores.tiene('lugar')} ? 'is-error'">
+            <label for="lugar">Lugar</label>
+            <input th:field="*{lugar}" maxlength="200" autocomplete="off" th:disabled="${ver}" placeholder="Sala, oficina, dirección">
+            <p th:replace="~{componentes/componentes :: error('lugar')}"></p>
+          </div>
+          <div class="gx-campo gx-campo--completo" th:classappend="${errores.tiene('descripcion')} ? 'is-error'">
+            <label for="descripcion">Descripción</label>
+            <textarea th:field="*{descripcion}" rows="3" maxlength="4000" th:disabled="${ver}"></textarea>
+            <p th:replace="~{componentes/componentes :: error('descripcion')}"></p>
+          </div>
+        </div>
+        <p class="gx-panel__nota" th:unless="${ver}">Los avisos al responsable se programan solos: en los vencimientos, según el
+          parámetro de días de aviso; en los demás tipos, según sus días de aviso.</p>
+      </div>
+    </section>
+
+    <section class="gx-panel" th:if="${ficha != null and ver}">
+      <h2 class="gx-panel__titulo">Estado</h2>
+      <div class="gx-panel__cuerpo">
+        <div class="gx-campos gx-campos--3">
+          <div class="gx-campo"><label>Estado</label><input disabled th:value="${ficha.estado}"></div>
+          <div class="gx-campo gx-campo--doble"><label th:text="${ficha.estado == 'REALIZADO'} ? 'Resultado' : 'Resultado o motivo'">Resultado</label>
+            <textarea disabled rows="2" th:text="${ficha.resultado}"></textarea></div>
+          <div class="gx-campo"><label>Alta</label>
+            <input disabled th:value="|${#temporals.format(ficha.creado_en, 'dd/MM/yyyy HH:mm')}${ficha.creado_por_usuario != null ? ' · ' + ficha.creado_por_usuario : ''}|"></div>
+          <div class="gx-campo"><label>Última modificación</label>
+            <input disabled th:value="${ficha.modificado_en != null} ? |${#temporals.format(ficha.modificado_en, 'dd/MM/yyyy HH:mm')} · ${ficha.modificado_por_usuario}| : 'Sin cambios'"></div>
+        </div>
+      </div>
+    </section>
+
+    <div class="gx-acciones-pie" th:unless="${ver}">
+      <button type="submit" class="gx-btn gx-btn--icono"><svg class="lucide" width="16" height="16"><use href="#i-save"/></svg>Confirmar</button>
+      <a class="gx-btn gx-btn--secundario" th:href="${form.id == null} ? @{/agenda} : @{/agenda/{id}(id=${form.id})}">Cancelar</a>
+    </div>
+  </form>
+
+  <th:block th:if="${ver}">
+    <div class="gx-acciones-pie">
+      <a th:if="${puedeEditar and modificable}" class="gx-btn gx-btn--icono" th:href="@{/agenda/{id}/editar(id=${form.id})}"><svg class="lucide" width="16" height="16"><use href="#i-pencil"/></svg>Modificar</a>
+      <a th:if="${puedeEditar and modificable}" class="gx-btn gx-btn--secundario" th:href="@{/agenda/{id}/estado(id=${form.id})}">Cambiar estado</a>
+      <a th:if="${form.expedienteId != null}" class="gx-btn gx-btn--secundario" th:href="@{/expedientes/{id}(id=${form.expedienteId})} + '#agenda'">Ir al expediente</a>
+      <a class="gx-btn gx-btn--secundario" th:href="@{/agenda}">Volver</a>
+    </div>
+
+    <section class="gx-panel" id="avisos">
+      <h2 class="gx-panel__titulo">Avisos programados</h2>
+      <div class="gx-panel__cuerpo">
+        <div class="gx-grilla-wrap">
+          <table class="gx-grilla">
+            <thead><tr><th>Fecha del aviso</th><th>Para</th><th>Canal</th><th>Estado</th></tr></thead>
+            <tbody>
+              <tr th:if="${#lists.isEmpty(recordatorios)}"><td colspan="4" class="gx-grilla__vacio">Este evento no tiene avisos (su tipo no los lleva o ya pasaron).</td></tr>
+              <tr th:each="r : ${recordatorios}">
+                <td th:text="${#temporals.format(r.fecha_aviso, 'EEE dd/MM/yyyy HH:mm')}">lun 01/01/2026 08:00</td>
+                <td th:text="${r.usuario}">usuario</td>
+                <td th:text="${r.canal == 'SISTEMA'} ? 'Aviso en el sistema' : 'Email'">Sistema</td>
+                <td><span class="gx-etiqueta" th:text="${r.estado}"
+                          th:classappend="${r.estado == 'ENVIADO'} ? 'gx-etiqueta--exito' : (${r.estado == 'PENDIENTE'} ? 'gx-etiqueta--info' : 'gx-etiqueta--aviso')">PENDIENTE</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="gx-panel__nota">Si el evento cambia de fecha o de responsable, los avisos pendientes se recalculan; si deja de estar pendiente, se anulan.</p>
+      </div>
+    </section>
+  </th:block>
+</div>
+</body>
+</html>

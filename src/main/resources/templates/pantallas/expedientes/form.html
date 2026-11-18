@@ -249,6 +249,34 @@
       </div>
     </section>
 
+    <section class="gx-panel" id="agenda">
+      <h2 class="gx-panel__titulo" th:text="|Agenda (${#lists.size(agenda)})|">Agenda</h2>
+      <div class="gx-panel__cuerpo">
+        <div class="gx-barra-resumen">
+          <a th:if="${puedeAgendar and !cerrado}" class="gx-btn gx-btn--icono" th:href="@{/agenda/nuevo(expediente=${form.id})}"><svg class="lucide" width="16" height="16"><use href="#i-calendar-check"/></svg>Agendar</a>
+          <span th:unless="${puedeAgendar and !cerrado}"></span>
+          <span class="gx-panel__nota">Audiencias, vencimientos y demás eventos del caso: primero los pendientes</span>
+        </div>
+        <div class="gx-grilla-wrap">
+          <table class="gx-grilla" data-paginar="10">
+            <thead><tr><th>Fecha</th><th>Tipo</th><th>Título</th><th>Responsable</th><th>Estado</th></tr></thead>
+            <tbody>
+              <tr th:if="${#lists.isEmpty(agenda)}"><td colspan="5" class="gx-grilla__vacio">El expediente no tiene eventos agendados.</td></tr>
+              <tr th:each="ev : ${agenda}" th:classappend="${ev.estado == 'PENDIENTE' and ev.fecha_inicio.toLocalDate().isBefore(hoy)} ? 'gx-fila--peligro'">
+                <td><a class="gx-enlace" th:href="@{/agenda/{id}(id=${ev.id})}"
+                       th:text="${ev.todo_el_dia} ? ${#temporals.format(ev.fecha_inicio, 'EEE dd/MM/yyyy')} : ${#temporals.format(ev.fecha_inicio, 'EEE dd/MM/yyyy HH:mm')}">lun 01/01/2026</a></td>
+                <td><span class="lx-muestra" th:style="|background: var(--${ev.color})|"></span><span th:text="${ev.tipo}">Audiencia</span></td>
+                <td th:text="${ev.titulo}">Título</td>
+                <td th:text="${ev.responsable}">usuario</td>
+                <td><span class="gx-etiqueta" th:text="${ev.estado}"
+                          th:classappend="${ev.estado == 'REALIZADO'} ? 'gx-etiqueta--exito' : (${ev.estado == 'CANCELADO'} ? 'gx-etiqueta--peligro' : (${ev.estado == 'SUSPENDIDO'} ? 'gx-etiqueta--aviso' : 'gx-etiqueta--info'))">PENDIENTE</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
     <section class="gx-panel" id="historial">
       <h2 class="gx-panel__titulo">Historial de estados</h2>
       <div class="gx-panel__cuerpo">

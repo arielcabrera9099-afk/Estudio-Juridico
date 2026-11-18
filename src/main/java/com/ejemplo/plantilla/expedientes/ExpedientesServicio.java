@@ -165,6 +165,15 @@ public class ExpedientesServicio {
                 + "WHERE a.expediente_id = :id ORDER BY a.fecha DESC, a.id DESC", Map.of("id", id));
     }
 
+    /** Eventos de agenda del expediente: primero los pendientes por fecha, después el resto (los más nuevos primero). */
+    public List<Map<String, Object>> agenda(long id) {
+        return Filas.lista(jdbc, "SELECT ev.id, ev.titulo, ev.fecha_inicio, ev.todo_el_dia, ev.estado, te.nombre AS tipo, te.color, "
+                + "u.nombre_usuario AS responsable FROM evento_agenda ev JOIN tipo_evento te ON te.id = ev.tipo_evento_id "
+                + "JOIN usuario u ON u.id = ev.responsable_id WHERE ev.expediente_id = :id "
+                + "ORDER BY CASE WHEN ev.estado = 'PENDIENTE' THEN 0 ELSE 1 END, "
+                + "CASE WHEN ev.estado = 'PENDIENTE' THEN ev.fecha_inicio END, ev.fecha_inicio DESC", Map.of("id", id));
+    }
+
     public List<Map<String, Object>> historial(long id) {
         return Filas.lista(jdbc, "SELECT h.*, ea.nombre AS anterior, en.nombre AS nuevo, u.nombre_usuario AS usuario "
                 + "FROM expediente_estado_historial h LEFT JOIN estado_expediente ea ON ea.id = h.estado_anterior_id "

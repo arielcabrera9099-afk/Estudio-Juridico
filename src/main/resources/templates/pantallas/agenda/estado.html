@@ -1,0 +1,50 @@
+<!doctype html>
+<!-- Cambio de estado de un evento: realizado (con resultado), suspendido o cancelado (con motivo), o de nuevo pendiente. -->
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/layout :: layout(~{::title}, ~{::#contenido}, ~{::estilos})}">
+<head>
+  <title>Cambiar estado</title>
+  <th:block th:fragment="estilos"></th:block>
+</head>
+<body>
+<div id="contenido" class="gx-pantalla gx-pantalla--angosta">
+  <header class="gx-encabezado">
+    <h1><svg class="lucide" width="20" height="20"><use href="#i-workflow"/></svg><span th:text="${paginaTitulo}">Cambiar estado</span></h1>
+    <p th:text="|${ficha.titulo} · ${#temporals.format(ficha.fecha_inicio, 'dd/MM/yyyy HH:mm')}|">Evento</p>
+  </header>
+
+  <p th:replace="~{componentes/componentes :: erroresResumen}"></p>
+
+  <form method="post" novalidate th:action="@{/agenda/{id}/estado(id=${ficha.id})}" data-confirmar="¿Confirma el cambio de estado del evento?">
+    <section class="gx-panel">
+      <h2 class="gx-panel__titulo">Estado</h2>
+      <div class="gx-panel__cuerpo">
+        <div class="gx-campos">
+          <div class="gx-campo"><label>Estado actual</label><input disabled th:value="${ficha.estado}"></div>
+          <div class="gx-campo" th:classappend="${errores.tiene('estado')} ? 'is-error'">
+            <label for="estado" class="requerido">Estado nuevo</label>
+            <select id="estado" name="estado" th:disabled="${#lists.isEmpty(estados)}">
+              <option value="">Seleccione…</option>
+              <option th:each="s : ${estados}" th:value="${s}" th:text="${s}" th:selected="${s == nuevo}">REALIZADO</option>
+            </select>
+            <p th:replace="~{componentes/componentes :: error('estado')}"></p>
+          </div>
+          <div class="gx-campo gx-campo--completo" data-visible-si="estado:REALIZADO|SUSPENDIDO|CANCELADO"
+               th:classappend="${errores.tiene('resultado')} ? 'is-error'">
+            <label for="resultado" class="requerido">Resultado o motivo</label>
+            <textarea id="resultado" name="resultado" rows="4" maxlength="4000" th:text="${resultado}"
+                      placeholder="Realizado: qué pasó. Suspendido o cancelado: por qué."></textarea>
+            <p th:replace="~{componentes/componentes :: error('resultado')}"></p>
+          </div>
+        </div>
+        <p class="gx-panel__nota">Realizado y cancelado son definitivos. Al dejar de estar pendiente, se anulan sus avisos.</p>
+        <div class="gx-acciones-pie">
+          <button type="submit" class="gx-btn gx-btn--icono" th:disabled="${#lists.isEmpty(estados)}"><svg class="lucide" width="16" height="16"><use href="#i-save"/></svg>Confirmar</button>
+          <a class="gx-btn gx-btn--secundario" th:href="@{/agenda/{id}(id=${ficha.id})}">Cancelar</a>
+        </div>
+      </div>
+    </section>
+  </form>
+</div>
+</body>
+</html>

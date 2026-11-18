@@ -225,3 +225,26 @@ html:has(#contenido.lx-inicio) .admin-shell .admin-content {
 
 /* Textos largos en una grilla (bitácora, observaciones): respetan los saltos de línea. */
 .gx-grilla td.lx-texto-largo { white-space: pre-line; min-width: 260px; }
+
+/* ---- Calendario mensual de la agenda ----
+   Grilla de 7 columnas (lunes a domingo). Cada evento es un renglón con el borde izquierdo del color de su tipo. */
+.lx-calendario { width: 100%; border-collapse: collapse; table-layout: fixed; background: #fff; }
+.lx-calendario th { padding: 6px 8px; font-size: 12px; font-weight: 600; text-align: left; color: var(--lx-texto-secundario, #747B85);
+  background: var(--lx-gris-claro, #F3F4F6); border: 1px solid var(--lx-borde, #D9DDE3); }
+.lx-calendario td { height: 104px; padding: 4px; vertical-align: top; border: 1px solid var(--lx-borde, #D9DDE3); }
+.lx-dia-otro { background: #FAFAFB; }
+.lx-dia-otro .lx-calendario__dia span { color: #B4B9C0; }
+.lx-dia-hoy { box-shadow: inset 0 2px 0 var(--lx-dorado, #B99A5B); }
+.lx-dia-hoy .lx-calendario__dia span { font-weight: 700; color: var(--lx-dorado-oscuro, #8C733F); }
+.lx-calendario__dia { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px; font-size: 12px; }
+.lx-calendario__agregar { width: 18px; height: 18px; line-height: 16px; text-align: center; border-radius: 2px;
+  color: var(--lx-texto-secundario, #747B85); text-decoration: none; visibility: hidden; }
+.lx-calendario td:hover .lx-calendario__agregar, .lx-calendario__agregar:focus { visibility: visible; background: var(--lx-gris-claro, #F3F4F6); }
+.lx-calendario__evento { display: block; margin-bottom: 2px; padding: 1px 4px; border-left: 3px solid var(--wwp-info);
+  background: #F7F8FA; font-size: 11.5px; line-height: 1.35; color: var(--lx-texto, #30343B); text-decoration: none;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lx-calendario__evento span:first-child { font-weight: 600; margin-right: 3px; }
+.lx-calendario__evento:hover { background: #EEF0F3; }
+.lx-calendario__evento--cerrado { opacity: .55; text-decoration: line-through; }
+.lx-calendario__mes { font-size: 15px; color: var(--lx-texto, #30343B); }
+@media (max-width: 640px) { .lx-calendario td { height: 72px; } .lx-calendario__evento span:first-child { display: none; } }
